@@ -1,0 +1,17 @@
+{
+  "name": "EDUVERSE 3D - Trường TH&THCS Vĩnh Thực",
+  "short_name": "EDUVERSE 3D",
+  "description": "Khuôn viên 3D tương tác thực tế ảo Trường TH&THCS Vĩnh Thực",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1A2A44",
+  "theme_color": "#E89848",
+  "orientation": "landscape-primary",
+  "icons": [
+    {
+      "src": "/images/preview_aerial_overview.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
+}

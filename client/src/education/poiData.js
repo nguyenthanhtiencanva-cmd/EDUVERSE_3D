@@ -1,0 +1,300 @@
+/**
+ * Points of Interest (POIs) - Trường TH&THCS Vĩnh Thực & Sa bàn Toàn đảo Vĩnh Thực (Móng Cái, Quảng Ninh)
+ * Coordinates in Three.js coordinate system (Y is UP, Z is North(-)/South(+))
+ * Calibrated 1:1 against Google Maps Satellite Image
+ */
+
+// ============================================================================
+// 1. CẤP ĐỘ TOÀN ĐẢO VĨNH THỰC (ISLAND OVERVIEW POIs - 10 ĐỊA DANH CHUẨN VỆ TINH)
+// ============================================================================
+export const ISLAND_POI_LIST = [
+  {
+    id: 'island-campus-vinh-trung',
+    title: 'Phân Hiệu Vĩnh Trung - Trường TH&THCS Vĩnh Thực (Mô Hình 1:1)',
+    shortTitle: '🏫 Phân hiệu Vĩnh Trung (1:1)',
+    category: 'Hệ thống Giáo dục (3 Phân hiệu)',
+    isSchoolCampus: true,
+    hasDetailed3D: true,
+    position: [-26.0, 2.5, -0.5],
+    badgePosition: [-26.0, 5.8, -0.5],
+    cameraTarget: [-26.0, 2.2, -0.5],
+    cameraPosition: [-26.0, 14.0, 16.5],
+    image: '/images/preview_aerial_overview.png',
+    description:
+      'Điểm trường Phân hiệu Vĩnh Trung (tọa độ 21.37126°N, 107.90434°E) nằm tại Thôn 3 xã Vĩnh Trung, thuộc Trường TH&THCS Vĩnh Thực. Đã được dựng chi tiết tỷ lệ 1:1 theo ảnh thực tế và vệ tinh Google Maps gồm: Tòa A 3 tầng, Tòa B & Lễ đài chào cờ, Tòa C2 2 tầng, Nhà Đa Năng C1, Khu vui chơi vận động 2 ô cỏ ngang và Tòa Hiệu bộ D.',
+    details: [
+      { label: 'Tọa độ GPS', value: '21.3712629° N, 107.9043412° E (Thôn 3 Vĩnh Trung)' },
+      { label: 'Cấu trúc công trình', value: 'Tòa A (3F), Tòa B Lễ đài (2F), Tòa C2 (2F), Nhà Đa Năng C1, Hiệu bộ D (3F)' },
+      { label: 'Khẩu hiệu tiêu biểu', value: '"Quản lý tốt - Dạy tốt - Học tốt" & "Dù khó khăn đến đâu cũng phải thi đua dạy tốt, học tốt"' },
+      { label: 'Trạng thái mô hình 3D', value: 'Đã hoàn thiện mô hình 3D chi tiết tỷ lệ 1:1 (Bấm nút bên dưới để vào sân trường)' },
+    ],
+  },
+  {
+    id: 'island-campus-dau-dong',
+    title: 'Phân Hiệu Điểm Chính (Thôn Đầu Đông) - Trường TH&THCS Vĩnh Thực',
+    shortTitle: '🏫 Phân hiệu Điểm chính (Đầu Đông)',
+    category: 'Hệ thống Giáo dục (3 Phân hiệu)',
+    isSchoolCampus: true,
+    hasDetailed3D: false,
+    position: [28.0, 2.5, -1.5],
+    badgePosition: [28.0, 5.8, -1.5],
+    cameraTarget: [28.0, 2.2, -1.5],
+    cameraPosition: [28.0, 14.0, 15.5],
+    image: '/images/preview_island_overview.png',
+    description:
+      'Điểm trường trung tâm của Trường Tiểu học & THCS Vĩnh Thực đặt tại Thôn Đầu Đông (phía Đông Bắc đảo Vĩnh Thực), nơi đặt trụ sở ban giám hiệu sau quyết định hợp nhất các trường trên địa bàn xã đảo.',
+    details: [
+      { label: 'Vị trí địa lý', value: 'Thôn Đầu Đông, xã Vĩnh Thực, TP. Móng Cái, Quảng Ninh' },
+      { label: 'Vai trò', value: 'Phân hiệu điểm chính - Trung tâm điều hành & giảng dạy TH&THCS Vĩnh Thực' },
+      { label: 'Kết nối giao thông', value: 'Nằm trên trục đường xuyên đảo, cách Bãi biển Đầu Đông 800m' },
+      { label: 'Định hướng mở rộng 3D', value: 'Sẵn sàng tích hợp mô hình 1:1 khi cập nhật bình đồ vệ tinh & ảnh chụp thực địa' },
+    ],
+  },
+  {
+    id: 'island-campus-vinh-thuc-2',
+    title: 'Phân Hiệu 2 (Khu Vực Trung Tâm Vĩnh Thực) - Trường TH&THCS Vĩnh Thực',
+    shortTitle: '🏫 Phân hiệu 2 (Vĩnh Thực)',
+    category: 'Hệ thống Giáo dục (3 Phân hiệu)',
+    isSchoolCampus: true,
+    hasDetailed3D: false,
+    position: [3.0, 2.5, -0.5],
+    badgePosition: [3.0, 5.5, -0.5],
+    cameraTarget: [3.0, 2.2, -0.5],
+    cameraPosition: [3.0, 13.5, 16.5],
+    image: '/images/preview_island_overview.png',
+    description:
+      'Phân hiệu thứ 3 trong hệ thống trường liên cấp xã đảo, tọa lạc tại khu dân cư trung tâm xã Vĩnh Thực, ngay đoạn eo đảo thắt hẹp giáp hồ nước ngọt trung tâm.',
+    details: [
+      { label: 'Đơn vị chủ quản', value: 'Trường Tiểu học & THCS Vĩnh Thực (TP. Móng Cái)' },
+      { label: 'Vị trí trên đảo', value: 'Khu vực trung tâm xã đảo Vĩnh Thực, cạnh trục đường xuyên đảo' },
+      { label: 'Quy mô kiến trúc', value: 'Tổ hợp dãy nhà học 2 tầng mái ngói đỏ & sân chào cờ trung tâm' },
+    ],
+  },
+  {
+    id: 'island-cang-van-gia',
+    title: 'Bến Tàu Vạn Gia (Bờ Bắc Đảo Vĩnh Thực)',
+    shortTitle: '⚓ Bến Tàu Vạn Gia (Bờ Bắc)',
+    category: 'Giao thông Hàng hải & Kinh tế Biển',
+    position: [17.0, 1.8, -12.5],
+    badgePosition: [17.0, 5.5, -12.5],
+    cameraTarget: [17.0, 1.5, -12.5],
+    cameraPosition: [17.0, 13.0, 3.5],
+    image: '/images/preview_island_overview.png',
+    description:
+      'Cửa ngõ hàng hải huyết mạch nằm tại bờ Bắc đảo Vĩnh Thực, nép trong vụng biển êm hướng thẳng về phía Bến Mũi Ngọc (đất liền TP. Móng Cái). Tuyến cano, xuồng cao tốc chỉ mất khoảng 15–20 phút để kết nối đất liền với đảo.',
+    details: [
+      { label: 'Vị trí vệ tinh', value: 'Bờ Bắc đảo Vĩnh Thực (Quay về hướng Bến Mũi Ngọc - Đất liền)' },
+      { label: 'Tuyến kết nối', value: 'Bến Mũi Ngọc ↔ Bến Tàu Vạn Gia (~10 km đường biển kín gió)' },
+      { label: 'Hạng mục 3D', value: 'Cầu cảng bê tông hướng Bắc, nhà ga bến cảng & đội xuồng cao tốc chở khách' },
+    ],
+  },
+  {
+    id: 'island-don-bien-phong',
+    title: 'Đồn Biên Phòng Cửa Khẩu Cảng Vạn Gia',
+    shortTitle: '🛡️ Đồn Biên phòng Cảng Vạn Gia',
+    category: 'Chủ quyền & Quốc phòng Biển đảo',
+    position: [12.0, 2.5, -9.5],
+    badgePosition: [12.0, 6.0, -9.5],
+    cameraTarget: [12.0, 2.2, -9.5],
+    cameraPosition: [12.0, 13.5, 7.0],
+    image: '/images/preview_island_overview.png',
+    description:
+      'Đơn vị Bộ đội Biên phòng trực tiếp đóng quân bảo vệ cửa ngõ hàng hải Vạn Gia và an ninh chủ quyền toàn bộ 2 xã đảo Vĩnh Thực – Vĩnh Trung, nằm cận kề Bến tàu Vạn Gia trên sườn đồi bờ Bắc.',
+    details: [
+      { label: 'Vị trí đóng quân', value: 'Sườn đồi bờ Bắc Vạn Gia, kiểm soát trọn luồng lạch đường thủy' },
+      { label: 'Nhiệm vụ chiến lược', value: 'Tuần tra biển, bảo vệ an ninh trật tự, đồng hành cùng nhà trường và ngư dân' },
+      { label: 'Hạng mục 3D', value: 'Sở chỉ huy 2 tầng, sân điều lệnh, cột cờ Tổ quốc, vọng gác biên phòng & tàu tuần tra' },
+    ],
+  },
+  {
+    id: 'island-den-le-ba-duc',
+    title: 'Đền Thờ Tướng Quân Lê Bá Đức (Miếu Bến Hèn)',
+    shortTitle: '⛩️ Đền thờ Tướng quân Lê Bá Đức',
+    category: 'Di tích Lịch sử & Văn hóa Tâm linh',
+    position: [-30.0, 2.5, 2.5],
+    badgePosition: [-30.0, 5.6, 2.5],
+    cameraTarget: [-30.0, 2.2, 2.5],
+    cameraPosition: [-30.0, 12.0, 19.5],
+    image: '/images/preview_island_overview.png',
+    description:
+      'Di tích văn hóa tâm linh thiêng liêng tại khu vực Bến Hèn (Vĩnh Trung), thờ Tả tướng quân Lê Bá Đức (thời nhà Trần) có công lao to lớn bảo vệ biên cương bờ cõi biển Đông Bắc, tựa lưng vào đồi cây cổ thụ hướng mặt ra Bãi cát Bến Hèn.',
+    details: [
+      { label: 'Nhân vật lịch sử', value: 'Tả tướng quân Lê Bá Đức - Danh tướng triều Trần (Thế kỷ XIII)' },
+      { label: 'Vị trí', value: 'Thôn 3 Vĩnh Trung, cạnh Bãi biển Bến Hèn' },
+      { label: 'Kiến trúc 3D', value: 'Cổng Tam quan 4 trụ biểu, sân gạch đỏ, lư hương đá, chính điện mái đao cong & cây đa cổ thụ' },
+    ],
+  },
+  {
+    id: 'island-hai-dang',
+    title: 'Hải Đăng Vĩnh Thực (Đỉnh Núi Đầu Tán - 1962)',
+    shortTitle: '🗼 Hải đăng Vĩnh Thực (1962)',
+    category: 'Biểu tượng Chủ quyền & Hàng hải',
+    position: [65.0, 11.5, -13.5],
+    badgePosition: [65.0, 18.5, -13.5],
+    cameraTarget: [65.0, 13.5, -13.5],
+    cameraPosition: [53.0, 24.0, 3.5],
+    image: '/images/preview_island_overview.png',
+    description:
+      'Được xây dựng từ năm 1962 trên đỉnh núi Đầu Tán ở cực Đông Bắc đảo Vĩnh Thực. Là ngọn hải đăng quốc tế đầu tiên trên tuyến biên giới biển Đông Bắc, mệnh danh là "Mắt thần vùng biển Đông Bắc Tổ quốc".',
+    details: [
+      { label: 'Tọa độ địa lý', value: '21°23\'48" N, 107°59\'30" E (Đỉnh núi Đầu Tán cao >84m)' },
+      { label: 'Kiến trúc ngọn đèn', value: 'Tháp trụ tròn cao 18m, trạm gác đèn biển, ban đêm phát tín hiệu quét sáng' },
+      { label: 'Ý nghĩa chủ quyền', value: 'Cột mốc hàng hải quốc tế đầu tiên trên vùng biển Đông Bắc Tổ quốc' },
+    ],
+  },
+  {
+    id: 'island-bai-dau-dong',
+    title: 'Bãi Biển Đầu Đông (Bờ Đông Nam - Nhà Hàng Xuân Mến, Trường Diệu)',
+    shortTitle: '🏖️ Bãi biển Đầu Đông',
+    category: 'Sinh thái & Danh thắng Biển đảo',
+    position: [35.0, 1.2, 4.0],
+    badgePosition: [35.0, 4.5, 4.0],
+    cameraTarget: [35.0, 1.0, 4.0],
+    cameraPosition: [35.0, 11.0, 21.0],
+    image: '/images/preview_island_overview.png',
+    description:
+      'Bãi tắm biển tuyệt đẹp ở bờ Đông Nam đảo Vĩnh Thực với bờ cát thoai thoải hình lưỡi liềm dài 5,5 km, làn nước trong xanh, rừng phi lao phòng hộ và chuỗi dịch vụ ẩm thực hải sản nổi tiếng (Nhà hàng Trường Diệu, Nhà hàng Xuân Mến).',
+    details: [
+      { label: 'Vị trí vệ tinh', value: 'Bờ Đông Nam đảo Vĩnh Thực, trải dài từ Thôn Đầu Đông ra mũi biển' },
+      { label: 'Địa danh gắn liền', value: 'Nhà hàng Trường Diệu, Nhà hàng Xuân Mến, rừng phi lao chắn sóng' },
+    ],
+  },
+  {
+    id: 'island-bai-ben-hen',
+    title: 'Bãi Biển Bến Hèn & Doi Cát Tây Nam (Xã Vĩnh Trung)',
+    shortTitle: '🏖️ Bãi biển Bến Hèn',
+    category: 'Sinh thái & Danh thắng Biển đảo',
+    position: [-42.0, 1.2, 8.0],
+    badgePosition: [-42.0, 4.5, 8.0],
+    cameraTarget: [-42.0, 1.0, 8.0],
+    cameraPosition: [-42.0, 11.0, 25.0],
+    image: '/images/preview_island_overview.png',
+    description:
+      'Dải doi cát Bến Hèn dài hơn 3km chạy thẳng tắp ở bờ Nam phía Tây Nam, ôm trọn vùng đầm trũng nuôi trồng thủy sản và uốn cong thành mũi cát hình móc câu đặc trưng ở cực Tây Nam.',
+    details: [
+      { label: 'Hình thái địa chất', value: 'Doi cát chắn sóng tự nhiên bao quanh đầm triều và ao đầm nuôi thủy sản' },
+      { label: 'Địa danh gắn liền', value: 'Đền Lê Bá Đức, làng chài ven biển, Nhà hàng Hoàng Thơm' },
+    ],
+  },
+  {
+    id: 'island-fishermans-wharf',
+    title: 'Mũi Tây & Bến Cá Dân Sinh (Fisherman\'s Wharf)',
+    shortTitle: '⚓ Bến cá Mũi Tây',
+    category: 'Ngư nghiệp & Đời sống Dân sinh',
+    position: [-64.0, 1.2, -1.5],
+    badgePosition: [-64.0, 4.5, -1.5],
+    cameraTarget: [-64.0, 1.0, -1.5],
+    cameraPosition: [-64.0, 11.0, 15.5],
+    image: '/images/preview_island_overview.png',
+    description:
+      'Mỏm đá rạn ở cực Tây đảo Vĩnh Thực, nơi ngư dân cập bến neo đậu tàu cá đánh bắt gần bờ và sơ chế hải sản tươi sống.',
+    details: [
+      { label: 'Vị trí địa lý', value: 'Cực Tây xã Vĩnh Trung, tiếp giáp luồng lạch biển phía Tây' },
+      { label: 'Hạng mục 3D', value: 'Cầu cập xuồng gỗ, lán dân sinh & thuyền câu của ngư dân' },
+    ],
+  },
+];
+
+// ============================================================================
+// 2. CẤP ĐỘ CHI TIẾT 1:1 - PHÂN HIỆU VĨNH TRUNG (SCHOOL CAMPUS POIs)
+// ============================================================================
+export const POI_LIST = [
+  {
+    id: 'building-a',
+    title: 'Tòa Nhà A - Dãy Phòng Học Chính (3 Tầng)',
+    category: 'Học tập & Giảng dạy',
+    position: [18.55, 4.5, 6.2],
+    badgePosition: [13.5, 6.0, 5.5],
+    cameraTarget: [15.0, 3.5, 5.5],
+    cameraPosition: [2.0, 6.5, 16.0],
+    image: '/images/486607577_1164971158754969_5964131103210838734_n.jpg',
+    description: 'Dãy nhà học 3 tầng dài 52m chuẩn mặt bằng vệ tinh Google Maps, gồm 10 nhịp phòng học văn hóa, cầu nối góc Đông-Bắc sang Tòa B, bồn hoa và hàng ghế đá dọc hành lang.',
+    details: [
+      { label: 'Quy mô thực tế', value: '52.0m × 8.6m × 10.8m (3 tầng, khớp 1:1 Google Maps)' },
+      { label: 'Sảnh chính', value: 'Mái đón tầng 1 + đôi câu đối đỏ & biển khẩu hiệu ngang' },
+      { label: 'Khẩu hiệu', value: '"Mỗi thầy giáo, cô giáo là một tấm gương đạo đức tự học và sáng tạo"' },
+      { label: 'Tiện ích hành lang', value: 'Bồn cây cắt tỉa, 8 ghế đá học sinh, bảng tin & thùng rác phân loại' },
+    ],
+  },
+  {
+    id: 'building-b-stage',
+    title: 'Tòa Nhà B & Sân Khấu Lễ Đài Chào Cờ',
+    category: 'Khu nghi thức & Sự kiện',
+    position: [1.4, 3.5, -24.5],
+    badgePosition: [1.4, 5.0, -19.5],
+    cameraTarget: [1.4, 2.5, -22.5],
+    cameraPosition: [1.4, 3.5, -6.5],
+    image: '/images/486703373_1164970822088336_2558455371153302740_n.jpg',
+    description: 'Dãy phòng học 2 tầng phía Bắc kết hợp Lễ đài chào cờ trung tâm. Bậc tam cấp 7 bậc lát gạch đỏ bao 3 mặt, 2 cột tròn vàng, cửa sắt xếp xanh cầu thang tầng 1, pano đôi Bác Hồ tầng 2 và 2 chậu cảnh xanh họa tiết vàng.',
+    details: [
+      { label: 'Lễ đài & Bậc tam cấp', value: 'Bậc gạch đỏ 7 cấp bao 3 mặt + 2 cột tròn vàng chân đế vuông' },
+      { label: 'Mái lễ đài & Âm thanh', value: '"QUẢN LÝ TỐT - DẠY TỐT - HỌC TỐT", 7 cờ đỏ & 2 loa phóng thanh' },
+      { label: 'Tầng 2 & Khẩu hiệu mái', value: 'Pano đôi Bác Hồ + 2 khẩu hiệu xanh dương "Vì lợi ích mười năm/trăm năm..."' },
+      { label: 'Cảnh quan chân lễ đài', value: '2 chậu bonsai gốm xanh đắp nổi vàng & hàng tùng bách tán' },
+    ],
+  },
+  {
+    id: 'building-c-gym',
+    title: 'Nhà Đa Năng (C1) & Tòa Nhà 2 Tầng Cánh Tây (C2)',
+    category: 'Thể thao & Phòng chức năng',
+    position: [-25.0, 5.0, 0.0],
+    badgePosition: [-21.0, 5.5, 6.0],
+    cameraTarget: [-26.0, 3.5, -2.0],
+    cameraPosition: [-10.0, 6.5, 16.0],
+    image: '/images/frame_020.jpg',
+    description: 'Tổ hợp cánh Tây gồm: Tòa C2 (2 tầng, 8 nhịp, bậc đá granite đỏ, khẩu hiệu "Dù khó khăn đến đâu cũng phải thi đua dạy tốt, học tốt", bồn nước inox Sơn Hà trên mái) và Nhà Đa Năng C1 có sảnh phụ hướng Đông ốp đá granite.',
+    details: [
+      { label: 'Tòa C2 (Cánh Tây - Ảnh 1)', value: '26.0m × 8.2m (2 tầng, 8 nhịp, cửa chính 4 cánh trắng, bậc granite đỏ)' },
+      { label: 'Khẩu hiệu Tòa C2', value: '"DÙ KHÓ KHĂN ĐẾN ĐÂU CŨNG PHẢI THI ĐUA DẠY TỐT, HỌC TỐT"' },
+      { label: 'Nhà Đa Năng C1 (Ảnh 3)', value: 'Mặt Đông 3 nhịp bổ trụ trắng, sảnh phụ ốp đá granite nâu vàng + cửa sổ khung tối' },
+      { label: 'Phụ trợ & Nhà xe C3', value: 'Bồn nước inox góc mái Bắc Tòa C2 + Lán xe học sinh mái xanh phía Nam' },
+    ],
+  },
+  {
+    id: 'courtyard-gardens',
+    title: 'Khu Vui Chơi Vận Động 2 Ô Cỏ Ngang & Sân Trường',
+    category: 'Cảnh quan & Vận động thể chất',
+    position: [-7.2, 1.2, 6.0],
+    badgePosition: [-7.2, 2.8, 2.0],
+    cameraTarget: [-7.2, 1.0, 6.0],
+    cameraPosition: [-4.5, 4.5, -8.0],
+    image: '/images/486288996_1164972682088150_5203325261111208779_n.jpg',
+    description: 'Hai ô cỏ lớn nằm ngang giữa sân trường là Khu vui chơi - vận động thể chất ngoài trời cho học sinh tiểu học, bao quanh bởi bó vỉa vàng-trắng, viền cây bụi và cây bàng Đài Loan non có cọc chống.',
+    details: [
+      { label: 'Khung vận động trung tâm', value: 'Khung leo lập phương đa sắc (Xanh - Vàng - Đỏ) & thang leo cầu vồng bán nguyệt' },
+      { label: 'Tổ hợp cầu trượt & Thú nhún', value: 'Nhà cầu trượt mái chóp nón vàng + dàn thú nhún lò xo xanh/vàng/đỏ' },
+      { label: 'Cây xanh & Bó vỉa', value: '2 ô cỏ ngang viền cây bụi cắt tỉa + cây bàng Đài Loan non có 3 cọc gỗ chống' },
+    ],
+  },
+  {
+    id: 'main-gate',
+    title: 'Cổng Trường Chính, Nhà Bảo Vệ & Đường Liên Thôn',
+    category: 'Lối vào chính',
+    position: [8.4, 2.5, 40.0],
+    badgePosition: [8.4, 4.2, 37.0],
+    cameraTarget: [8.4, 2.2, 40.0],
+    cameraPosition: [7.5, 4.2, 25.0],
+    image: '/images/frame_025.jpg',
+    description: 'Cổng chính nằm tại nút cổ chai phía Nam giáp trục đường liên thôn xã đảo Vĩnh Thực, đi kèm nhà trực bảo vệ mái ngói đỏ vuông vắn và tường rào vát chéo Tây-Nam.',
+    details: [
+      { label: 'Tọa độ GPS thực tế', value: '21.37126° N, 107.90434° E (Phân hiệu Vĩnh Trung)' },
+      { label: 'Khẩu hiệu cổng', value: '"HIỀN TÀI LÀ NGUYÊN KHÍ QUỐC GIA"' },
+      { label: 'Nhà bảo vệ', value: '3.6m × 3.6m mái ngói đỏ nằm giữa Cổng và đầu Nam Tòa A' },
+    ],
+  },
+  {
+    id: 'building-d-admin',
+    title: 'Tòa Hiệu Bộ 3 Tầng & Vườn Cảnh Quan Hình Tròn',
+    category: 'Quản lý & Cảnh quan',
+    position: [35.5, 5.0, -25.5],
+    badgePosition: [35.5, 6.5, -19.5],
+    cameraTarget: [35.5, 4.0, -24.0],
+    cameraPosition: [35.5, 9.5, -3.0],
+    image: '/images/frame_020.jpg',
+    description: 'Khối Hiệu bộ 3 tầng quay mặt tiền về hướng Nam (song song Tòa B), đi kèm nhà chức năng 1 tầng và khu vườn thảm cỏ lớn có lối dạo bộ hình tròn đồng tâm phía Đông.',
+    details: [
+      { label: 'Quy mô Hiệu bộ', value: '17.5m × 10.0m × 10.2m (quay hướng Nam, 2 bảng đỏ tầng 2)' },
+      { label: 'Vườn cảnh quan Đông', value: '19.5m × 27.5m thảm cỏ xanh & đường dạo bộ tròn đồng tâm' },
+    ],
+  },
+];
