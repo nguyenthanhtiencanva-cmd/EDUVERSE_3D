@@ -1,0 +1,22 @@
+{
+  "west": 107.76,
+  "south": 21.26,
+  "east": 108.12,
+  "north": 21.48,
+  "width": 1297,
+  "height": 793,
+  "format": "float32-little-endian",
+  "rowOrder": "north-to-south",
+  "horizontalDatum": "WGS84",
+  "verticalDatum": "EGM2008",
+  "spacingArcSeconds": 1,
+  "source": "Copernicus DEM GLO-30, AWS 2021 release",
+  "sources": [
+    "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N21_00_E107_00_DEM/Copernicus_DSM_COG_10_N21_00_E107_00_DEM.tif",
+    "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N21_00_E108_00_DEM/Copernicus_DSM_COG_10_N21_00_E108_00_DEM.tif"
+  ],
+  "attribution": "© DLR e.V. 2010–2014 and © Airbus Defence and Space GmbH 2014–2018. Produced using Copernicus WorldDEM-30.",
+  "license": "https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM",
+  "minimum": -2.9399876594543457,
+  "maximum": 165.71961975097656
+}

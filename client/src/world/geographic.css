@@ -1,0 +1,38 @@
+.geographic-island, .geographic-canvas { position: absolute; inset: 0; }
+.geographic-island { color: #f8fafc; background: #0b1623; }
+.geographic-header { position: absolute; top: 20px; left: 24px; right: 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; pointer-events: none; }
+.geographic-header > div, .geographic-header nav, .geographic-info, .map-actions, .map-coordinate { background: rgba(10, 23, 36, .91); border: 1px solid #ffffff24; border-radius: 16px; box-shadow: 0 8px 30px #0003; }
+.geographic-header > div { padding: 12px 18px; }
+.map-brand { color: #67e8f9; font-size: 10px; font-weight: 700; letter-spacing: .14em; }
+.geographic-header h1 { font-size: 22px; font-weight: 650; }
+.geographic-header nav { display: flex; padding: 5px; pointer-events: auto; gap: 5px; }
+.geographic-island button, .map-message button { padding: 10px 14px; font-size: 13px; font-weight: 600; border-radius: 11px; cursor: pointer; }
+.geographic-island button:hover { background: #ffffff24; }
+.geographic-island button:focus-visible, .geographic-island summary:focus-visible { outline: 2px solid #fbbf24; outline-offset: 3px; }
+.geographic-island .map-primary, .map-message button { background: #fbbf24; color: #152536; }
+.geographic-island .map-primary:hover { background: #fcd34d; }
+.geographic-info { position: absolute; top: 115px; left: 24px; width: 290px; padding: 16px; font-size: 12px; line-height: 1.6; }
+.geographic-info strong { font-size: 14px; }
+.geographic-info p { margin-top: 7px; }
+.map-muted { color: #b3c5d5; }
+.geographic-info details { margin-top: 12px; }
+.geographic-info summary { cursor: pointer; color: #a5f3fc; }
+.geographic-info a { color: #a5f3fc; text-decoration: underline; display: inline-block; margin-top: 8px; }
+.geographic-toolbar { position: absolute; bottom: 48px; left: 16px; right: 16px; display: flex; align-items: center; flex-direction: column; gap: 8px; pointer-events: none; }
+.map-actions { display: flex; gap: 4px; padding: 5px; pointer-events: auto; }
+.map-coordinate { font-size: 11px; padding: 7px 12px; max-width: 100%; text-align: center; }
+.map-message { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 22px; border-radius: 16px; background: #0f172a; color: white; border: 1px solid #94a3b855; max-width: 450px; width: max-content; max-width: min(450px, 90vw); text-align: center; z-index: 50; }
+.map-message button { margin-top: 12px; }
+.map-imagery-warning { position: absolute; top: 115px; right: 24px; max-width: 300px; background: #452f15; border-radius: 12px; padding: 12px; font-size: 12px; }
+.geographic-island .cesium-viewer-bottom { max-width: 100%; background: #0b1623d9; padding: 3px 6px; }
+@media (max-width: 640px) {
+  .geographic-header { top: 10px; left: 10px; right: 10px; align-items: flex-start; }
+  .geographic-header h1 { font-size: 17px; }
+  .geographic-header > div { padding: 10px 12px; }
+  .geographic-header nav { flex-direction: column; gap: 0; }
+  .geographic-header button { padding: 8px 10px; font-size: 11px; }
+  .geographic-info { top: 108px; left: 10px; width: 235px; padding: 12px; font-size: 11px; max-height: 38vh; overflow: auto; }
+  .geographic-info strong { font-size: 12px; }
+  .map-imagery-warning { top: auto; bottom: 165px; right: 10px; }
+  .geographic-toolbar { bottom: 62px; }
+}

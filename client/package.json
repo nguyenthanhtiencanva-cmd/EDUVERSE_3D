@@ -6,11 +6,14 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "terrain:prepare": "node scripts/prepare-island-terrain.mjs",
+    "test:geography": "node --test scripts/geography.test.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.0",
     "@react-three/fiber": "^8.17.10",
+    "cesium": "1.123.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.454.0",
     "react": "^18.3.1",
@@ -19,14 +22,19 @@
     "three": "^0.169.0",
     "zustand": "^5.0.1"
   },
+  "overrides": {
+    "@cesium/engine": { "@zip.js/zip.js": "2.7.54" }
+  },
   "devDependencies": {
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/three": "^0.169.0",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.20",
+    "geotiff": "^3.0.5",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.14",
-    "vite": "^5.4.10"
+    "vite": "^5.4.10",
+    "vite-plugin-static-copy": "^1.0.6"
   }
 }

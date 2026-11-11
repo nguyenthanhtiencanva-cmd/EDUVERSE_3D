@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export const useStore = create((set) => ({
   // World Scope: 'island' (Sa bàn Toàn đảo Vĩnh Thực) or 'campus' (Phân hiệu Vĩnh Trung 1:1)
-  worldScope: 'island',
+  worldScope: 'geographic',
   setWorldScope: (scope) =>
     set({
       worldScope: scope,
