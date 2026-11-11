@@ -156,68 +156,8 @@ export function CameraController() {
         orbitRef.current.target.lerp(targetLook.current, 0.055);
         orbitRef.current.update();
       }
-    } else {
-      const speed = 7.5;
-      let moveForward = 0;
-      let moveRight = 0;
-
-      if (keysDown.current['KeyW'] || keysDown.current['ArrowUp']) moveForward += 1;
-      if (keysDown.current['KeyS'] || keysDown.current['ArrowDown']) moveForward -= 1;
-      if (keysDown.current['KeyA'] || keysDown.current['ArrowLeft']) moveRight -= 1;
-      if (keysDown.current['KeyD'] || keysDown.current['ArrowRight']) moveRight += 1;
-
-      moveForward += joystickInput.moveY;
-      moveRight += joystickInput.moveX;
-
-      playerYaw.current -= joystickInput.lookX * 0.035;
-      playerPitch.current -= joystickInput.lookY * 0.035;
-      playerPitch.current = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, playerPitch.current));
-
-      const forwardDir = new THREE.Vector3(
-        -Math.sin(playerYaw.current),
-        0,
-        -Math.cos(playerYaw.current)
-      ).normalize();
-
-      const rightDir = new THREE.Vector3(
-        Math.cos(playerYaw.current),
-        0,
-        -Math.sin(playerYaw.current)
-      ).normalize();
-
-      const moveDir = new THREE.Vector3()
-        .addScaledVector(forwardDir, moveForward)
-        .addScaledVector(rightDir, moveRight);
-
-      if (moveDir.lengthSq() > 0) {
-        moveDir.normalize();
-        playerPos.current.addScaledVector(moveDir, speed * delta);
-      }
-
-      if (isJumping.current) {
-        playerPos.current.y += verticalVelocity.current * delta;
-        verticalVelocity.current -= 18.0 * delta;
-        if (playerPos.current.y <= 1.7) {
-          playerPos.current.y = 1.7;
-          isJumping.current = false;
-          verticalVelocity.current = 0;
-        }
-      }
-
-      playerPos.current.x = Math.max(-28.0, Math.min(30.0, playerPos.current.x));
-      playerPos.current.z = Math.max(-30.0, Math.min(26.0, playerPos.current.z));
-
-      camera.position.copy(playerPos.current);
-
-      const lookTarget = new THREE.Vector3(
-        playerPos.current.x - Math.sin(playerYaw.current) * Math.cos(playerPitch.current),
-        playerPos.current.y + Math.sin(playerPitch.current),
-        playerPos.current.z - Math.cos(playerYaw.current) * Math.cos(playerPitch.current)
-      );
-      camera.lookAt(lookTarget);
-
-      setPlayerPosition([playerPos.current.x, playerPos.current.y, playerPos.current.z]);
     }
+    // When cameraMode is 'fps', CharacterController takes over camera follow & player movement
   });
 
   return (

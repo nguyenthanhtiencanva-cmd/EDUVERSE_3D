@@ -60,6 +60,9 @@ export function HUDOverlay() {
 
           {/* Multi-Scale World Scope Switcher (Toàn đảo <-> Phân hiệu Vĩnh Trung 1:1) */}
           <div className="glass-panel p-1 rounded-2xl flex items-center gap-1 shadow-xl border border-amber-400/30">
+            <button onClick={() => setWorldScope('geographic')} className="px-3 py-2 rounded-xl text-xs font-bold text-cyan-300 hover:bg-white/10">
+              Bản đồ địa lý
+            </button>
             <button
               onClick={() => setWorldScope('island')}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
@@ -70,7 +73,7 @@ export function HUDOverlay() {
               title="Xem Sa bàn 3D tổng quan toàn bộ Đảo Vĩnh Thực"
             >
               <Globe className="w-4 h-4" />
-              <span>Toàn đảo Vĩnh Thực</span>
+              <span>Sa bàn minh họa</span>
             </button>
             <button
               onClick={() => setWorldScope('campus')}
@@ -203,10 +206,11 @@ export function HUDOverlay() {
           <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
           {cameraMode === 'fps' ? (
             <span>
-              Phím <strong className="text-white">W, A, S, D</strong> hoặc Mũi tên: Di chuyển |{' '}
-              <strong className="text-white">Di chuột</strong>: Xoay nhìn |{' '}
-              <strong className="text-white">Space</strong>: Nhảy |{' '}
-              <strong className="text-white">Esc</strong>: Mở khóa chuột
+              Phím <strong className="text-white">W, A, S, D</strong> / Mũi tên: Đi bộ |{' '}
+              <strong className="text-white">Shift</strong>: Chạy nhanh |{' '}
+              <strong className="text-white">Kéo chuột</strong>: Xoay 360° |{' '}
+              <strong className="text-white">Cuộn chuột</strong>: Thu phóng |{' '}
+              <strong className="text-white">Space</strong>: Nhảy bậc thềm
             </span>
           ) : isIsland ? (
             <span>
