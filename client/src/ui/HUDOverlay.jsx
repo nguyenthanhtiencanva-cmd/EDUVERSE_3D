@@ -60,9 +60,6 @@ export function HUDOverlay() {
 
           {/* Multi-Scale World Scope Switcher (Toàn đảo <-> Phân hiệu Vĩnh Trung 1:1) */}
           <div className="glass-panel p-1 rounded-2xl flex items-center gap-1 shadow-xl border border-amber-400/30">
-            <button onClick={() => setWorldScope('geographic')} className="px-3 py-2 rounded-xl text-xs font-bold text-cyan-300 hover:bg-white/10">
-              Bản đồ địa lý
-            </button>
             <button
               onClick={() => setWorldScope('island')}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
@@ -73,7 +70,7 @@ export function HUDOverlay() {
               title="Xem Sa bàn 3D tổng quan toàn bộ Đảo Vĩnh Thực"
             >
               <Globe className="w-4 h-4" />
-              <span>Sa bàn minh họa</span>
+              <span>Toàn đảo Vĩnh Thực</span>
             </button>
             <button
               onClick={() => setWorldScope('campus')}
