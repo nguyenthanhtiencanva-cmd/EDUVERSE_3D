@@ -176,36 +176,35 @@ function insideHouse(x, z) {
   return inRect(x, z, 0, HOUSE.x0, HOUSE.z0, HOUSE.x1, HOUSE.z1);
 }
 
-/** Khoảng cách camera tối đa trước khi chạm tường / trần / thân tháp */
+/** Khoảng cách camera góc nhìn thứ 3 (luôn giữ khoảng cách tối thiểu 2.4m phía sau nhân vật) */
 export function cameraDistance(target, direction, maxDistance, level = 'ground') {
+  const minThirdPersonDist = 2.4;
   const indoors = level === 'ground' && insideHouse(target.x, target.z);
-  for (let d = 0.35; d <= maxDistance; d += 0.15) {
+  if (indoors) {
+    return Math.min(maxDistance, 2.8);
+  }
+  if (level === 'balcony') {
+    return Math.min(maxDistance, 3.2);
+  }
+  for (let d = minThirdPersonDist; d <= maxDistance; d += 0.2) {
     const x = target.x + direction.x * d;
     const y = target.y + direction.y * d;
     const z = target.z + direction.z * d;
     let blocked = false;
-    if (indoors && (y > HOUSE.wallH - 0.25 || !insideHouse(x, z))) blocked = true;
-    if (!blocked && level === 'balcony') {
-      const dr = Math.hypot(x - TOWER.x, z - TOWER.z);
-      if (dr < TOWER.drumRadius + 0.15 && y < TOWER.lanternTop + 1.5) blocked = true;
-      if (dr < TOWER.balconyRadius && y < TOWER.balconyY + 0.1) blocked = true;
-    }
-    if (!blocked && level === 'ground') {
-      if (y < groundAt(x, z) + 0.15) blocked = true;
-      else {
-        for (const [ax, az, bx, bz, cr, h] of COLLIDERS) {
-          if (h > 1.5 && y < h + 0.6 && segDist(x, z, ax, az, bx, bz) < cr + 0.12) { blocked = true; break; }
-        }
+    for (const [ax, az, bx, bz, cr, h] of COLLIDERS) {
+      if (h > 2.2 && y < h + 0.5 && segDist(x, z, ax, az, bx, bz) < cr + 0.15) {
+        blocked = true;
+        break;
       }
     }
-    if (blocked) return Math.max(0.6, d - 0.25);
+    if (blocked) return Math.max(minThirdPersonDist, d - 0.2);
   }
   return maxDistance;
 }
 
 export const LIGHTHOUSE_WORLD = {
   id: 'lighthouse',
-  spawn: { position: [2.1, -3.9, 26.5], yaw: Math.PI, level: 'ground' }, // xuất phát tại điểm ngắm biển, nhìn lên tháp
+  spawn: { position: [1.5, 0, 6.2], yaw: Math.PI, level: 'ground' }, // xuất phát trên sân gạch đỏ, nhìn thẳng vào Tháp & Nhà quản lý
   groundAt,
   canWalk,
   cameraDistance,

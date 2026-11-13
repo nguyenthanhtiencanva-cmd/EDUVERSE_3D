@@ -161,10 +161,10 @@ export function HUDOverlay() {
                     ? 'bg-amber-500 text-slate-950 shadow-md'
                     : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
-                title="Chế độ đi bộ khám phá 1:1"
+                title="Camera bám theo góc nhìn thứ 3 phía sau nhân vật"
               >
                 <Footprints className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Đi bộ</span>
+                <span className="hidden sm:inline">Góc nhìn thứ 3</span>
               </button>
             </div>
           )}

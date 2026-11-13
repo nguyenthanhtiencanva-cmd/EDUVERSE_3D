@@ -240,6 +240,11 @@ export function CharacterController({ tourist = true }) {
         const targetFacing = tourist ? yaw : yaw + Math.PI;
         const rotation = targetFacing - player.facing;
         player.facing += Math.atan2(Math.sin(rotation), Math.cos(rotation)) * (1 - Math.exp(-14 * dt));
+
+        // Tự động xoay camera góc nhìn thứ 3 bám theo lưng nhân vật khi rẽ trái/phải
+        if (!player.pointer && Math.abs(right) > 0.1) {
+          player.yaw -= right * 1.45 * dt;
+        }
       }
 
       const groundY = getGroundY(position.x, position.z);
@@ -291,12 +296,16 @@ export function CharacterController({ tourist = true }) {
         ray.set(target, direction);
         for (const box of CAMERA_BOXES) {
           if (!box.containsPoint(target) && ray.intersectBox(box, intersection)) {
-            distance = Math.min(distance, Math.max(0.8, target.distanceTo(intersection) - 0.25));
+            distance = Math.min(distance, Math.max(2.0, target.distanceTo(intersection) - 0.25));
           }
         }
       }
 
       eye.copy(target).addScaledVector(direction, distance);
+      const eyeGroundY = getGroundY(eye.x, eye.z);
+      if (eye.y < eyeGroundY + 0.6) {
+        eye.y = eyeGroundY + 0.6;
+      }
       if (player.snap || distance < player.distance) camera.position.copy(eye);
       else camera.position.lerp(eye, 1 - Math.exp(-10 * dt));
       player.snap = false;

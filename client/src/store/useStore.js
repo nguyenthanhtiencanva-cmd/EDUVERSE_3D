@@ -15,7 +15,7 @@ export const useStore = create((set) => ({
       campusTour: false,
       lighthouseLevel: 'ground',
       activeHotspot: null,
-      cameraMode: scope === 'lighthouse' ? 'fps' : 'orbit',
+      cameraMode: scope === 'island' ? 'orbit' : 'fps',
       activeView:
         scope === 'island'
           ? 'island_overview'
@@ -60,13 +60,13 @@ export const useStore = create((set) => ({
         nextLevel === 'balcony'
           ? {
               position: [TOWER.x, TOWER.balconyY, TOWER.z + 2.05],
-              yaw: 0,
+              yaw: Math.PI,
               level: 'balcony',
               nonce: Date.now(),
             }
           : {
               position: [TOWER.x, TOWER.rotundaFloor, TOWER.z + 3.4],
-              yaw: 0,
+              yaw: Math.PI,
               level: 'ground',
               nonce: Date.now(),
             };
