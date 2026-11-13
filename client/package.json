@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "terrain:prepare": "node scripts/prepare-island-terrain.mjs",
-    "test:geography": "node --test scripts/geography.test.mjs"
+    "test:geography": "node --test scripts/geography.test.mjs",
+    "meshy": "node scripts/meshy-api.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.0",

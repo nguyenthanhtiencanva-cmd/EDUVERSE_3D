@@ -71,25 +71,17 @@ export const PRESET_VIEWS = {
 };
 
 export function CameraController() {
-  const { camera, gl } = useThree();
+  const { camera } = useThree();
   const orbitRef = useRef();
 
   const worldScope = useStore((state) => state.worldScope);
   const cameraMode = useStore((state) => state.cameraMode);
   const activeView = useStore((state) => state.activeView);
   const activePOI = useStore((state) => state.activePOI);
-  const setPlayerPosition = useStore((state) => state.setPlayerPosition);
-  const joystickInput = useStore((state) => state.joystickInput);
 
   const targetPos = useRef(new THREE.Vector3(0.0, 58.0, 92.0));
   const targetLook = useRef(new THREE.Vector3(2.0, 2.0, 0.0));
 
-  const playerPos = useRef(new THREE.Vector3(4.0, 1.7, 8.0));
-  const playerYaw = useRef(0);
-  const playerPitch = useRef(0);
-  const keysDown = useRef({});
-  const isJumping = useRef(false);
-  const verticalVelocity = useRef(0);
 
   useEffect(() => {
     if (activePOI) {
@@ -104,52 +96,7 @@ export function CameraController() {
     }
   }, [worldScope, activeView, activePOI]);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      keysDown.current[e.code] = true;
-      if (e.code === 'Space' && !isJumping.current) {
-        isJumping.current = true;
-        verticalVelocity.current = 6.0;
-      }
-    };
-    const handleKeyUp = (e) => {
-      keysDown.current[e.code] = false;
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (cameraMode !== 'fps') return;
-
-    const handleMouseMove = (e) => {
-      if (document.pointerLockElement === gl.domElement) {
-        playerYaw.current -= e.movementX * 0.0025;
-        playerPitch.current -= e.movementY * 0.0025;
-        playerPitch.current = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, playerPitch.current));
-      }
-    };
-
-    const handleClick = () => {
-      if (cameraMode === 'fps' && document.pointerLockElement !== gl.domElement) {
-        gl.domElement.requestPointerLock?.();
-      }
-    };
-
-    gl.domElement.addEventListener('click', handleClick);
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => {
-      gl.domElement.removeEventListener('click', handleClick);
-      window.removeEventListener('mousemove', handleMouseMove);
-    };
-  }, [cameraMode, gl]);
-
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (cameraMode === 'orbit') {
       camera.position.lerp(targetPos.current, 0.055);
       if (orbitRef.current) {

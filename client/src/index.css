@@ -62,3 +62,11 @@
 .animate-pulse-slow {
   animation: ping-slow 2.5s infinite ease-in-out;
 }
+
+@media (hover: hover) and (pointer: fine) {
+  .tour-touch-controls { display: none; }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .tour-desktop-tip { display: none; }
+}

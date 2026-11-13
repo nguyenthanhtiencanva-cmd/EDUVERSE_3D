@@ -6,10 +6,12 @@ import { CharacterController } from './world/CharacterController';
 import { SceneLighting } from './world/SceneLighting';
 import { CameraController } from './world/CameraController';
 import { HUDOverlay } from './ui/HUDOverlay';
+import { CampusTourHUD } from './ui/CampusTourHUD';
 import { useStore } from './store/useStore';
 
 export default function LegacyWorld() {
   const worldScope = useStore((state) => state.worldScope);
+  const campusTour = useStore((state) => state.campusTour);
   return <>
     <Canvas shadows camera={{ position: [0, 52, 88], fov: 46, near: 0.2, far: 900 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}>
@@ -19,11 +21,11 @@ export default function LegacyWorld() {
       ) : (
         <>
           <CampusModel />
-          <CharacterController />
+          <CharacterController key={campusTour ? 'tourist' : 'student'} tourist={campusTour} />
         </>
       )}
       <CameraController />
     </Canvas>
-    <HUDOverlay />
+    {campusTour ? <CampusTourHUD /> : <HUDOverlay />}
   </>;
 }

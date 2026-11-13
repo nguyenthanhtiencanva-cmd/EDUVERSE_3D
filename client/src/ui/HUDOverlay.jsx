@@ -61,6 +61,12 @@ export function HUDOverlay() {
           {/* Multi-Scale World Scope Switcher (Toàn đảo <-> Phân hiệu Vĩnh Trung 1:1) */}
           <div className="glass-panel p-1 rounded-2xl flex items-center gap-1 shadow-xl border border-amber-400/30">
             <button
+              className="px-3 py-2 rounded-xl text-xs font-bold text-cyan-200 hover:bg-white/10"
+              onClick={() => setWorldScope('geographic')}
+            >
+              Bản đồ địa lý
+            </button>
+            <button
               onClick={() => setWorldScope('island')}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 isIsland

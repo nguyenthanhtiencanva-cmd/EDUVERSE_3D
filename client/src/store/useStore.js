@@ -1,17 +1,28 @@
 import { create } from 'zustand';
 
 export const useStore = create((set) => ({
-  // World Scope: 'island' (Sa bàn Toàn đảo Vĩnh Thực) or 'campus' (Phân hiệu Vĩnh Trung 1:1)
-  worldScope: 'island',
+  worldScope: 'geographic',
+  campusTour: false,
   setWorldScope: (scope) =>
     set({
       worldScope: scope,
+      campusTour: false,
       cameraMode: 'orbit',
       activeView: scope === 'island' ? 'island_overview' : 'aerial',
       activePOI: null,
+      joystickInput: { moveX: 0, moveY: 0, isJumping: false },
     }),
+  startCampusTour: () => set({
+    worldScope: 'campus',
+    campusTour: true,
+    cameraMode: 'fps',
+    activeView: 'aerial',
+    activePOI: null,
+    playerPosition: [1.5, 1.4, 6],
+    joystickInput: { moveX: 0, moveY: 0, isJumping: false },
+  }),
 
-  // Camera Mode: 'orbit' (Flycam Orbit) or 'fps' (First-person walking)
+  // The existing "fps" mode is controlled by the third-person character.
   cameraMode: 'orbit',
   setCameraMode: (mode) => set({ cameraMode: mode }),
 
@@ -40,11 +51,9 @@ export const useStore = create((set) => ({
   setPlayerPosition: (pos) => set({ playerPosition: pos }),
 
   // Mobile Virtual Joystick Input
-  joystickInput: { moveX: 0, moveY: 0, lookX: 0, lookY: 0, isJumping: false },
+  joystickInput: { moveX: 0, moveY: 0, isJumping: false },
   setJoystickMove: (moveX, moveY) =>
     set((state) => ({ joystickInput: { ...state.joystickInput, moveX, moveY } })),
-  setJoystickLook: (lookX, lookY) =>
-    set((state) => ({ joystickInput: { ...state.joystickInput, lookX, lookY } })),
   setJoystickJump: (isJumping) =>
     set((state) => ({ joystickInput: { ...state.joystickInput, isJumping } })),
 }));

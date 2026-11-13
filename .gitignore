@@ -20,6 +20,8 @@ build/
 *.blend1
 *.blend2
 *.blend@
+assets/characters/tourist_meshy_*.glb
+__pycache__/
 
 # Large Media / Videos (exceeds GitHub 100MB limit)
 *.mp4

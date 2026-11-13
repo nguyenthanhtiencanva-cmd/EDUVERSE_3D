@@ -1,225 +1,319 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ArcGisMapServerImageryProvider, Cartesian2, Cartesian3, Cartographic, Color,
-  Credit, CustomHeightmapTerrainProvider, GeographicTilingScheme, HeadingPitchRange,
-  HeadingPitchRoll, HeightReference, Ion, LabelStyle, Math as CesiumMath,
-  Matrix4, Model, Rectangle, ScreenSpaceEventType, Transforms, Viewer,
+  ArcGisMapServerImageryProvider, BoundingSphere, Cartesian2, Cartesian3, Color, Credit,
+  CustomHeightmapTerrainProvider, GeographicTilingScheme, HeadingPitchRange, HeadingPitchRoll,
+  HeightReference, ImageryLayer, Ion, LabelStyle, Math as CesiumMath, Model, Rectangle, ScreenSpaceEventType,
+  SingleTileImageryProvider, Transforms, Viewer,
 } from 'cesium';
+import { ChevronRight, Compass, Footprints, Layers3, List, MapPin, Mountain, X } from 'lucide-react';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import './geographic.css';
 import { useStore } from '../store/useStore';
 import { prepareCampusMaterials, sampleElevation, SCHOOL_ANCHOR } from './geography';
 
 Ion.defaultAccessToken = '';
-let savedCamera;
+const ISLAND_CENTER = Cartesian3.fromDegrees(107.922, 21.366);
+const PREVIEW_STOPS = ['Bến Vạn Gia', SCHOOL_ANCHOR.name, 'Bến Hèn', 'Bãi Đầu Đông', 'Hải đăng Vĩnh Thực'];
+let previousView;
+
+function createTerrain(grid, values) {
+  const tileSize = 65;
+  const tilingScheme = new GeographicTilingScheme();
+  return new CustomHeightmapTerrainProvider({
+    width: tileSize, height: tileSize, tilingScheme, credit: new Credit(grid.attribution),
+    callback(x, y, level) {
+      const rectangle = tilingScheme.tileXYToRectangle(x, y, level);
+      const result = new Float32Array(tileSize * tileSize);
+      for (let row = 0; row < tileSize; row++) {
+        const latitude = CesiumMath.toDegrees(rectangle.north - rectangle.height * row / (tileSize - 1));
+        for (let column = 0; column < tileSize; column++) {
+          const longitude = CesiumMath.toDegrees(rectangle.west + rectangle.width * column / (tileSize - 1));
+          result[row * tileSize + column] = sampleElevation(grid, values, longitude, latitude);
+        }
+      }
+      return result;
+    },
+  });
+}
+
+function moveCameraToSchool(view, duration) {
+  const camera = view.viewer.camera;
+  camera.cancelFlight();
+  view.focusingSchool = duration > 0;
+  const finish = () => { view.focusingSchool = false; };
+  camera.flyToBoundingSphere(new BoundingSphere(view.schoolPosition, 85), {
+    offset: new HeadingPitchRange(0.1, CesiumMath.toRadians(-43), 285),
+    duration,
+    complete: finish,
+    cancel: finish,
+  });
+}
 
 export default function GeographicIsland() {
   const container = useRef(null);
   const scene = useRef(null);
-  const model = useRef(null);
-  const modelLoading = useRef(false);
-  const [attempt, setAttempt] = useState(0);
-  const [status, setStatus] = useState('Đang mở địa hình Vĩnh Thực…');
+  const selected = useRef(previousView?.selected ?? false);
+  const satelliteEnabled = useRef(previousView?.satellite ?? false);
+  const [schoolOpen, setSchoolOpen] = useState(selected.current);
+  const [listOpen, setListOpen] = useState(false);
+  const [ready, setReady] = useState(false);
+  const [retry, setRetry] = useState(0);
   const [error, setError] = useState('');
-  const [imageryError, setImageryError] = useState(false);
   const [schoolStatus, setSchoolStatus] = useState('');
-  const [coordinate, setCoordinate] = useState(null);
+  const [satellite, setSatellite] = useState(satelliteEnabled.current);
+  const [satelliteStatus, setSatelliteStatus] = useState('');
+  const startCampusTour = useStore((state) => state.startCampusTour);
   const setWorldScope = useStore((state) => state.setWorldScope);
+
+  function showSchool(open) {
+    selected.current = open;
+    setSchoolOpen(open);
+    const view = scene.current;
+    if (!view) return;
+    view.pin.point.color = Color.fromCssColorString(open ? '#6ee7b7' : '#fbbf24');
+    view.pin.label.backgroundColor = Color.fromCssColorString(open ? '#155e55' : '#162c45');
+    if (view.school) view.school.show = open;
+    view.viewer.scene.requestRender();
+  }
+
+  async function loadSchool(view) {
+    if (view.school || view.loadingSchool) return;
+    view.loadingSchool = true;
+    setSchoolStatus('Đang tải mô hình trường…');
+    try {
+      const model = await Model.fromGltfAsync({
+        url: '/models/school_campus.glb',
+        gltfCallback: prepareCampusMaterials,
+        modelMatrix: Transforms.headingPitchRollToFixedFrame(
+          view.schoolPosition, new HeadingPitchRoll(CesiumMath.toRadians(SCHOOL_ANCHOR.headingDegrees), 0, 0),
+        ),
+        scale: 1, heightReference: HeightReference.NONE,
+      });
+      if (view !== scene.current) { model.destroy(); return; }
+      model.show = selected.current;
+      view.school = view.viewer.scene.primitives.add(model);
+      model.readyEvent.addEventListener(() => setSchoolStatus(''));
+      view.viewer.scene.requestRender();
+    } catch {
+      if (view === scene.current) setSchoolStatus('Mô hình xem trước chưa tải được.');
+    } finally {
+      view.loadingSchool = false;
+    }
+  }
+
+  function focusSchool() {
+    const view = scene.current;
+    if (!view) return;
+    setListOpen(false);
+    showSchool(true);
+    moveCameraToSchool(view, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1.45);
+    loadSchool(view);
+  }
 
   useEffect(() => {
     const abort = new AbortController();
     let viewer;
-    let removeImageryError;
     let removeRenderError;
+    setReady(false);
     setError('');
-    setImageryError(false);
-    setStatus('Đang mở địa hình Vĩnh Thực…');
-    async function start() {
+    setSchoolStatus('');
+
+    async function openMap() {
       try {
-        const responses = await Promise.all([
+        const [metadata, data] = await Promise.all([
           fetch('/terrain/vinh-thuc.json', { signal: abort.signal }),
           fetch('/terrain/vinh-thuc.f32', { signal: abort.signal }),
         ]);
-        if (responses.some((response) => !response.ok)) throw new Error('Không tải được dữ liệu cao độ.');
-        const [grid, buffer] = await Promise.all([responses[0].json(), responses[1].arrayBuffer()]);
-        if (abort.signal.aborted) return;
+        if (!metadata.ok || !data.ok) throw new Error('Chưa tải được dữ liệu địa hình.');
+        const [grid, buffer] = await Promise.all([metadata.json(), data.arrayBuffer()]);
         if (buffer.byteLength !== grid.width * grid.height * 4) throw new Error('Tệp cao độ chưa đầy đủ.');
+        const rectangle = Rectangle.fromDegrees(grid.west, grid.south, grid.east, grid.north);
+        const style = await SingleTileImageryProvider.fromUrl('/terrain/vinh-thuc-style.png', { rectangle });
+        if (abort.signal.aborted) return;
         const values = new Float32Array(buffer);
-        const tilingScheme = new GeographicTilingScheme();
-        const terrainProvider = new CustomHeightmapTerrainProvider({
-          width: 65, height: 65, tilingScheme,
-          credit: new Credit(grid.attribution),
-          callback(x, y, level) {
-            const rectangle = tilingScheme.tileXYToRectangle(x, y, level);
-            const result = new Float32Array(65 * 65);
-            for (let row = 0; row < 65; row++) {
-              const latitude = CesiumMath.toDegrees(rectangle.north - rectangle.height * row / 64);
-              for (let column = 0; column < 65; column++) {
-                const longitude = CesiumMath.toDegrees(rectangle.west + rectangle.width * column / 64);
-                result[row * 65 + column] = sampleElevation(grid, values, longitude, latitude);
-              }
-            }
-            return result;
-          },
-        });
+        const background = Color.fromCssColorString('#b6dce2');
         viewer = new Viewer(container.current, {
-          terrainProvider, baseLayer: false, baseLayerPicker: false,
+          terrainProvider: createTerrain(grid, values), baseLayer: false, baseLayerPicker: false,
           animation: false, timeline: false, geocoder: false, homeButton: false,
           sceneModePicker: false, navigationHelpButton: false, fullscreenButton: false,
           infoBox: false, selectionIndicator: false, requestRenderMode: true, showRenderLoopErrors: false,
-          maximumRenderTimeChange: Infinity,
+          maximumRenderTimeChange: Infinity, skyBox: false, skyAtmosphere: false,
         });
-        viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.5);
-        viewer.scene.globe.baseColor = Color.fromCssColorString('#507368');
+        viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.4);
+        viewer.scene.backgroundColor = background;
+        viewer.scene.globe.baseColor = background;
+        viewer.scene.globe.showGroundAtmosphere = false;
         viewer.scene.globe.maximumScreenSpaceError = 2;
-        viewer.scene.globe.cartographicLimitRectangle = Rectangle.fromDegrees(grid.west, grid.south, grid.east, grid.north);
-        viewer.scene.screenSpaceCameraController.minimumZoomDistance = 25;
+        viewer.scene.screenSpaceCameraController.minimumZoomDistance = 24;
         viewer.scene.screenSpaceCameraController.maximumZoomDistance = 60000;
-        viewer.scene.verticalExaggeration = 1;
-        scene.current = { viewer, grid, values };
-        removeRenderError = viewer.scene.renderError.addEventListener(() => {
-          setError('Trình duyệt bị gián đoạn khi vẽ bản đồ. Hãy thử mở lại cảnh.');
-        });
-        if (savedCamera) viewer.camera.setView(savedCamera);
-        else viewer.camera.setView({ destination: Rectangle.fromDegrees(107.79, 21.29, 108.06, 21.44) });
-
-        const anchor = SCHOOL_ANCHOR;
-        const schoolElevation = sampleElevation(grid, values, anchor.longitude, anchor.latitude);
-        const schoolPin = viewer.entities.add({
-          name: anchor.name,
-          position: Cartesian3.fromDegrees(anchor.longitude, anchor.latitude, schoolElevation + 10),
-          point: { pixelSize: 11, color: Color.fromCssColorString('#fbbf24'), outlineColor: Color.WHITE, outlineWidth: 2, disableDepthTestDistance: Infinity },
+        viewer.imageryLayers.addImageryProvider(style);
+        const { longitude, latitude, name } = SCHOOL_ANCHOR;
+        const elevation = sampleElevation(grid, values, longitude, latitude);
+        const schoolPosition = Cartesian3.fromDegrees(longitude, latitude, elevation);
+        const pin = viewer.entities.add({
+          id: 'vinh-trung',
+          position: Cartesian3.fromDegrees(longitude, latitude, elevation + 22),
+          point: { pixelSize: 11, outlineWidth: 2, outlineColor: Color.WHITE, disableDepthTestDistance: Infinity },
           label: {
-            text: anchor.name, font: '14px sans-serif', pixelOffset: new Cartesian2(0, -25),
-            fillColor: Color.WHITE, style: LabelStyle.FILL_AND_OUTLINE,
-            outlineWidth: 4, outlineColor: Color.fromCssColorString('#0f172a'),
+            text: name, font: '600 14px sans-serif', pixelOffset: new Cartesian2(0, -24),
+            showBackground: true, backgroundPadding: new Cartesian2(10, 7), fillColor: Color.WHITE,
             disableDepthTestDistance: Infinity,
           },
         });
+        viewer.entities.add({
+          position: Cartesian3.fromDegrees(107.955, 21.335, 3),
+          label: {
+            text: 'ĐẢO VĨNH THỰC', font: 'italic 600 16px sans-serif', fillColor: Color.WHITE,
+            outlineColor: Color.fromCssColorString('#205d72'), outlineWidth: 3,
+            style: LabelStyle.FILL_AND_OUTLINE, disableDepthTestDistance: Infinity,
+          },
+        });
+        const view = { viewer, schoolPosition, pin, rectangle };
+        scene.current = view;
+        showSchool(selected.current);
+        viewer.resize();
+        if (previousView?.camera) viewer.camera.setView(previousView.camera);
+        else viewer.camera.setView({ destination: Rectangle.fromDegrees(107.801, 21.309, 108.049, 21.428) });
+        if (selected.current) loadSchool(view);
+
         viewer.screenSpaceEventHandler.setInputAction((event) => {
-          const picked = viewer.scene.pick(event.position);
-          if (picked?.id === schoolPin) focusSchool();
-          const ray = viewer.camera.getPickRay(event.position);
-          const position = viewer.scene.globe.pick(ray, viewer.scene);
-          if (!position) return;
-          const cartographic = Cartographic.fromCartesian(position);
-          const longitude = CesiumMath.toDegrees(cartographic.longitude);
-          const latitude = CesiumMath.toDegrees(cartographic.latitude);
-          setCoordinate({ longitude, latitude, elevation: sampleElevation(grid, values, longitude, latitude) });
+          if (viewer.scene.pick(event.position)?.id === pin) focusSchool();
         }, ScreenSpaceEventType.LEFT_CLICK);
-        setStatus('');
-        try {
-          const imagery = await ArcGisMapServerImageryProvider.fromUrl(
-            'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
-            { enablePickFeatures: false },
-          );
-          if (abort.signal.aborted) return;
-          removeImageryError = imagery.errorEvent.addEventListener(() => setImageryError(true));
-          viewer.imageryLayers.addImageryProvider(imagery);
-          viewer.scene.requestRender();
-        } catch {
-          if (!abort.signal.aborted) setImageryError(true);
-        }
+        removeRenderError = viewer.scene.renderError.addEventListener(() => {
+          setError('Bản đồ bị gián đoạn khi hiển thị.');
+        });
+        setReady(true);
       } catch (cause) {
-        if (!abort.signal.aborted) { setError(cause.message); setStatus(''); }
+        if (!abort.signal.aborted) setError(cause.message || 'Chưa mở được bản đồ địa hình.');
       }
     }
-    start();
+
+    openMap();
     return () => {
       abort.abort();
-      removeImageryError?.();
       removeRenderError?.();
       if (viewer && !viewer.isDestroyed()) {
-        savedCamera = {
-          destination: Cartesian3.clone(viewer.camera.positionWC),
-          orientation: { heading: viewer.camera.heading, pitch: viewer.camera.pitch, roll: viewer.camera.roll },
+        viewer.camera.cancelFlight();
+        previousView = {
+          selected: selected.current,
+          satellite: satelliteEnabled.current,
+          camera: {
+            destination: Cartesian3.clone(viewer.camera.positionWC),
+            orientation: {
+              direction: Cartesian3.clone(viewer.camera.directionWC),
+              up: Cartesian3.clone(viewer.camera.upWC),
+            },
+          },
         };
         viewer.destroy();
       }
       scene.current = null;
-      model.current = null;
-      modelLoading.current = false;
     };
-  }, [attempt]);
+  }, [retry]);
+
+  useEffect(() => {
+    satelliteEnabled.current = satellite;
+    const view = scene.current;
+    if (!ready || !view) return;
+    if (view.satelliteLayer) {
+      view.satelliteLayer.show = satellite;
+      view.viewer.scene.requestRender();
+      return;
+    }
+    if (!satellite) return;
+    let canceled = false;
+    setSatelliteStatus('Đang tải ảnh vệ tinh…');
+    ArcGisMapServerImageryProvider.fromUrl(
+      'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
+      { enablePickFeatures: false },
+    ).then((provider) => {
+      if (canceled || view !== scene.current) return;
+      view.satelliteLayer = view.viewer.imageryLayers.add(new ImageryLayer(provider, { rectangle: view.rectangle }));
+      setSatelliteStatus('');
+      view.viewer.scene.requestRender();
+    }).catch(() => {
+      if (!canceled) {
+        setSatellite(false);
+        setSatelliteStatus('Ảnh vệ tinh tạm thời chưa tải được.');
+      }
+    });
+    return () => { canceled = true; };
+  }, [ready, satellite]);
 
   function overview(tilted) {
-    const current = scene.current;
-    if (!current) return;
-    current.viewer.camera.lookAtTransform(Transforms.eastNorthUpToFixedFrame(
-      Cartesian3.fromDegrees(107.925, 21.365)),
-    new HeadingPitchRange(0, CesiumMath.toRadians(tilted ? -40 : -90), tilted ? 29000 : 33000));
-    // Release the orbit reference so subsequent map navigation uses world coordinates.
-    current.viewer.camera.lookAtTransform(Matrix4.IDENTITY);
-    current.viewer.scene.requestRender();
-  }
-
-  async function focusSchool() {
-    const current = scene.current;
-    if (!current) return;
-    const { viewer, grid, values } = current;
-    const anchor = SCHOOL_ANCHOR;
-    const elevation = sampleElevation(grid, values, anchor.longitude, anchor.latitude);
-    const position = Cartesian3.fromDegrees(anchor.longitude, anchor.latitude, elevation);
-    viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(anchor.longitude, anchor.latitude - 0.002, elevation + 200),
-      orientation: { heading: 0, pitch: CesiumMath.toRadians(-40), roll: 0 }, duration: 1.5,
-    });
-    if (model.current || modelLoading.current) return;
-    modelLoading.current = true;
-    setSchoolStatus('Đang tải mô hình trường…');
-    try {
-      const campus = await Model.fromGltfAsync({
-        url: '/models/school_campus.glb',
-        gltfCallback: prepareCampusMaterials,
-        modelMatrix: Transforms.headingPitchRollToFixedFrame(position, new HeadingPitchRoll(CesiumMath.toRadians(anchor.headingDegrees), 0, 0)),
-        scale: 1, heightReference: HeightReference.NONE,
+    const view = scene.current;
+    if (!view) return;
+    showSchool(false);
+    setListOpen(false);
+    const options = { duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1.1 };
+    if (tilted) {
+      view.viewer.camera.flyToBoundingSphere(new BoundingSphere(ISLAND_CENTER, 9500), {
+        ...options, offset: new HeadingPitchRange(0, CesiumMath.toRadians(-43), 28500),
       });
-      if (scene.current !== current || viewer.isDestroyed()) { campus.destroy(); return; }
-      viewer.scene.primitives.add(campus);
-      model.current = campus;
-      campus.readyEvent.addEventListener(() => {
-        if (scene.current === current) setSchoolStatus('Mô hình trường tỷ lệ 1 m/đơn vị. Hướng và vị trí đang chờ đo đạc đối chiếu.');
-      });
-      viewer.scene.requestRender();
-    } catch {
-      if (scene.current === current) setSchoolStatus('Chưa tải được mô hình. Bấm “Đến trường” để thử lại.');
-    } finally {
-      if (scene.current === current) modelLoading.current = false;
+    } else {
+      view.viewer.camera.flyTo({ ...options, destination: Rectangle.fromDegrees(107.801, 21.309, 108.049, 21.428) });
     }
   }
 
   return <section className="geographic-island" aria-label="Bản đồ địa hình đảo Vĩnh Thực">
     <div ref={container} className="geographic-canvas" />
-    <header className="geographic-header">
-      <div><span className="map-brand">EDUVERSE 3D</span><h1>Đảo Vĩnh Thực</h1></div>
-      <nav aria-label="Không gian tham quan">
-        <button onClick={() => setWorldScope('island')}>Sa bàn minh họa</button>
-        <button className="map-primary" onClick={() => setWorldScope('campus')}>Vào sân trường</button>
+    <header className="map-header">
+      <div className="map-title">
+        <div className="map-title-icon"><MapPin size={20} /></div>
+        <div><span>EDUVERSE 3D</span><h1>Đảo Vĩnh Thực</h1></div>
+      </div>
+      <nav className="map-layer-controls" aria-label="Lớp bản đồ">
+        <button aria-pressed={satellite} disabled={!ready} onClick={() => {
+          setSatelliteStatus('');
+          setSatellite((value) => !value);
+        }}><Layers3 size={16} /> Ảnh vệ tinh</button>
+        <button onClick={() => setWorldScope('island')}>Sa bàn</button>
       </nav>
     </header>
-    <aside className="geographic-info">
-      <strong>Địa hình theo tọa độ thực</strong>
-      <p>Copernicus GLO-30 · Lưới khoảng 30 m · Cao độ 1×</p>
-      <p className="map-muted">Vị trí trường theo hồ sơ dự án, chờ kiểm chứng thực địa.</p>
-      {schoolStatus && <p role="status">{schoolStatus}</p>}
-      <details><summary>Nguồn dữ liệu và độ chính xác</summary>
-        <p>Ảnh vệ tinh Esri World Imagery được tải trực tuyến. Địa hình là bề mặt Copernicus, có ảnh hưởng của cây và công trình.</p>
-        <p>Tọa độ WGS84. Cao độ nguồn EGM2008 được dùng làm độ nổi trên nền địa cầu, đang chờ hiệu chỉnh geoid và số đo địa phương.</p>
-        <a href="https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM" target="_blank" rel="noreferrer">Thông tin nguồn Copernicus</a>
-      </details>
-    </aside>
-    {status && <div className="map-message" role="status">{status}</div>}
-    {error && <div className="map-message" role="alert"><p>{error}</p><button onClick={() => setAttempt((value) => value + 1)}>Thử lại</button></div>}
-    {imageryError && <div className="map-imagery-warning" role="status">Một phần ảnh vệ tinh chưa tải được. <button onClick={() => setAttempt((value) => value + 1)}>Tải lại ảnh</button></div>}
-    <div className="geographic-toolbar">
-      <div className="map-actions">
-        <button onClick={() => overview(false)}>Toàn đảo</button>
-        <button onClick={() => overview(true)}>Nghiêng 3D</button>
-        <button className="map-primary" onClick={focusSchool}>Đến trường</button>
+
+    {satelliteStatus && <p className="map-layer-status" role="status">{satelliteStatus}</p>}
+    {!ready && !error && <div className="map-message" role="status">Đang mở địa hình Vĩnh Thực…</div>}
+    {error && <div className="map-message" role="alert">
+      <p>{error}</p>
+      <button onClick={() => setRetry((value) => value + 1)}>Thử lại</button>
+      <button onClick={() => setWorldScope('island')}>Mở sa bàn</button>
+    </div>}
+
+    {listOpen && <aside className="map-stops" aria-label="Danh sách chặng">
+      <div className="map-panel-heading"><h2>Các chặng</h2><button aria-label="Đóng danh sách chặng" onClick={() => setListOpen(false)}><X size={18} /></button></div>
+      {PREVIEW_STOPS.map((name) => name === SCHOOL_ANCHOR.name
+        ? <button key={name} className="map-stop map-stop-ready" onClick={focusSchool}><MapPin size={17} /><span>{name}</span><ChevronRight size={17} /></button>
+        : <div className="map-stop" key={name}><MapPin size={17} /><span>{name}</span><small>Chưa mở</small></div>)}
+    </aside>}
+
+    {schoolOpen && <aside className="map-school" aria-label={SCHOOL_ANCHOR.name}>
+      <div className="map-school-image">
+        <img src="/images/preview_aerial_overview.png" alt="Mô hình khuôn viên Phân hiệu Vĩnh Trung" />
+        <button aria-label="Đóng thông tin trường" onClick={() => showSchool(false)}><X size={18} /></button>
       </div>
-      <p className="map-coordinate" aria-live="polite">{coordinate
-        ? `${coordinate.latitude.toFixed(5)}° B · ${coordinate.longitude.toFixed(5)}° Đ · Cao độ bề mặt ${coordinate.elevation.toFixed(1)} m`
-        : 'Bấm lên đảo để xem tọa độ · Kéo để di chuyển · Cuộn để phóng gần'}</p>
+      <div className="map-school-body">
+        <h2>{SCHOOL_ANCHOR.name}</h2>
+        <p>Trường TH&THCS Vĩnh Thực</p>
+        <p className="map-school-note">Vị trí đặt mô hình đang chờ đối chiếu thực địa.</p>
+        {schoolStatus && <p role="status" className="map-school-note">{schoolStatus}</p>}
+        <button className="map-primary" onClick={() => {
+          const view = scene.current;
+          if (view?.focusingSchool) moveCameraToSchool(view, 0);
+          startCampusTour();
+        }}><Footprints size={17} /> Bắt đầu đi bộ <ChevronRight size={17} /></button>
+      </div>
+    </aside>}
+
+    <div className="map-bottom">
+      <div className="map-tools" aria-label="Điều khiển bản đồ">
+        <button disabled={!ready} onClick={() => overview(false)}><Compass size={17} /> Toàn đảo</button>
+        <button disabled={!ready} onClick={() => overview(true)}><Mountain size={17} /> Góc nghiêng</button>
+        <button disabled={!ready} aria-expanded={listOpen} onClick={() => {
+          const next = !listOpen;
+          if (next) showSchool(false);
+          setListOpen(next);
+        }}><List size={17} /> Các chặng</button>
+      </div>
     </div>
   </section>;
 }
