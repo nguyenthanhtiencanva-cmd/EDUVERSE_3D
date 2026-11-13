@@ -212,7 +212,7 @@ export function HUDOverlay() {
             </span>
           ) : (
             <span>
-              Kéo chuột trái: Xoay 360° | Chuột phải / 2 ngón: Trượt góc nhìn | Cuộn chuột: Phóng to/thu nhỏ | Bấm vào ghim để xem chi tiết
+              Kéo chuột trái: Xoay 360° | Chuột phải / 2 ngón: Trượt góc nhìn | Cuộn chuột: Phóng to/thu nhỏ
             </span>
           )}
         </div>
