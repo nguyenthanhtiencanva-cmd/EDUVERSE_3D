@@ -13,8 +13,8 @@ export function CampusTourHUD() {
   return <>
     <header className="pointer-events-none absolute inset-x-3 top-3 z-20 flex flex-wrap items-center gap-2 sm:inset-x-5 sm:top-5">
       <button className="glass-panel pointer-events-auto flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-white"
-        onClick={() => setWorldScope('geographic')}>
-        <ArrowLeft size={16} /> Về bản đồ
+        onClick={() => setWorldScope('island')}>
+        <ArrowLeft size={16} /> Về toàn đảo
       </button>
       <div className="glass-panel rounded-xl px-3 py-2.5 text-sm font-bold text-white">Phân hiệu Vĩnh Trung</div>
       <button className="glass-panel pointer-events-auto ml-auto flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-white"

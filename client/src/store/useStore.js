@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 export const useStore = create((set) => ({
-  worldScope: 'geographic',
+  worldScope: 'island',
   campusTour: false,
   setWorldScope: (scope) =>
     set({
