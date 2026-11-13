@@ -93,6 +93,17 @@ export function POIModal() {
                 <Compass className="w-4 h-4" />
                 <span>Vào khuôn viên Phân hiệu Vĩnh Trung (1:1)</span>
               </button>
+            ) : isIsland && activePOI.hasLighthouse3D ? (
+              <button
+                onClick={() => {
+                  setActivePOI(null);
+                  setWorldScope('lighthouse');
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm transition shadow-lg cursor-pointer"
+              >
+                <Compass className="w-4 h-4" />
+                <span>Vào tham quan Trạm Hải đăng Vĩnh Thực (1:1)</span>
+              </button>
             ) : isIsland ? (
               <button
                 onClick={() => {

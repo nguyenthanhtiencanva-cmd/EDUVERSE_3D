@@ -37,6 +37,34 @@ export const ISLAND_PRESET_VIEWS = {
   },
 };
 
+export const LIGHTHOUSE_PRESET_VIEWS = {
+  lh_overview: {
+    pos: new THREE.Vector3(-18.0, 16.0, 32.0),
+    target: new THREE.Vector3(-2.0, 6.0, 0.0),
+    name: '🗼 Toàn cảnh Trạm Hải đăng',
+  },
+  lh_rotunda: {
+    pos: new THREE.Vector3(-11.0, 4.5, 13.5),
+    target: new THREE.Vector3(-11.0, 4.5, 0.0),
+    name: '🏛️ Hiên vòm tròn & Chân tháp',
+  },
+  lh_lantern: {
+    pos: new THREE.Vector3(-4.0, 19.5, 10.0),
+    target: new THREE.Vector3(-11.0, 16.5, 0.0),
+    name: '💡 Lồng đèn & Ban công 18m',
+  },
+  lh_house: {
+    pos: new THREE.Vector3(5.0, 5.5, 12.0),
+    target: new THREE.Vector3(5.0, 2.5, -3.5),
+    name: '🏠 Nhà quản lý & Phòng truyền thống',
+  },
+  lh_viewpoint: {
+    pos: new THREE.Vector3(2.0, 2.5, 36.0),
+    target: new THREE.Vector3(0.0, 5.0, 0.0),
+    name: '🔭 Điểm ngắm biển & Cầu thang',
+  },
+};
+
 export const PRESET_VIEWS = {
   aerial: {
     pos: new THREE.Vector3(-3.0, 34.0, 56.0),
@@ -82,7 +110,6 @@ export function CameraController() {
   const targetPos = useRef(new THREE.Vector3(0.0, 58.0, 92.0));
   const targetLook = useRef(new THREE.Vector3(2.0, 2.0, 0.0));
 
-
   useEffect(() => {
     if (activePOI) {
       targetPos.current.set(...activePOI.cameraPosition);
@@ -90,6 +117,9 @@ export function CameraController() {
     } else if (worldScope === 'island' && ISLAND_PRESET_VIEWS[activeView]) {
       targetPos.current.copy(ISLAND_PRESET_VIEWS[activeView].pos);
       targetLook.current.copy(ISLAND_PRESET_VIEWS[activeView].target);
+    } else if (worldScope === 'lighthouse' && LIGHTHOUSE_PRESET_VIEWS[activeView]) {
+      targetPos.current.copy(LIGHTHOUSE_PRESET_VIEWS[activeView].pos);
+      targetLook.current.copy(LIGHTHOUSE_PRESET_VIEWS[activeView].target);
     } else if (worldScope === 'campus' && PRESET_VIEWS[activeView]) {
       targetPos.current.copy(PRESET_VIEWS[activeView].pos);
       targetLook.current.copy(PRESET_VIEWS[activeView].target);
@@ -114,7 +144,7 @@ export function CameraController() {
           ref={orbitRef}
           enableDamping
           dampingFactor={0.06}
-          minDistance={worldScope === 'island' ? 12 : 5}
+          minDistance={worldScope === 'island' ? 12 : 4}
           maxDistance={worldScope === 'island' ? 180 : 120}
           maxPolarAngle={Math.PI / 2 - 0.05}
         />

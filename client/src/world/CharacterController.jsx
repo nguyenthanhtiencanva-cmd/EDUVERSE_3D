@@ -3,40 +3,103 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
+import { LIGHTHOUSE_WORLD, HOTSPOTS } from './lighthouse/layout';
 
 const BUILDINGS = [
-  [9, 22, 0, 14], [-14, 16, -26, -16], [-27, -15, -8, 16],
-  [12, 26, 18, 28], [-10, 6, 26, 29],
+  [9, 22, 0, 14],
+  [-14, 16, -26, -16],
+  [-27, -15, -8, 16],
+  [12, 26, 18, 28],
+  [-10, 6, 26, 29],
 ];
-const CAMERA_BOXES = BUILDINGS.map(([left, right, near, far]) =>
-  new THREE.Box3(new THREE.Vector3(left, 0, near), new THREE.Vector3(right, 10, far)));
+const CAMERA_BOXES = BUILDINGS.map(
+  ([left, right, near, far]) =>
+    new THREE.Box3(new THREE.Vector3(left, 0, near), new THREE.Vector3(right, 10, far)),
+);
 const MOVE_KEYS = new Set([
-  'KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight',
-  'ShiftLeft', 'ShiftRight', 'Space',
+  'KeyW',
+  'KeyA',
+  'KeyS',
+  'KeyD',
+  'ArrowUp',
+  'ArrowLeft',
+  'ArrowDown',
+  'ArrowRight',
+  'ShiftLeft',
+  'ShiftRight',
+  'Space',
+  'KeyE',
 ]);
 
-function canWalk(x, z) {
+function canWalkCampus(x, z) {
   const radius = 0.45;
-  return Math.abs(x) <= 28 && Math.abs(z) <= 28 && !BUILDINGS.some(([left, right, near, far]) =>
-    x + radius > left && x - radius < right && z + radius > near && z - radius < far);
+  return (
+    Math.abs(x) <= 28 &&
+    Math.abs(z) <= 28 &&
+    !BUILDINGS.some(
+      ([left, right, near, far]) =>
+        x + radius > left && x - radius < right && z + radius > near && z - radius < far,
+    )
+  );
 }
 
 export function CharacterController({ tourist = true }) {
   const group = useRef(null);
   const { camera, gl } = useThree();
-  const { scene, animations } = useGLTF(tourist ? '/models/tourist_meshy.glb' : '/models/student_character.glb');
+  const { scene, animations } = useGLTF(
+    tourist ? '/models/tourist_meshy.glb' : '/models/student_character.glb',
+  );
   const { actions } = useAnimations(animations, group);
   const walking = useStore((state) => state.cameraMode === 'fps');
+  const worldScope = useStore((state) => state.worldScope);
+  const playerTeleport = useStore((state) => state.playerTeleport);
+
   const player = useRef({
-    position: new THREE.Vector3(1.5, 0, 6), facing: Math.PI,
-    yaw: tourist ? Math.PI : 0, pitch: 0.28, distance: 4.2,
-    keys: new Set(), pointer: null, jumpPressed: false, jumpHeld: false,
-    lift: 0, clip: '', snap: true, positionTimer: 0,
+    position: new THREE.Vector3(1.5, 0, 6),
+    facing: Math.PI,
+    yaw: tourist ? Math.PI : 0,
+    pitch: 0.28,
+    distance: 4.2,
+    keys: new Set(),
+    pointer: null,
+    jumpPressed: false,
+    jumpHeld: false,
+    lift: 0,
+    clip: '',
+    snap: true,
+    positionTimer: 0,
+    lastHotspotId: null,
   }).current;
-  const scratch = useMemo(() => ({
-    target: new THREE.Vector3(), eye: new THREE.Vector3(), direction: new THREE.Vector3(),
-    intersection: new THREE.Vector3(), ray: new THREE.Ray(),
-  }), []);
+
+  const scratch = useMemo(
+    () => ({
+      target: new THREE.Vector3(),
+      eye: new THREE.Vector3(),
+      direction: new THREE.Vector3(),
+      intersection: new THREE.Vector3(),
+      ray: new THREE.Ray(),
+    }),
+    [],
+  );
+
+  // Handle teleport requests (e.g. entering Lighthouse 1:1, climbing tower, or picking a tour stop)
+  useEffect(() => {
+    if (!playerTeleport) return;
+    const [tx, ty, tz] = playerTeleport.position;
+    player.position.set(tx, ty, tz);
+    if (typeof playerTeleport.yaw === 'number') {
+      player.yaw = playerTeleport.yaw;
+      player.facing = tourist ? playerTeleport.yaw : playerTeleport.yaw + Math.PI;
+    }
+    player.lift = 0;
+    player.snap = true;
+    if (group.current) {
+      group.current.position.copy(player.position);
+      group.current.rotation.y = player.facing;
+    }
+    useStore.getState().setPlayerPosition([tx, ty + 1.4, tz]);
+    useStore.getState().clearPlayerTeleport();
+  }, [playerTeleport, player, tourist]);
 
   useEffect(() => {
     scene.traverse((child) => {
@@ -46,10 +109,13 @@ export function CharacterController({ tourist = true }) {
     });
   }, [scene]);
 
-  useEffect(() => () => {
-    Object.values(actions).forEach((action) => action?.stop());
-    player.clip = '';
-  }, [actions, player]);
+  useEffect(
+    () => () => {
+      Object.values(actions).forEach((action) => action?.stop());
+      player.clip = '';
+    },
+    [actions, player],
+  );
 
   useEffect(() => {
     if (!walking) return;
@@ -67,8 +133,25 @@ export function CharacterController({ tourist = true }) {
     };
     const keyDown = (event) => {
       if (!MOVE_KEYS.has(event.code) || event.ctrlKey || event.metaKey || event.altKey) return;
-      if (event.target instanceof HTMLElement && event.target.closest('button, input, select, textarea, [contenteditable]')) return;
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.closest('button, input, select, textarea, [contenteditable]')
+      )
+        return;
       if (event.code.startsWith('Arrow') || event.code === 'Space') event.preventDefault();
+      if (event.code === 'KeyE' && !event.repeat && useStore.getState().worldScope === 'lighthouse') {
+        const st = useStore.getState();
+        if (st.lighthouseLevel === 'balcony') {
+          st.climbLighthouse('ground');
+        } else {
+          const [px, , pz] = [player.position.x, player.position.y, player.position.z];
+          const doorSpot = HOTSPOTS.find((h) => h.id === 'door');
+          if (doorSpot && Math.hypot(px - doorSpot.pos[0], pz - doorSpot.pos[1]) < 3.2) {
+            st.climbLighthouse('balcony');
+          }
+        }
+        return;
+      }
       player.keys.add(event.code);
       if (event.code === 'Space' && !event.repeat) player.jumpPressed = true;
     };
@@ -82,7 +165,11 @@ export function CharacterController({ tourist = true }) {
       const pointer = player.pointer;
       if (pointer?.id !== event.pointerId) return;
       player.yaw -= (event.clientX - pointer.x) * 0.006;
-      player.pitch = THREE.MathUtils.clamp(player.pitch + (event.clientY - pointer.y) * 0.005, 0.05, 1.2);
+      player.pitch = THREE.MathUtils.clamp(
+        player.pitch + (event.clientY - pointer.y) * 0.005,
+        -0.25,
+        1.2,
+      );
       pointer.x = event.clientX;
       pointer.y = event.clientY;
     };
@@ -93,10 +180,15 @@ export function CharacterController({ tourist = true }) {
       player.distance = THREE.MathUtils.clamp(player.distance + event.deltaY * 0.005, 1.8, 8);
     };
     const events = [
-      [window, 'keydown', keyDown], [window, 'keyup', keyUp], [window, 'blur', reset],
-      [canvas, 'pointerdown', pointerDown], [canvas, 'pointermove', pointerMove],
-      [canvas, 'pointerup', pointerEnd], [canvas, 'pointercancel', pointerEnd],
-      [canvas, 'lostpointercapture', pointerEnd], [canvas, 'wheel', zoom],
+      [window, 'keydown', keyDown],
+      [window, 'keyup', keyUp],
+      [window, 'blur', reset],
+      [canvas, 'pointerdown', pointerDown],
+      [canvas, 'pointermove', pointerMove],
+      [canvas, 'pointerup', pointerEnd],
+      [canvas, 'pointercancel', pointerEnd],
+      [canvas, 'lostpointercapture', pointerEnd],
+      [canvas, 'wheel', zoom],
     ];
     events.forEach(([target, name, handler]) => target.addEventListener(name, handler));
     return () => {
@@ -112,37 +204,75 @@ export function CharacterController({ tourist = true }) {
     const { position, keys } = player;
     let clip = 'Idle';
 
+    const state = useStore.getState();
+    const isLighthouse = state.worldScope === 'lighthouse';
+    const level = state.lighthouseLevel || 'ground';
+    const checkWalk = (x, z) =>
+      isLighthouse ? LIGHTHOUSE_WORLD.canWalk(x, z, level) : canWalkCampus(x, z);
+    const getGroundY = (x, z) =>
+      isLighthouse ? LIGHTHOUSE_WORLD.groundAt(x, z, level) : 0;
+
     if (walking) {
-      const { joystickInput, setPlayerPosition } = useStore.getState();
+      const { joystickInput, setPlayerPosition } = state;
       const axis = (positive, alternate, negative, other) =>
-        Number(keys.has(positive) || keys.has(alternate)) - Number(keys.has(negative) || keys.has(other));
+        Number(keys.has(positive) || keys.has(alternate)) -
+        Number(keys.has(negative) || keys.has(other));
       const forward = axis('KeyW', 'ArrowUp', 'KeyS', 'ArrowDown') + joystickInput.moveY;
       const right = axis('KeyD', 'ArrowRight', 'KeyA', 'ArrowLeft') + joystickInput.moveX;
       const magnitude = Math.hypot(forward, right);
 
       if (magnitude > 0.12) {
         const yaw = player.yaw + Math.atan2(-right, forward);
-        const running = keys.has('ShiftLeft') || keys.has('ShiftRight') || Math.hypot(joystickInput.moveX, joystickInput.moveY) > 0.92;
-        const speed = tourist ? (running ? 5.2 : 2.6) : (running ? 7.2 : 3.8);
+        const running =
+          keys.has('ShiftLeft') ||
+          keys.has('ShiftRight') ||
+          Math.hypot(joystickInput.moveX, joystickInput.moveY) > 0.92;
+        const speed = tourist ? (running ? 5.2 : 2.6) : running ? 7.2 : 3.8;
         const distance = speed * Math.min(magnitude, 1) * dt;
         const x = position.x + Math.sin(yaw) * distance;
         const z = position.z + Math.cos(yaw) * distance;
-        const moved = (canWalk(x, position.z) && x !== position.x) || (canWalk(position.x, z) && z !== position.z);
-        if (canWalk(x, position.z)) position.x = x;
-        if (canWalk(position.x, z)) position.z = z;
+        const moved =
+          (checkWalk(x, position.z) && x !== position.x) ||
+          (checkWalk(position.x, z) && z !== position.z);
+        if (checkWalk(x, position.z)) position.x = x;
+        if (checkWalk(position.x, z)) position.z = z;
         if (moved) clip = running ? 'Run' : 'Walk';
         const targetFacing = tourist ? yaw : yaw + Math.PI;
         const rotation = targetFacing - player.facing;
         player.facing += Math.atan2(Math.sin(rotation), Math.cos(rotation)) * (1 - Math.exp(-14 * dt));
       }
 
+      const groundY = getGroundY(position.x, position.z);
       const touchJump = joystickInput.isJumping && !player.jumpHeld;
-      if ((player.jumpPressed || touchJump) && position.y === 0) player.lift = 5.5;
+      if ((player.jumpPressed || touchJump) && Math.abs(position.y - groundY) < 0.05) {
+        player.lift = 5.5;
+      }
       player.jumpPressed = false;
       player.jumpHeld = joystickInput.isJumping;
-      if (player.lift || position.y > 0) {
-        position.y = Math.max(0, position.y + player.lift * dt);
-        player.lift = position.y > 0 ? player.lift - 18 * dt : 0;
+      if (player.lift > 0 || position.y > groundY) {
+        position.y = Math.max(groundY, position.y + player.lift * dt);
+        player.lift = position.y > groundY ? player.lift - 18 * dt : 0;
+      } else {
+        position.y = groundY;
+      }
+
+      // Check proximity to hotspots in Lighthouse mode
+      if (isLighthouse) {
+        let foundSpot = null;
+        for (const hs of HOTSPOTS) {
+          if (hs.level === level && Math.hypot(position.x - hs.pos[0], position.z - hs.pos[1]) < hs.radius) {
+            foundSpot = hs;
+            break;
+          }
+        }
+        if (foundSpot && foundSpot.id !== player.lastHotspotId) {
+          player.lastHotspotId = foundSpot.id;
+          if (foundSpot.action !== 'up') {
+            state.setActiveHotspot(foundSpot);
+          }
+        } else if (!foundSpot) {
+          player.lastHotspotId = null;
+        }
       }
 
       const { target, eye, direction, ray, intersection } = scratch;
@@ -153,13 +283,19 @@ export function CharacterController({ tourist = true }) {
         Math.sin(player.pitch),
         -Math.cos(player.yaw) * Math.cos(player.pitch),
       );
-      ray.set(target, direction);
+
       let distance = player.distance;
-      for (const box of CAMERA_BOXES) {
-        if (!box.containsPoint(target) && ray.intersectBox(box, intersection)) {
-          distance = Math.min(distance, Math.max(0.8, target.distanceTo(intersection) - 0.25));
+      if (isLighthouse) {
+        distance = LIGHTHOUSE_WORLD.cameraDistance(target, direction, player.distance, level);
+      } else {
+        ray.set(target, direction);
+        for (const box of CAMERA_BOXES) {
+          if (!box.containsPoint(target) && ray.intersectBox(box, intersection)) {
+            distance = Math.min(distance, Math.max(0.8, target.distanceTo(intersection) - 0.25));
+          }
         }
       }
+
       eye.copy(target).addScaledVector(direction, distance);
       if (player.snap || distance < player.distance) camera.position.copy(eye);
       else camera.position.lerp(eye, 1 - Math.exp(-10 * dt));
@@ -169,8 +305,12 @@ export function CharacterController({ tourist = true }) {
       player.positionTimer += dt;
       if (player.positionTimer >= 0.08) {
         player.positionTimer = 0;
-        const previous = useStore.getState().playerPosition;
-        if (previous[0] !== position.x || previous[1] !== position.y + 1.4 || previous[2] !== position.z) {
+        const previous = state.playerPosition;
+        if (
+          previous[0] !== position.x ||
+          previous[1] !== position.y + 1.4 ||
+          previous[2] !== position.z
+        ) {
           setPlayerPosition([position.x, position.y + 1.4, position.z]);
         }
       }
@@ -185,7 +325,9 @@ export function CharacterController({ tourist = true }) {
     group.current.rotation.y = player.facing;
   });
 
-  return <group ref={group} name={tourist ? 'Vinh_Thuc_Tourist' : 'Student_Character'}>
-    <primitive object={scene} />
-  </group>;
+  return (
+    <group ref={group} name={tourist ? 'Vinh_Thuc_Tourist' : 'Student_Character'}>
+      <primitive object={scene} />
+    </group>
+  );
 }

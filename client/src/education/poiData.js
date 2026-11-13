@@ -129,17 +129,18 @@ export const ISLAND_POI_LIST = [
     title: 'Hải Đăng Vĩnh Thực (Mũi Đầu Tán - 1962)',
     shortTitle: '🗼 Hải đăng Vĩnh Thực (1962)',
     category: 'Biểu tượng Chủ quyền & Hàng hải',
+    hasLighthouse3D: true,
     position: [62.60, 4.5, -22.82],
     badgePosition: [62.60, 9.8, -22.82],
     cameraTarget: [62.60, 4.5, -22.82],
     cameraPosition: [52.0, 18.0, -6.0],
     image: '/images/preview_island_overview.png',
     description:
-      'Được xây dựng từ năm 1962 tại mũi cực Đông Bắc đảo Vĩnh Thực. Là ngọn hải đăng quốc tế đầu tiên trên tuyến biên giới biển Đông Bắc, mệnh danh là "Mắt thần vùng biển Đông Bắc Tổ quốc".',
+      'Được xây dựng từ năm 1962 tại mũi cực Đông Bắc đảo Vĩnh Thực. Công trình gồm tháp đèn cao 18 m với hiên vòm tròn kiểu Pháp, nhà quản lý mái ngói đỏ Mansard và sân gạch đỏ trên đỉnh đồi (tâm sáng 84,5 m, tầm hiệu lực 21 hải lý) — mệnh danh là "Mắt thần vùng biển Đông Bắc Tổ quốc".',
     details: [
-      { label: 'Tọa độ địa lý', value: '21°23\'48" N, 107°59\'30" E (Mũi Đông Bắc đảo Vĩnh Thực)' },
-      { label: 'Kiến trúc ngọn đèn', value: 'Tháp trụ tròn trắng-đen, trạm gác đèn biển, ban đêm phát tín hiệu quét sáng' },
-      { label: 'Ý nghĩa chủ quyền', value: 'Cột mốc hàng hải quốc tế đầu tiên trên vùng biển Đông Bắc Tổ quốc' },
+      { label: 'Thông số kỹ thuật', value: 'Tháp cao 18,0 m • Tâm sáng cao 84,5 m so với mặt biển • Tầm sáng 21 hải lý' },
+      { label: 'Kiến trúc công trình', value: 'Tháp trụ vàng kem 4 gân trắng, hiên vòm tròn 8 trụ, nhà quản lý mái ngói đỏ & phòng truyền thống' },
+      { label: 'Trải nghiệm 3D (1:1)', value: 'Hỗ trợ đi bộ tham quan khuôn viên, vào phòng truyền thống và leo lên ban công đỉnh tháp 18m' },
     ],
   },
   {

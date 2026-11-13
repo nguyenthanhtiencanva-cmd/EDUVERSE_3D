@@ -102,6 +102,21 @@ export function IslandModel() {
                     <span>Vào sân trường 1:1</span>
                   </button>
                 )}
+
+                {/* Quick 1-click button to enter 1:1 Lighthouse Experience */}
+                {poi.hasLighthouse3D && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setWorldScope('lighthouse');
+                    }}
+                    className="px-2.5 py-0.5 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 text-[10px] font-extrabold shadow-lg border border-white transition transform hover:scale-105 cursor-pointer flex items-center gap-1"
+                    style={{ whiteSpace: 'nowrap' }}
+                  >
+                    <Compass className="w-3 h-3" />
+                    <span>Tham quan Hải đăng 1:1</span>
+                  </button>
+                )}
               </div>
             </Html>
           </group>

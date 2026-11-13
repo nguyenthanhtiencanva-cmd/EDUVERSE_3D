@@ -1,6 +1,11 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
-import { PRESET_VIEWS, ISLAND_PRESET_VIEWS } from '../world/CameraController';
+import {
+  PRESET_VIEWS,
+  ISLAND_PRESET_VIEWS,
+  LIGHTHOUSE_PRESET_VIEWS,
+} from '../world/CameraController';
+import { TOUR_SPOTS } from '../world/lighthouse/layout';
 import { POIModal } from './POIModal';
 import { VirtualJoystick } from './VirtualJoystick';
 import {
@@ -9,11 +14,16 @@ import {
   Moon,
   Volume2,
   VolumeX,
-  Footprints,
   Plane,
+  Footprints,
   HelpCircle,
   Globe,
   School,
+  Landmark,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  X,
+  ChevronRight,
 } from 'lucide-react';
 
 export function HUDOverlay() {
@@ -28,8 +38,26 @@ export function HUDOverlay() {
   const soundEnabled = useStore((state) => state.soundEnabled);
   const setSoundEnabled = useStore((state) => state.setSoundEnabled);
 
+  const lighthouseLevel = useStore((state) => state.lighthouseLevel);
+  const climbLighthouse = useStore((state) => state.climbLighthouse);
+  const activeHotspot = useStore((state) => state.activeHotspot);
+  const setActiveHotspot = useStore((state) => state.setActiveHotspot);
+  const visitedHotspots = useStore((state) => state.visitedHotspots);
+  const teleportToHotspot = useStore((state) => state.teleportToHotspot);
+
   const isIsland = worldScope === 'island';
-  const currentPresets = isIsland ? ISLAND_PRESET_VIEWS : PRESET_VIEWS;
+  const isLighthouse = worldScope === 'lighthouse';
+  const currentPresets = isIsland
+    ? ISLAND_PRESET_VIEWS
+    : isLighthouse
+    ? LIGHTHOUSE_PRESET_VIEWS
+    : PRESET_VIEWS;
+
+  const handleNextHotspot = () => {
+    const idx = TOUR_SPOTS.findIndex((h) => h.id === activeHotspot?.id);
+    const next = TOUR_SPOTS[(idx + 1) % TOUR_SPOTS.length];
+    if (next) teleportToHotspot(next);
+  };
 
   return (
     <div className="fixed inset-0 pointer-events-none z-20 flex flex-col justify-between p-3 sm:p-5 select-none">
@@ -52,16 +80,18 @@ export function HUDOverlay() {
               <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
                 {isIsland
                   ? 'Sa Bàn Số Đảo Vĩnh Thực & 3 Phân Hiệu'
+                  : isLighthouse
+                  ? 'Trạm Hải Đăng Vĩnh Thực (1962) • Không Gian 1:1'
                   : 'Trường TH&THCS Vĩnh Thực (Phân Hiệu Vĩnh Trung)'}
               </h1>
             </div>
           </div>
 
-          {/* Multi-Scale World Scope Switcher (Toàn đảo <-> Phân hiệu Vĩnh Trung 1:1) */}
-          <div className="glass-panel p-1 rounded-2xl flex items-center gap-1 shadow-xl border border-amber-400/30">
+          {/* Multi-Scale World Scope Switcher */}
+          <div className="glass-panel p-1 rounded-2xl flex flex-wrap items-center gap-1 shadow-xl border border-amber-400/30">
             <button
               onClick={() => setWorldScope('island')}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 isIsland
                   ? 'bg-gradient-to-r from-cyan-400 to-sky-500 text-slate-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/10'
@@ -73,8 +103,8 @@ export function HUDOverlay() {
             </button>
             <button
               onClick={() => setWorldScope('campus')}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-                !isIsland
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                worldScope === 'campus'
                   ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/10'
               }`}
@@ -83,12 +113,46 @@ export function HUDOverlay() {
               <School className="w-4 h-4" />
               <span>Phân hiệu Vĩnh Trung (1:1)</span>
             </button>
+            <button
+              onClick={() => setWorldScope('lighthouse')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                isLighthouse
+                  ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 shadow-md'
+                  : 'text-slate-300 hover:text-white hover:bg-white/10'
+              }`}
+              title="Tham quan trải nghiệm 1:1 Trạm Hải đăng Vĩnh Thực (1962)"
+            >
+              <Landmark className="w-4 h-4" />
+              <span>Hải đăng Vĩnh Thực (1:1)</span>
+            </button>
           </div>
         </div>
 
-        {/* Right Controls: Mode, Time, Sound & Minimap */}
-        <div className="flex items-start gap-2.5 pointer-events-auto">
-          {/* Exploration Mode Switcher (Flycam vs Walk in Campus mode) */}
+        {/* Right Controls: Climb Tower, Mode, Time, Sound */}
+        <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
+          {/* Quick button to climb up/down the 18m Lighthouse Tower */}
+          {isLighthouse && (
+            <button
+              onClick={() =>
+                climbLighthouse(lighthouseLevel === 'balcony' ? 'ground' : 'balcony')
+              }
+              className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-300 hover:to-teal-400 text-slate-950 text-xs font-extrabold shadow-xl border border-white/40 flex items-center gap-1.5 transition transform hover:scale-105 cursor-pointer"
+            >
+              {lighthouseLevel === 'balcony' ? (
+                <>
+                  <ArrowDownCircle className="w-4 h-4" />
+                  <span>Xuống sân Hải đăng</span>
+                </>
+              ) : (
+                <>
+                  <ArrowUpCircle className="w-4 h-4" />
+                  <span>Leo lên đỉnh tháp (15m)</span>
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Exploration Mode Switcher (Flycam vs Walk in 1:1 modes) */}
           {!isIsland && (
             <div className="glass-panel p-1 rounded-2xl flex items-center gap-1 shadow-lg">
               <button
@@ -149,7 +213,7 @@ export function HUDOverlay() {
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
-              title="Đêm trăng lên đèn"
+              title="Đêm trăng lên đèn (Xem hải đăng quét sáng)"
             >
               <Moon className="w-4 h-4" />
             </button>
@@ -169,6 +233,56 @@ export function HUDOverlay() {
           </button>
         </div>
       </header>
+
+      {/* MIDDLE: Interactive Hotspot Card in Lighthouse 1:1 Mode */}
+      {isLighthouse && activeHotspot && (
+        <aside className="pointer-events-auto self-start max-w-md w-full glass-panel rounded-2xl p-4 shadow-2xl border border-amber-400/40 bg-slate-950/85 text-white my-auto">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{activeHotspot.icon}</span>
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                  Điểm thuyết minh • Đã khám phá {visitedHotspots.length}/{TOUR_SPOTS.length}
+                </span>
+                <h2 className="text-base font-extrabold text-white leading-snug">
+                  {activeHotspot.title}
+                </h2>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveHotspot(null)}
+              className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer"
+              title="Đóng thẻ thuyết minh"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="mt-2.5 space-y-1.5 text-xs sm:text-sm text-slate-200 leading-relaxed">
+            {activeHotspot.body.map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+          </div>
+
+          <div className="mt-3.5 pt-2.5 border-t border-white/10 flex items-center justify-between gap-2">
+            <button
+              onClick={() =>
+                climbLighthouse(lighthouseLevel === 'balcony' ? 'ground' : 'balcony')
+              }
+              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold text-amber-300 transition cursor-pointer"
+            >
+              {lighthouseLevel === 'balcony' ? '⬇️ Xuống chân tháp' : '🪜 Lên ban công 15m'}
+            </button>
+            <button
+              onClick={handleNextHotspot}
+              className="px-3.5 py-1.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold flex items-center gap-1 transition shadow-md cursor-pointer"
+            >
+              <span>Điểm tiếp theo</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </aside>
+      )}
 
       {/* BOTTOM SECTION */}
       <footer className="flex flex-col items-center gap-2.5 w-full">
@@ -194,21 +308,54 @@ export function HUDOverlay() {
           </div>
         )}
 
+        {/* Quick Tour Stops Dock in Lighthouse Walking Mode */}
+        {isLighthouse && cameraMode === 'fps' && (
+          <div className="glass-panel p-1.5 rounded-2xl flex items-center gap-1.5 shadow-2xl pointer-events-auto max-w-full overflow-x-auto scrollbar-none border border-amber-400/25">
+            {TOUR_SPOTS.map((spot) => {
+              const isActive = activeHotspot?.id === spot.id;
+              const isVisited = visitedHotspots.includes(spot.id);
+              return (
+                <button
+                  key={spot.id}
+                  onClick={() => teleportToHotspot(spot)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition flex items-center gap-1 cursor-pointer ${
+                    isActive
+                      ? 'bg-amber-400 text-slate-950 font-bold shadow-md scale-105'
+                      : isVisited
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 hover:bg-emerald-500/30'
+                      : 'text-slate-300 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <span>{spot.icon}</span>
+                  <span>{spot.title.split('–')[0].trim()}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Controls Instructions Banner */}
         <div className="glass-panel px-4 py-1.5 rounded-full text-xs text-slate-300 shadow-md flex items-center gap-2 border border-white/10">
           <HelpCircle className="w-3.5 h-3.5 text-amber-400" />
           {cameraMode === 'fps' ? (
             <span>
-              Phím <strong className="text-white">W, A, S, D</strong> / Mũi tên: Đi bộ |{' '}
-              <strong className="text-white">Shift</strong>: Chạy nhanh |{' '}
+              Phím <strong className="text-white">W, A, S, D</strong>: Đi bộ |{' '}
+              <strong className="text-white">Shift</strong>: Chạy |{' '}
               <strong className="text-white">Kéo chuột</strong>: Xoay 360° |{' '}
-              <strong className="text-white">Cuộn chuột</strong>: Thu phóng |{' '}
-              <strong className="text-white">Space</strong>: Nhảy bậc thềm
+              {isLighthouse ? (
+                <>
+                  <strong className="text-amber-300">Phím E</strong>: Lên/xuống đỉnh tháp | Bước vào vòng sáng để xem thuyết minh
+                </>
+              ) : (
+                <>
+                  <strong className="text-white">Space</strong>: Nhảy bậc thềm
+                </>
+              )}
             </span>
           ) : isIsland ? (
             <span>
               Sa bàn 3D Đảo Vĩnh Thực: Nhấp vào các ghim địa danh hoặc bấm{' '}
-              <strong className="text-amber-400">Vào sân trường 1:1</strong> tại Phân hiệu Vĩnh Trung để khám phá chi tiết
+              <strong className="text-amber-400">Tham quan 1:1</strong> tại Phân hiệu Vĩnh Trung và Hải đăng Vĩnh Thực
             </span>
           ) : (
             <span>
