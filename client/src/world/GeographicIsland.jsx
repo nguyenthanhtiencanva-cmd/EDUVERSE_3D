@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ArcGisMapServerImageryProvider, BoundingSphere, Cartesian2, Cartesian3, Color, Credit,
+  BoundingSphere, Cartesian2, Cartesian3, Color, Credit,
   CustomHeightmapTerrainProvider, GeographicTilingScheme, HeadingPitchRange, HeadingPitchRoll,
-  HeightReference, ImageryLayer, Ion, LabelStyle, Math as CesiumMath, Model, Rectangle, ScreenSpaceEventType,
+  HeightReference, Ion, LabelStyle, Math as CesiumMath, Model, Rectangle, ScreenSpaceEventType,
   SingleTileImageryProvider, Transforms, Viewer,
 } from 'cesium';
-import { ChevronRight, Compass, Footprints, Layers3, List, MapPin, Mountain, X } from 'lucide-react';
+import { ChevronRight, Compass, Footprints, List, MapPin, Mountain, X } from 'lucide-react';
 import 'cesium/Build/Cesium/Widgets/widgets.css';
 import './geographic.css';
 import { useStore } from '../store/useStore';
@@ -53,15 +53,12 @@ export default function GeographicIsland() {
   const container = useRef(null);
   const scene = useRef(null);
   const selected = useRef(previousView?.selected ?? false);
-  const satelliteEnabled = useRef(previousView?.satellite ?? false);
   const [schoolOpen, setSchoolOpen] = useState(selected.current);
   const [listOpen, setListOpen] = useState(false);
   const [ready, setReady] = useState(false);
   const [retry, setRetry] = useState(0);
   const [error, setError] = useState('');
   const [schoolStatus, setSchoolStatus] = useState('');
-  const [satellite, setSatellite] = useState(satelliteEnabled.current);
-  const [satelliteStatus, setSatelliteStatus] = useState('');
   const startCampusTour = useStore((state) => state.startCampusTour);
   const setWorldScope = useStore((state) => state.setWorldScope);
 
@@ -196,7 +193,6 @@ export default function GeographicIsland() {
         viewer.camera.cancelFlight();
         previousView = {
           selected: selected.current,
-          satellite: satelliteEnabled.current,
           camera: {
             destination: Cartesian3.clone(viewer.camera.positionWC),
             orientation: {
@@ -210,35 +206,6 @@ export default function GeographicIsland() {
       scene.current = null;
     };
   }, [retry]);
-
-  useEffect(() => {
-    satelliteEnabled.current = satellite;
-    const view = scene.current;
-    if (!ready || !view) return;
-    if (view.satelliteLayer) {
-      view.satelliteLayer.show = satellite;
-      view.viewer.scene.requestRender();
-      return;
-    }
-    if (!satellite) return;
-    let canceled = false;
-    setSatelliteStatus('Đang tải ảnh vệ tinh…');
-    ArcGisMapServerImageryProvider.fromUrl(
-      'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
-      { enablePickFeatures: false },
-    ).then((provider) => {
-      if (canceled || view !== scene.current) return;
-      view.satelliteLayer = view.viewer.imageryLayers.add(new ImageryLayer(provider, { rectangle: view.rectangle }));
-      setSatelliteStatus('');
-      view.viewer.scene.requestRender();
-    }).catch(() => {
-      if (!canceled) {
-        setSatellite(false);
-        setSatelliteStatus('Ảnh vệ tinh tạm thời chưa tải được.');
-      }
-    });
-    return () => { canceled = true; };
-  }, [ready, satellite]);
 
   function overview(tilted) {
     const view = scene.current;
@@ -263,15 +230,10 @@ export default function GeographicIsland() {
         <div><span>EDUVERSE 3D</span><h1>Đảo Vĩnh Thực</h1></div>
       </div>
       <nav className="map-layer-controls" aria-label="Lớp bản đồ">
-        <button aria-pressed={satellite} disabled={!ready} onClick={() => {
-          setSatelliteStatus('');
-          setSatellite((value) => !value);
-        }}><Layers3 size={16} /> Ảnh vệ tinh</button>
         <button onClick={() => setWorldScope('island')}>Sa bàn</button>
       </nav>
     </header>
 
-    {satelliteStatus && <p className="map-layer-status" role="status">{satelliteStatus}</p>}
     {!ready && !error && <div className="map-message" role="status">Đang mở địa hình Vĩnh Thực…</div>}
     {error && <div className="map-message" role="alert">
       <p>{error}</p>
