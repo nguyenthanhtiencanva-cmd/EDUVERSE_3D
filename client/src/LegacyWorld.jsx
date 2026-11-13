@@ -21,7 +21,7 @@ export default function LegacyWorld() {
       ) : (
         <>
           <CampusModel />
-          <CharacterController key={campusTour ? 'tourist' : 'student'} tourist={campusTour} />
+          <CharacterController key="tourist-meshy" tourist />
         </>
       )}
       <CameraController />

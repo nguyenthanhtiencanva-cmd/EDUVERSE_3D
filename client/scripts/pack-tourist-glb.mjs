@@ -197,6 +197,7 @@ function main() {
 
   const targets = [
     path.join(CHAR_DIR, 'tourist_mpfb.glb'),
+    path.join(PUBLIC_MODELS_DIR, 'tourist_meshy.glb'),
     path.join(PUBLIC_MODELS_DIR, 'tourist_mpfb.glb'),
     path.join(PUBLIC_MODELS_DIR, 'tourist_character.glb'),
   ];

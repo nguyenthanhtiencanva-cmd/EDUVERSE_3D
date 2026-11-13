@@ -21,10 +21,10 @@ function canWalk(x, z) {
     x + radius > left && x - radius < right && z + radius > near && z - radius < far);
 }
 
-export function CharacterController({ tourist = false }) {
+export function CharacterController({ tourist = true }) {
   const group = useRef(null);
   const { camera, gl } = useThree();
-  const { scene, animations } = useGLTF(tourist ? '/models/tourist_mpfb.glb' : '/models/student_character.glb');
+  const { scene, animations } = useGLTF(tourist ? '/models/tourist_meshy.glb' : '/models/student_character.glb');
   const { actions } = useAnimations(animations, group);
   const walking = useStore((state) => state.cameraMode === 'fps');
   const player = useRef({
@@ -123,7 +123,7 @@ export function CharacterController({ tourist = false }) {
       if (magnitude > 0.12) {
         const yaw = player.yaw + Math.atan2(-right, forward);
         const running = keys.has('ShiftLeft') || keys.has('ShiftRight') || Math.hypot(joystickInput.moveX, joystickInput.moveY) > 0.92;
-        const speed = tourist ? (running ? 3.8 : 1.6) : (running ? 7.2 : 3.8);
+        const speed = tourist ? (running ? 5.2 : 2.6) : (running ? 7.2 : 3.8);
         const distance = speed * Math.min(magnitude, 1) * dt;
         const x = position.x + Math.sin(yaw) * distance;
         const z = position.z + Math.cos(yaw) * distance;
