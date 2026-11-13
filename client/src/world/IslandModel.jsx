@@ -6,7 +6,7 @@ import { ISLAND_POI_LIST } from '../education/poiData';
 import { MapPin, School, Shield, Landmark, Compass } from 'lucide-react';
 
 export function IslandModel() {
-  const { scene } = useGLTF('/models/vinh_thuc_island.glb');
+  const { scene } = useGLTF('/models/vinh_thuc_island_v2.glb');
   const setActivePOI = useStore((state) => state.setActivePOI);
   const activePOI = useStore((state) => state.activePOI);
   const setWorldScope = useStore((state) => state.setWorldScope);
@@ -105,4 +105,4 @@ export function IslandModel() {
   );
 }
 
-useGLTF.preload('/models/vinh_thuc_island.glb');
+useGLTF.preload('/models/vinh_thuc_island_v2.glb');

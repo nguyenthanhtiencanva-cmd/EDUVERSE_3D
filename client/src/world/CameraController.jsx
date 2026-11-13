@@ -6,33 +6,33 @@ import { useStore } from '../store/useStore';
 
 export const ISLAND_PRESET_VIEWS = {
   island_overview: {
-    pos: new THREE.Vector3(0.0, 58.0, 92.0),
-    target: new THREE.Vector3(2.0, 2.0, 0.0),
+    pos: new THREE.Vector3(0.0, 62.0, 88.0),
+    target: new THREE.Vector3(0.0, 1.5, 0.0),
     name: '🌏 Toàn đảo Vĩnh Thực',
   },
   van_gia_north: {
-    pos: new THREE.Vector3(17.0, 20.0, 15.0),
-    target: new THREE.Vector3(17.0, 2.0, -12.5),
+    pos: new THREE.Vector3(18.14, 18.0, 2.0),
+    target: new THREE.Vector3(18.14, 1.5, -18.56),
     name: '⚓ Bến Tàu Vạn Gia (Bờ Bắc)',
   },
   vinh_trung_campus: {
-    pos: new THREE.Vector3(-26.0, 18.0, 22.0),
-    target: new THREE.Vector3(-26.0, 2.5, -0.5),
-    name: '🏫 Phân hiệu Vĩnh Trung (Thôn 3)',
+    pos: new THREE.Vector3(-19.27, 16.0, 16.0),
+    target: new THREE.Vector3(-19.27, 2.0, -1.83),
+    name: '🏫 Phân hiệu Vĩnh Trung',
   },
   dau_dong_main: {
-    pos: new THREE.Vector3(28.0, 18.0, 20.0),
-    target: new THREE.Vector3(28.0, 2.5, -1.5),
-    name: '🏫 Điểm chính Đầu Đông & Bãi biển',
+    pos: new THREE.Vector3(23.20, 16.0, 15.0),
+    target: new THREE.Vector3(23.20, 2.2, -4.22),
+    name: '🏫 Điểm chính Vĩnh Thực & Đầu Đông',
   },
   lighthouse_peak: {
-    pos: new THREE.Vector3(54.0, 26.0, 10.0),
-    target: new THREE.Vector3(65.0, 12.0, -13.5),
+    pos: new THREE.Vector3(52.0, 18.0, -4.0),
+    target: new THREE.Vector3(62.60, 4.5, -22.82),
     name: '🗼 Hải đăng Vĩnh Thực (1962)',
   },
   fishermans_wharf: {
-    pos: new THREE.Vector3(-64.0, 16.0, 20.0),
-    target: new THREE.Vector3(-64.0, 1.5, -1.5),
+    pos: new THREE.Vector3(-62.0, 15.0, 18.0),
+    target: new THREE.Vector3(-67.08, 1.2, 0.70),
     name: '⚓ Bến cá Mũi Tây',
   },
 };
