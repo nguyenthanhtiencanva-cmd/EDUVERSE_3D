@@ -1,7 +1,6 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
 import { PRESET_VIEWS, ISLAND_PRESET_VIEWS } from '../world/CameraController';
-import { MiniMap } from './MiniMap';
 import { POIModal } from './POIModal';
 import { VirtualJoystick } from './VirtualJoystick';
 import {
@@ -168,9 +167,6 @@ export function HUDOverlay() {
               <VolumeX className="w-4 h-4 text-slate-500" />
             )}
           </button>
-
-          {/* MiniMap Radar */}
-          <MiniMap />
         </div>
       </header>
 
