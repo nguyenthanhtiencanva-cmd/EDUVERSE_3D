@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 EDUVERSE 3D — Trình tạo mô hình 3D Đảo Vĩnh Thực chuẩn 1:1 theo bản đồ thực tế (reference_vinh_thuc_map.png)
-Tạo trực tiếp tệp GLB nhị phân chuẩn glTF 2.0 (vinh_thuc_island.glb & vinh_thuc_island_v2.glb)
+Tạo trực tiếp tệp GLB nhị phân chuẩn glTF 2.0 (vinh_thuc_island.glb & vinh_thuc_island_v3.glb)
 với đầy đủ:
   - Hình dáng đường bờ biển chính xác 100% từ ảnh bản đồ (nhánh Tây Bắc, bán đảo vòng cung Tây Nam,
     vịnh Bến Hèn và 4 đảo nhỏ trong vịnh, các hồ nước ngọt nội địa, thân đảo Vĩnh Thực và mũi Hải đăng Đông Bắc).
@@ -27,7 +27,7 @@ MAP_PNG = os.path.join(ROOT_DIR, "assets", "school", "reference_vinh_thuc_map.pn
 OUT_PATHS = [
     os.path.join(ROOT_DIR, "assets", "school", "vinh_thuc_island.glb"),
     os.path.join(CLIENT_DIR, "public", "models", "vinh_thuc_island.glb"),
-    os.path.join(CLIENT_DIR, "public", "models", "vinh_thuc_island_v2.glb"),
+    os.path.join(CLIENT_DIR, "public", "models", "vinh_thuc_island_v3.glb"),
 ]
 
 WORLD_W = 144.0
@@ -522,7 +522,7 @@ def main():
             (18.14, -18.56, 4.2, 0.85),  # Bến tàu Vạn Gia
             (17.16, -13.92, 4.2, 1.40),  # Đồn Biên phòng
             (-26.30, 2.81, 4.0, 1.35),   # Đền Lê Bá Đức
-            (62.60, -22.82, 3.6, 2.35),  # Mũi Hải đăng Vĩnh Thực
+            (62.60, -22.82, 5.6, 2.35),  # Mũi Hải đăng Vĩnh Thực
         ]
         for px_f, pz_f, r_f, y_f in plateaus:
             fd = math.hypot(wx - px_f, wz - pz_f)
@@ -826,14 +826,10 @@ def main():
     # 5.7. HẢI ĐĂNG VĨNH THỰC 1962 (tại [62.60, -22.82] - Mũi cực Đông Bắc)
     lx_l, lz_l = 62.60, -22.82
     ly_l = max(1.6, island_height(lx_l, lz_l))
-    sb.add_cylinder(m_yard, lx_l, ly_l + 0.20, lz_l, 3.2, 2.9, 0.45, 20)
-    sb.add_hipped_building(lx_l - 1.2, ly_l + 0.42, lz_l + 0.6, 2.0, 1.1, 0.88, 0.38, m_wall_yellow, m_roof_red)
-    sb.add_cylinder(m_wall_white, lx_l + 0.5, ly_l + 2.25, lz_l - 0.3, 0.76, 0.56, 3.6, 20)
-    sb.add_cylinder(m_dark, lx_l + 0.5, ly_l + 4.45, lz_l - 0.3, 0.56, 0.52, 0.85, 20)
-    sb.add_cylinder(m_wall_white, lx_l + 0.5, ly_l + 4.98, lz_l - 0.3, 0.82, 0.82, 0.18, 20)
-    sb.add_cylinder(m_beacon, lx_l + 0.5, ly_l + 5.45, lz_l - 0.3, 0.45, 0.45, 0.82, 16)
-    sb.add_cylinder(m_roof_red, lx_l + 0.5, ly_l + 6.08, lz_l - 0.3, 0.52, 0.04, 0.48, 16)
-    add_flagpole(lx_l + 1.8, ly_l + 0.42, lz_l + 0.4, 2.0)
+    # Chỉ dựng nền đồi/bệ; công trình hải đăng chi tiết được nạp riêng từ
+    # /models/hai_dang_vinh_thuc.glb (Meshy AI Image-to-3D) trong LighthouseModel.jsx
+    sb.add_cylinder(m_dark, lx_l, ly_l + 0.10, lz_l, 4.7, 4.9, 0.30, 32)
+    print(f"   🗼 Bệ Hải đăng tại X={lx_l}, Z={lz_l}, mặt bệ Y={ly_l + 0.25:.3f}")
 
     # 5.8. BÃI BIỂN ĐẦU ĐÔNG (tại [28.55, 0.42])
     sb.add_hipped_building(27.5, island_height(27.5, -0.5) + 0.1, -0.5, 2.1, 1.1, 0.75, 0.35, m_wall_cream, m_roof_red, rot_y=0.45)
@@ -864,7 +860,7 @@ def main():
         (18.14, -18.56, 4.5),
         (17.16, -13.92, 4.5),
         (-26.30, 2.81, 4.2),
-        (62.60, -22.82, 4.0),
+        (62.60, -22.82, 5.6),
     ]
 
     # Nhà dân dọc các thôn

@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
+import { LighthouseModel } from './LighthouseModel';
 import { useGLTF, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
@@ -6,7 +7,7 @@ import { ISLAND_POI_LIST } from '../education/poiData';
 import { MapPin, School, Shield, Landmark, Compass } from 'lucide-react';
 
 export function IslandModel() {
-  const { scene } = useGLTF('/models/vinh_thuc_island_v2.glb');
+  const { scene } = useGLTF('/models/vinh_thuc_island_v3.glb');
   const setActivePOI = useStore((state) => state.setActivePOI);
   const activePOI = useStore((state) => state.activePOI);
   const setWorldScope = useStore((state) => state.setWorldScope);
@@ -28,6 +29,11 @@ export function IslandModel() {
   return (
     <group name="VinhThuc_Island_Root">
       <primitive object={scene} />
+
+      {/* Hải đăng Vĩnh Thực chi tiết (Meshy AI Image-to-3D từ ảnh thực tế) */}
+      <Suspense fallback={null}>
+        <LighthouseModel />
+      </Suspense>
 
       {/* Floating Interactive 3D POI Badges across Vĩnh Thực Island */}
       {ISLAND_POI_LIST.map((poi) => {
@@ -105,4 +111,4 @@ export function IslandModel() {
   );
 }
 
-useGLTF.preload('/models/vinh_thuc_island_v2.glb');
+useGLTF.preload('/models/vinh_thuc_island_v3.glb');
