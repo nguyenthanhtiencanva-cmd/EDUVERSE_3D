@@ -14,7 +14,7 @@ export const useStore = create((set) => ({
       worldScope: scope,
       campusTour: false,
       lighthouseLevel: 'ground',
-      activeHotspot: scope === 'lighthouse' ? HOTSPOTS[0] : null,
+      activeHotspot: null,
       cameraMode: scope === 'lighthouse' ? 'fps' : 'orbit',
       activeView:
         scope === 'island'

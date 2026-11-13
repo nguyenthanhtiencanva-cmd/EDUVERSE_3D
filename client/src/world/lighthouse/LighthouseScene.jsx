@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, useGLTF } from '@react-three/drei';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../../store/useStore';
 import {
@@ -19,13 +19,48 @@ import {
   BALUSTRADES,
   ROTUNDA_PILLAR_ANGLES,
   ROTUNDA_BAYS,
-  ROTUNDA_OPEN_BAYS,
   ROTUNDA_BALUSTRADES,
   BALCONY_BALUSTRADES,
   MODEL_PEDESTAL,
-  HOTSPOTS,
   groundAt,
 } from './layout';
+
+// Tạo CanvasTexture 3D sắc nét cho biển tên & bảng trưng bày (không bị xuyên tường hay che màn hình)
+function useSignTexture(bg, border, title, subtitle = '', width = 512, height = 160) {
+  return useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = border;
+    ctx.lineWidth = 8;
+    ctx.strokeRect(8, 8, width - 16, height - 16);
+
+    ctx.fillStyle = '#FDE047';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `bold ${subtitle ? 32 : 44}px system-ui, -apple-system, sans-serif`;
+    ctx.fillText(title, width / 2, subtitle ? height * 0.36 : height * 0.52);
+
+    if (subtitle) {
+      ctx.fillStyle = '#F1F5F9';
+      ctx.font = '500 22px system-ui, -apple-system, sans-serif';
+      const lines = subtitle.split('\n');
+      lines.forEach((line, i) => {
+        ctx.fillText(line, width / 2, height * 0.64 + i * 28);
+      });
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.needsUpdate = true;
+    return tex;
+  }, [bg, border, title, subtitle, width, height]);
+}
 
 // Component dựng đoạn lan can con tiện trắng - tay vịn vàng kem
 function BalustradeSegment({ seg, colorRail = '#E8C77A', colorPost = '#F4F1EA', height = 0.92 }) {
@@ -45,11 +80,7 @@ function BalustradeSegment({ seg, colorRail = '#E8C77A', colorPost = '#F4F1EA', 
   const balusters = [];
   for (let i = 1; i < numBalusters; i++) {
     const t = i / numBalusters;
-    balusters.push([
-      ax + dx * t,
-      ay + dy * t + height * 0.48,
-      az + dz * t,
-    ]);
+    balusters.push([ax + dx * t, ay + dy * t + height * 0.48, az + dz * t]);
   }
 
   return (
@@ -139,7 +170,6 @@ function MiniatureLighthouseOnPedestal() {
 
   return (
     <group position={[MODEL_PEDESTAL.x, HOUSE.floor, MODEL_PEDESTAL.z]}>
-      {/* Bệ gỗ trưng bày */}
       <mesh position={[0, 0.48, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.92, 1.02, 0.96, 24]} />
         <meshStandardMaterial color="#5C3A21" roughness={0.5} />
@@ -148,7 +178,6 @@ function MiniatureLighthouseOnPedestal() {
         <cylinderGeometry args={[0.98, 0.98, 0.06, 24]} />
         <meshStandardMaterial color="#D4AF37" metalness={0.4} roughness={0.3} />
       </mesh>
-      {/* Mô hình Meshy thu nhỏ */}
       <group position={[0, 1.02, 0]} scale={mini.s}>
         <primitive object={mini.cloned} position={mini.offset} />
       </group>
@@ -158,14 +187,35 @@ function MiniatureLighthouseOnPedestal() {
 
 export function LighthouseScene() {
   const timeOfDay = useStore((state) => state.timeOfDay);
-  const lighthouseLevel = useStore((state) => state.lighthouseLevel);
-  const activeHotspot = useStore((state) => state.activeHotspot);
-  const setActiveHotspot = useStore((state) => state.setActiveHotspot);
-  const climbLighthouse = useStore((state) => state.climbLighthouse);
-  const visitedHotspots = useStore((state) => state.visitedHotspots);
 
   const beaconRef = useRef();
   const flagRef = useRef();
+
+  const mainSignTex = useSignTexture('#B91C1C', '#FDE047', 'HẢI ĐĂNG VĨNH THỰC', '', 640, 128);
+  const board1Tex = useSignTexture(
+    '#0F172A',
+    '#F59E0B',
+    'LỊCH SỬ TRẠM ĐÈN (1962)',
+    'Cột mốc hàng hải biên giới Đông Bắc\nXây dựng 1962 • Nâng cấp 1986, 2017',
+    640,
+    340,
+  );
+  const board2Tex = useSignTexture(
+    '#0F172A',
+    '#F59E0B',
+    'THÔNG SỐ KỸ THUẬT',
+    'Chiều cao tháp: 18,0 m • Tâm sáng: 84,5 m\nTầm hiệu lực ánh sáng: 21 hải lý',
+    640,
+    340,
+  );
+  const board3Tex = useSignTexture(
+    '#0F172A',
+    '#F59E0B',
+    'NGƯỜI GIỮ LỬA BIỂN ĐÔNG BẮC',
+    'Trực gác 24/7 đảm bảo an toàn hàng hải\nvà khẳng định chủ quyền biển đảo',
+    640,
+    340,
+  );
 
   useFrame(({ clock }, dt) => {
     if (beaconRef.current) {
@@ -205,7 +255,7 @@ export function LighthouseScene() {
         <cylinderGeometry args={[28, 95, 65.8, 36]} />
         <meshStandardMaterial color="#2D5A36" roughness={0.9} />
       </mesh>
-      {/* Vách đất đỏ taluy phía Đông Nam giống ảnh flycam */}
+      {/* Vách đất đỏ taluy phía Đông Nam */}
       <mesh position={[22, -6.5, 16]} rotation={[0.15, -0.35, -0.25]} receiveShadow>
         <boxGeometry args={[18, 9, 26]} />
         <meshStandardMaterial color="#7C3F2C" roughness={0.92} />
@@ -222,12 +272,10 @@ export function LighthouseScene() {
       </mesh>
 
       {/* 2. SÂN GẠCH ĐỎ, BỜ KÈ ĐÁ HỘC & CẦU THANG */}
-      {/* Bờ kè đá xám đen dưới sân */}
       <mesh position={[-1.0, -1.35, -0.75]} receiveShadow castShadow>
         <boxGeometry args={[YARD.x1 - YARD.x0 + 0.4, 2.7, YARD.z1 - YARD.z0 + 0.4]} />
         <meshStandardMaterial color="#3A3F45" roughness={0.88} />
       </mesh>
-      {/* Mặt sân lát gạch đỏ */}
       <mesh position={[-1.0, -0.06, -0.75]} receiveShadow>
         <boxGeometry args={[YARD.x1 - YARD.x0, 0.14, YARD.z1 - YARD.z0]} />
         <meshStandardMaterial color="#B5523A" roughness={0.65} />
@@ -240,8 +288,11 @@ export function LighthouseScene() {
           <meshStandardMaterial color="#C8644B" roughness={0.7} />
         </mesh>
       ))}
-      {/* Dầm đỡ cầu thang */}
-      <mesh position={[2.1, -STAIRS.drop / 2 - 0.6, (STAIRS.z0 + STAIRS.z1) / 2]} rotation={[Math.atan2(STAIRS.drop, STAIRS.z1 - STAIRS.z0), 0, 0]} receiveShadow>
+      <mesh
+        position={[2.1, -STAIRS.drop / 2 - 0.6, (STAIRS.z0 + STAIRS.z1) / 2]}
+        rotation={[Math.atan2(STAIRS.drop, STAIRS.z1 - STAIRS.z0), 0, 0]}
+        receiveShadow
+      >
         <boxGeometry args={[STAIRS.x1 - STAIRS.x0 + 0.2, 1.1, Math.hypot(STAIRS.z1 - STAIRS.z0, STAIRS.drop)]} />
         <meshStandardMaterial color="#3A3F45" roughness={0.88} />
       </mesh>
@@ -292,17 +343,14 @@ export function LighthouseScene() {
           const pz = TOWER.rotundaRadius * Math.sin(ang);
           return (
             <group key={`pil-${idx}`} position={[px, TOWER.rotundaFloor, pz]} rotation={[0, -ang + Math.PI / 2, 0]}>
-              {/* Chân trụ */}
               <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
                 <boxGeometry args={[0.68, 0.9, 0.68]} />
                 <meshStandardMaterial color="#F4F1EA" roughness={0.6} />
               </mesh>
-              {/* Thân trụ vuông */}
               <mesh position={[0, 2.35, 0]} castShadow receiveShadow>
                 <boxGeometry args={[0.54, 3.8, 0.54]} />
                 <meshStandardMaterial color="#F4F1EA" roughness={0.6} />
               </mesh>
-              {/* Đầu trụ */}
               <mesh position={[0, 4.3, 0]} castShadow>
                 <boxGeometry args={[0.66, 0.22, 0.66]} />
                 <meshStandardMaterial color="#FFFFFF" roughness={0.5} />
@@ -319,12 +367,10 @@ export function LighthouseScene() {
           const span = 2 * r * Math.sin((bay.a1 - bay.a0) / 2);
           return (
             <group key={`arch-${bay.index}`} position={[mx, TOWER.rotundaFloor, mz]} rotation={[0, -bay.mid + Math.PI / 2, 0]}>
-              {/* Dầm vòm trên */}
               <mesh position={[0, 4.05, 0]} castShadow receiveShadow>
                 <boxGeometry args={[span, 0.55, 0.48]} />
                 <meshStandardMaterial color="#E8C77A" roughness={0.65} />
               </mesh>
-              {/* Viền vòm trắng & viên đá khóa vòm (keystone) */}
               <mesh position={[0, 3.72, 0]} castShadow>
                 <boxGeometry args={[span - 0.45, 0.18, 0.54]} />
                 <meshStandardMaterial color="#F4F1EA" roughness={0.55} />
@@ -333,7 +379,6 @@ export function LighthouseScene() {
                 <boxGeometry args={[0.28, 0.38, 0.58]} />
                 <meshStandardMaterial color="#FFFFFF" roughness={0.5} />
               </mesh>
-              {/* Phào hoa văn đỏ nâu giống ảnh chụp cận cảnh */}
               <mesh position={[0, 4.38, 0]}>
                 <boxGeometry args={[span, 0.16, 0.52]} />
                 <meshStandardMaterial color="#9E472A" roughness={0.7} />
@@ -372,7 +417,7 @@ export function LighthouseScene() {
           );
         })}
 
-        {/* 2 Gờ đai trắng ngang thân tháp (tại cao độ 6.5m và 11.2m) */}
+        {/* 2 Gờ đai trắng ngang thân tháp */}
         <mesh position={[0, 6.8, 0]} castShadow>
           <cylinderGeometry args={[2.12, 2.15, 0.32, 32]} />
           <meshStandardMaterial color="#F4F1EA" roughness={0.55} />
@@ -382,7 +427,7 @@ export function LighthouseScene() {
           <meshStandardMaterial color="#F4F1EA" roughness={0.55} />
         </mesh>
 
-        {/* Cửa vào chân tháp (hướng Nam) & cửa sổ lấy sáng trên thân tháp */}
+        {/* Cửa vào chân tháp & cửa sổ lấy sáng */}
         <group position={[0, TOWER.rotundaFloor + 1.15, TOWER.coreBottom - 0.04]}>
           <mesh castShadow>
             <boxGeometry args={[1.1, 2.2, 0.18]} />
@@ -393,7 +438,6 @@ export function LighthouseScene() {
             <meshStandardMaterial color="#2C353D" roughness={0.4} />
           </mesh>
         </group>
-        {/* Cửa sổ 6 ô kính ở tầng lửng giống ảnh chụp */}
         <group position={[0, 6.1, TOWER.coreBottom - 0.22]}>
           <mesh castShadow>
             <boxGeometry args={[0.85, 1.35, 0.18]} />
@@ -415,22 +459,15 @@ export function LighthouseScene() {
           <meshStandardMaterial color="#94A3B8" roughness={0.75} />
         </mesh>
 
-        {/* Cổ tháp trắng trên ban công & Lồng đèn kính (Lantern Room) */}
+        {/* Cổ tháp trắng trên ban công & Lồng đèn kính */}
         <mesh position={[0, TOWER.balconyY + 0.55, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[TOWER.drumRadius, TOWER.drumRadius + 0.06, 1.1, 24]} />
           <meshStandardMaterial color="#F4F1EA" roughness={0.55} />
         </mesh>
         <mesh position={[0, (TOWER.lanternBase + TOWER.lanternTop) / 2, 0]}>
           <cylinderGeometry args={[TOWER.lanternRadius, TOWER.lanternRadius, TOWER.lanternTop - TOWER.lanternBase, 20]} />
-          <meshStandardMaterial
-            color="#E0F2FE"
-            transparent
-            opacity={0.45}
-            roughness={0.1}
-            metalness={0.2}
-          />
+          <meshStandardMaterial color="#E0F2FE" transparent opacity={0.45} roughness={0.1} metalness={0.2} />
         </mesh>
-        {/* Khung thép đen của lồng kính */}
         {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => {
           const a = (i * Math.PI) / 4;
           return (
@@ -459,7 +496,6 @@ export function LighthouseScene() {
               roughness={0.15}
             />
           </mesh>
-          {/* 2 Chùm sáng quét ngược chiều nhau trên bầu trời đêm / hoàng hôn */}
           {(isNight || isSunset) && (
             <>
               <mesh position={[0, 0, 26]} rotation={[Math.PI / 2, 0, 0]}>
@@ -492,7 +528,7 @@ export function LighthouseScene() {
           distance={90}
         />
 
-        {/* Mái vòm đồng (Copper Dome) & Cột thu lôi trên đỉnh 18m */}
+        {/* Mái vòm đồng & Cột thu lôi trên đỉnh 18m */}
         <mesh position={[0, TOWER.lanternTop + 0.08, 0]} castShadow>
           <cylinderGeometry args={[TOWER.lanternRadius + 0.16, TOWER.lanternRadius + 0.16, 0.16, 24]} />
           <meshStandardMaterial color="#786B59" metalness={0.5} roughness={0.45} />
@@ -521,7 +557,6 @@ export function LighthouseScene() {
 
       {/* 4. NHÀ QUẢN LÝ 1 TẦNG (MÁI NGÓI ĐỎ MANSARD + PHÒNG TRUYỀN THỐNG BÊN TRONG) */}
       <group name="Managers_House">
-        {/* Nền đá xám đen & sàn nhà */}
         <mesh position={[5, HOUSE.floor / 2, -4.75]} receiveShadow castShadow>
           <boxGeometry args={[HOUSE.x1 - HOUSE.x0 + 0.2, HOUSE.floor, HOUSE.z1 - HOUSE.z0 + 0.2]} />
           <meshStandardMaterial color="#3A3F45" roughness={0.85} />
@@ -540,13 +575,12 @@ export function LighthouseScene() {
           <boxGeometry args={[PORCH.x1 - PORCH.x0 - 0.1, 0.05, PORCH.z1 - PORCH.z0 - 0.1]} />
           <meshStandardMaterial color="#C8644B" roughness={0.6} />
         </mesh>
-        {/* Bậc tam cấp trước sảnh chính */}
         <mesh position={[5, 0.12, 1.65]} receiveShadow castShadow>
           <boxGeometry args={[3.4, 0.24, 0.55]} />
           <meshStandardMaterial color="#94A3B8" roughness={0.7} />
         </mesh>
 
-        {/* Tường sau (Bắc), tường trái (Tây), tường phải (Đông) */}
+        {/* Tường sau, trái, phải */}
         <mesh position={[5, HOUSE.floor + HOUSE.wallH / 2, HOUSE.z0]} castShadow receiveShadow>
           <boxGeometry args={[HOUSE.x1 - HOUSE.x0, HOUSE.wallH, HOUSE.wallT]} />
           <meshStandardMaterial color="#E8C77A" roughness={0.65} />
@@ -560,7 +594,7 @@ export function LighthouseScene() {
           <meshStandardMaterial color="#E8C77A" roughness={0.65} />
         </mesh>
 
-        {/* Tường mặt tiền (Nam) chừa cửa chính rộng 2.4m ở x = 5 */}
+        {/* Tường mặt tiền chừa cửa chính */}
         <mesh position={[-0.1, HOUSE.floor + HOUSE.wallH / 2, HOUSE.z1]} castShadow receiveShadow>
           <boxGeometry args={[7.8, HOUSE.wallH, HOUSE.wallT]} />
           <meshStandardMaterial color="#E8C77A" roughness={0.65} />
@@ -588,57 +622,48 @@ export function LighthouseScene() {
           </group>
         ))}
 
-        {/* Hàng cột trắng hiên trước & Biển đỏ "HẢI ĐĂNG VĨNH THỰC" */}
+        {/* Hàng cột trắng hiên trước & Biển tên 3D "HẢI ĐĂNG VĨNH THỰC" */}
         {PORCH.columnsX.map((cx, i) => (
           <mesh key={`pcol-${i}`} position={[cx, PORCH.floor + 2.1, PORCH.columnsZ]} castShadow receiveShadow>
             <boxGeometry args={[0.44, 4.2, 0.44]} />
             <meshStandardMaterial color="#F4F1EA" roughness={0.55} />
           </mesh>
         ))}
-        {/* Dầm ngang hiên trước */}
         <mesh position={[5, HOUSE.floor + 3.9, PORCH.columnsZ]} castShadow receiveShadow>
           <boxGeometry args={[PORCH.x1 - PORCH.x0 + 0.4, 0.65, 0.52]} />
           <meshStandardMaterial color="#F4F1EA" roughness={0.55} />
         </mesh>
 
-        {/* Biển tên HẢI ĐĂNG VĨNH THỰC */}
+        {/* Biển tên HẢI ĐĂNG VĨNH THỰC bằng 3D texture thật (không nổi đè lên màn hình) */}
         <group position={[5, HOUSE.floor + 3.52, PORCH.columnsZ + 0.28]}>
           <mesh castShadow>
-            <boxGeometry args={[4.2, 0.68, 0.08]} />
+            <boxGeometry args={[4.2, 0.72, 0.08]} />
             <meshStandardMaterial color="#FDFBF7" roughness={0.4} />
           </mesh>
-          <mesh position={[0, 0, 0.03]}>
-            <boxGeometry args={[4.0, 0.54, 0.06]} />
-            <meshStandardMaterial color="#B91C1C" roughness={0.4} />
+          <mesh position={[0, 0, 0.045]}>
+            <planeGeometry args={[4.0, 0.58]} />
+            <meshBasicMaterial map={mainSignTex} />
           </mesh>
-          <Html
-            transform
-            distanceFactor={8}
-            position={[0, 0, 0.07]}
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
-          >
-            <div className="px-3 py-0.5 font-extrabold tracking-widest text-yellow-300 text-sm whitespace-nowrap">
-              HẢI ĐĂNG VĨNH THỰC
-            </div>
-          </Html>
         </group>
 
-        {/* Mái ngói đỏ kiểu Mansard + 3 cửa sổ mái (dormer) */}
+        {/* Mái ngói đỏ kiểu Mansard + 3 cửa sổ mái */}
         <mesh position={[5, HOUSE.floor + HOUSE.wallH + 0.15, -3.55]} castShadow receiveShadow>
           <boxGeometry args={[HOUSE.x1 - HOUSE.x0 + 2.2, 0.32, 11.2]} />
           <meshStandardMaterial color="#F4F1EA" roughness={0.55} />
         </mesh>
-        {/* Khối mái ngói đỏ vát 4 phía */}
-        <mesh position={[5, HOUSE.floor + HOUSE.wallH + 1.15, -3.55]} rotation={[0, Math.PI / 4, 0]} castShadow receiveShadow>
+        <mesh
+          position={[5, HOUSE.floor + HOUSE.wallH + 1.15, -3.55]}
+          rotation={[0, Math.PI / 4, 0]}
+          castShadow
+          receiveShadow
+        >
           <cylinderGeometry args={[6.8, 9.6, 1.75, 4]} />
           <meshStandardMaterial color="#B8452E" roughness={0.65} />
         </mesh>
-        {/* Mặt mái bằng xám ở giữa */}
         <mesh position={[5, HOUSE.floor + HOUSE.wallH + 1.98, -3.55]} receiveShadow>
           <boxGeometry args={[13.6, 0.16, 6.6]} />
           <meshStandardMaterial color="#64748B" roughness={0.85} />
         </mesh>
-        {/* 3 Cửa sổ mái (dormers) ở mặt trước */}
         {[0.5, 5.0, 9.5].map((dx, i) => (
           <group key={`dormer-${i}`} position={[dx, HOUSE.floor + HOUSE.wallH + 1.05, 0.35]}>
             <mesh castShadow>
@@ -652,48 +677,21 @@ export function LighthouseScene() {
           </group>
         ))}
 
-        {/* BÊN TRONG PHÒNG TRUYỀN THỐNG: 3 Bảng trưng bày & Sa bàn thu nhỏ */}
+        {/* BÊN TRONG PHÒNG TRUYỀN THỐNG: 3 Bảng gắn tường bằng 3D Texture (chỉ nhìn thấy khi bước vào phòng) */}
         {[
-          {
-            x: 0.5,
-            title: 'LỊCH SỬ TRẠM ĐÈN (1962)',
-            sub: 'Cột mốc hàng hải biên giới Đông Bắc • Xây dựng 1962 • Nâng cấp 1986, 2017',
-          },
-          {
-            x: 5.0,
-            title: 'THÔNG SỐ KỸ THUẬT',
-            sub: 'Chiều cao tháp: 18,0 m • Tâm sáng: 84,5 m • Tầm hiệu lực: 21 hải lý',
-          },
-          {
-            x: 9.5,
-            title: 'NGƯỜI GIỮ LỬA BIỂN ĐÔNG BẮC',
-            sub: 'Trực gác 24/7 đảm bảo an toàn hàng hải và khẳng định chủ quyền biển đảo',
-          },
+          { x: 0.5, tex: board1Tex },
+          { x: 5.0, tex: board2Tex },
+          { x: 9.5, tex: board3Tex },
         ].map((board, i) => (
-          <group key={`board-${i}`} position={[board.x, HOUSE.floor + 2.2, HOUSE.z0 + 0.22]}>
+          <group key={`board-${i}`} position={[board.x, HOUSE.floor + 2.2, HOUSE.z0 + 0.2]}>
             <mesh castShadow>
-              <boxGeometry args={[3.4, 1.85, 0.08]} />
+              <boxGeometry args={[3.4, 1.85, 0.06]} />
               <meshStandardMaterial color="#1E293B" roughness={0.4} />
             </mesh>
-            <mesh position={[0, 0, 0.045]}>
-              <boxGeometry args={[3.2, 1.65, 0.02]} />
-              <meshStandardMaterial color="#0F172A" roughness={0.3} />
+            <mesh position={[0, 0, 0.035]}>
+              <planeGeometry args={[3.25, 1.72]} />
+              <meshBasicMaterial map={board.tex} />
             </mesh>
-            <Html
-              transform
-              distanceFactor={6}
-              position={[0, 0, 0.06]}
-              style={{ pointerEvents: 'none', userSelect: 'none' }}
-            >
-              <div className="w-64 text-center px-3 py-2">
-                <div className="text-xs font-extrabold text-amber-400 tracking-wide">
-                  {board.title}
-                </div>
-                <div className="mt-1 text-[11px] text-slate-200 leading-snug">
-                  {board.sub}
-                </div>
-              </div>
-            </Html>
           </group>
         ))}
 
@@ -759,54 +757,6 @@ export function LighthouseScene() {
                 emissiveIntensity={isNight ? 3.0 : 0.4}
               />
             </mesh>
-          </group>
-        );
-      })}
-
-      {/* 6. CÁC VÒNG TƯƠNG TÁC (HOTSPOTS) ĐỂ DU KHÁCH KHÁM PHÁ */}
-      {HOTSPOTS.map((hs) => {
-        const hy = groundAt(hs.pos[0], hs.pos[1], hs.level);
-        const isCurrent = activeHotspot?.id === hs.id;
-        const isVisited = visitedHotspots.includes(hs.id);
-        const isSameLevel = hs.level === lighthouseLevel;
-
-        return (
-          <group key={hs.id} position={[hs.pos[0], hy + 0.05, hs.pos[1]]}>
-            {/* Vòng tròn phát sáng trên mặt đất */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-              <ringGeometry args={[0.55, 0.78, 28]} />
-              <meshBasicMaterial
-                color={isCurrent ? '#34D399' : isVisited ? '#38BDF8' : '#FBBF24'}
-                side={THREE.DoubleSide}
-              />
-            </mesh>
-
-            {/* Nhãn nổi để bấm chuột trực tiếp hoặc đi lại gần */}
-            <Html center distanceFactor={22} position={[0, 1.55, 0]} zIndexRange={[90, 0]}>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (hs.action === 'up') {
-                    climbLighthouse('balcony');
-                  } else {
-                    setActiveHotspot(hs);
-                  }
-                }}
-                style={{ pointerEvents: 'auto', whiteSpace: 'nowrap' }}
-                className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-lg border transition transform hover:scale-110 cursor-pointer flex items-center gap-1.5 ${
-                  isCurrent
-                    ? 'bg-emerald-400 text-slate-950 border-white scale-105 ring-2 ring-emerald-300'
-                    : hs.action === 'up'
-                    ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 border-white animate-bounce'
-                    : isSameLevel
-                    ? 'bg-slate-900/90 text-amber-300 border-amber-400/60 hover:bg-amber-400 hover:text-slate-950'
-                    : 'bg-slate-900/60 text-slate-300 border-white/20'
-                }`}
-              >
-                <span>{hs.icon}</span>
-                <span>{hs.action === 'up' ? 'Leo lên đỉnh tháp (15m)' : hs.title}</span>
-              </button>
-            </Html>
           </group>
         );
       })}
