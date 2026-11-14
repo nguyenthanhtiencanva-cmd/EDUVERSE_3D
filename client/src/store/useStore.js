@@ -120,10 +120,6 @@ export const useStore = create((set) => ({
   timeOfDay: 'day',
   setTimeOfDay: (time) => set({ timeOfDay: time }),
 
-  // Audio / Sound Effects
-  soundEnabled: true,
-  setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
-
   // Minimap Visibility
   minimapOpen: true,
   toggleMinimap: () => set((state) => ({ minimapOpen: !state.minimapOpen })),

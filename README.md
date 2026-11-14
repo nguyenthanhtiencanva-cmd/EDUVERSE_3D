@@ -4,9 +4,9 @@ Dự án tái hiện không gian trường học thực tế trên môi trườn
 
 ## 📌 Tổng Quan Dự Án
 - **Mục tiêu:** Tái tạo khuôn viên trường học thực tế (dự kiến: *Trường TH&THCS Vĩnh Thực*).
-- **Công nghệ nền tảng:** Blender, Three.js / React Three Fiber, React, PWA, Zustand, Socket.IO.
+- **Công nghệ nền tảng:** Blender, Three.js / React Three Fiber, React, Zustand, Tailwind CSS, Vite. Triển khai trên Vercel.
 - **Phong cách thị giác:** Stylized Realistic (Style C - hình khối rõ nét, tối ưu hiệu năng WebGL/Mobile, thân thiện như Roblox nhưng bám sát kiến trúc thực).
-- **Quy mô mở rộng:** Hỗ trợ 10--50 người chơi đồng thời ở các giai đoạn sau.
+- **Quy mô mở rộng:** Dự kiến hỗ trợ 10--50 người chơi đồng thời ở giai đoạn sau. Hiện chưa có phần nhiều người chơi.
 
 ## 📁 Cấu Trúc Thư Mục
 ```text
@@ -16,13 +16,14 @@ EDUVERSE_3D/
 │   ├── characters/  # Avatar người chơi
 │   └── textures/    # Texture atlas, material maps
 ├── client/          # Ứng dụng Web / PWA (React + React Three Fiber)
-├── server/          # Backend đồng bộ & multiplayer (Node.js / Socket.IO)
+├── server/          # Dành cho backend nhiều người chơi (hiện chỉ có thư mục rỗng)
 └── docs/            # Tài liệu kiến trúc, hồ sơ khảo sát, mặt bằng
     └── EDUVERSE_3D_PROJECT_HANDOFF.md
 ```
 
 ## 📋 Tài Liệu & Dữ Liệu Dự Án (Project Documentation & Backups)
 Toàn bộ tài liệu kỹ thuật, hồ sơ bàn giao, kế hoạch triển khai và nhật ký phân tích được sao lưu trực tiếp trong thư mục `docs/`:
+- **Kiểm duyệt & bản thiết kế nâng cấp (14/11/2026):** [docs/EDUVERSE_3D_UPGRADE_BLUEPRINT.md](docs/EDUVERSE_3D_UPGRADE_BLUEPRINT.md)
 - **Hồ sơ bàn giao & bối cảnh dự án:** [docs/EDUVERSE_3D_PROJECT_HANDOFF.md](docs/EDUVERSE_3D_PROJECT_HANDOFF.md)
 - **Thiết kế kiến trúc kỹ thuật & Pipeline:** [docs/architecture/EDUVERSE_3D_TECHNICAL_BLUEPRINT.md](docs/architecture/EDUVERSE_3D_TECHNICAL_BLUEPRINT.md)
 - **Báo cáo khảo sát mặt bằng & Kiến trúc thực tế:** [docs/school-blueprint/SCHOOL_SITE_PLAN_ANALYSIS.md](docs/school-blueprint/SCHOOL_SITE_PLAN_ANALYSIS.md)
@@ -35,14 +36,26 @@ Toàn bộ tài liệu kỹ thuật, hồ sơ bàn giao, kế hoạch triển kh
 
 ---
 
-## 🚀 Trải Nghiệm 3D Trực Tiếp Trên Trình Duyệt (Web & PWA)
+## 🚀 Trải Nghiệm 3D Trực Tiếp Trên Trình Duyệt
 
-Ứng dụng web 3D tương tác đã được triển khai hoàn tất tại thư mục `client/`:
-- **Địa chỉ máy chủ cục bộ:** [http://localhost:3000](http://localhost:3000)
-- **Truy cập mạng nội bộ / Điện thoại (cùng Wifi):** `http://192.168.1.28:3000`
-- **Các tính năng nổi bật:**
-  - **Chế độ Flycam (Toàn cảnh):** Xoay 360°, phóng to/thu nhỏ, chuyển đổi nhanh giữa 6 góc nhìn điện ảnh (*Toàn cảnh Flycam*, *Chào cờ*, *Sân khấu*, *Tòa A*, *Nhà Đa Năng*, *Cổng trường*).
-  - **Chế độ Đi bộ 1:1 (FPS Explorer):** Dùng phím `W, A, S, D` + Di chuột để đi bộ, phím `Space` để nhảy. Trên điện thoại hỗ trợ cụm phím ảo Dual Virtual Joystick.
-  - **Bản đồ Radar Mini 2D (MiniMap):** Định vị vị trí và hướng nhìn của người chơi theo thời gian thực.
-  - **Điểm nóng tương tác (Hotspots / POIs):** Bấm vào các huy hiệu để mở bảng thông số kiến trúc và ảnh chụp thực địa.
-  - **Chu kỳ ánh sáng ngày/đêm:** Chuyển đổi linh hoạt giữa *Ban ngày nắng ấm*, *Hoàng hôn rực rỡ* và *Đêm trăng lên đèn*.
+- **Bản trực tuyến:** [https://client-gilt-eta-41.vercel.app](https://client-gilt-eta-41.vercel.app)
+- **Chạy trên máy:**
+  ```bash
+  cd client
+  npm install
+  npm run dev
+  ```
+  Sau đó mở [http://localhost:3000](http://localhost:3000). Điện thoại cùng Wifi mở theo địa chỉ "Network" mà Vite in ra.
+- **Lưu ý:** `node_modules` phải được cài trên chính máy đang chạy. Bản cài từ hệ điều hành khác (đồng bộ qua Google Drive) sẽ không build được.
+
+### Ba không gian
+- **Sa bàn đảo Vĩnh Thực:** nhìn toàn cảnh từ trên cao, 6 góc nhìn có sẵn (toàn đảo, bến tàu Vạn Gia, phân hiệu Vĩnh Trung, điểm chính Đầu Đông, hải đăng, bến cá Mũi Tây).
+- **Phân hiệu Vĩnh Trung:** khuôn viên trường tỷ lệ 1:1, có chế độ tham quan.
+- **Trạm hải đăng Vĩnh Thực (1962):** leo cầu thang sườn đồi và cầu thang xoắn trong tháp lên ban công.
+
+### Tính năng
+- **Flycam:** xoay, phóng to/thu nhỏ, chuyển nhanh giữa các góc nhìn có sẵn.
+- **Đi bộ góc nhìn thứ ba:** phím `W, A, S, D` hoặc mũi tên để đi, `Shift` để chạy, `Space` để nhảy, kéo chuột để xoay, `E` để lên/xuống tháp hải đăng. Điện thoại dùng cần điều khiển ảo.
+- **Bản đồ mini:** hiện vị trí và hướng nhìn của nhân vật.
+- **Điểm tham quan (POI):** bấm vào huy hiệu để xem thông tin và ảnh thực địa.
+- **Ánh sáng:** ban ngày, hoàng hôn, ban đêm.

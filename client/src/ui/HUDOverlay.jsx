@@ -11,8 +11,6 @@ import {
   Sun,
   Sunset,
   Moon,
-  Volume2,
-  VolumeX,
   Plane,
   Footprints,
   HelpCircle,
@@ -32,8 +30,6 @@ export function HUDOverlay() {
   const setActiveView = useStore((state) => state.setActiveView);
   const timeOfDay = useStore((state) => state.timeOfDay);
   const setTimeOfDay = useStore((state) => state.setTimeOfDay);
-  const soundEnabled = useStore((state) => state.soundEnabled);
-  const setSoundEnabled = useStore((state) => state.setSoundEnabled);
 
   const lighthouseLevel = useStore((state) => state.lighthouseLevel);
   const spiralProgress = useStore((state) => state.spiralProgress);
@@ -213,19 +209,6 @@ export function HUDOverlay() {
               <Moon className="w-4 h-4" />
             </button>
           </div>
-
-          {/* Sound Toggle */}
-          <button
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            className="glass-panel p-2 rounded-2xl text-slate-300 hover:text-amber-400 transition shadow-lg cursor-pointer"
-            title={soundEnabled ? 'Tắt âm thanh' : 'Bật âm thanh'}
-          >
-            {soundEnabled ? (
-              <Volume2 className="w-4 h-4 text-emerald-400" />
-            ) : (
-              <VolumeX className="w-4 h-4 text-slate-500" />
-            )}
-          </button>
         </div>
       </header>
 
