@@ -36,6 +36,7 @@ export function HUDOverlay() {
   const setSoundEnabled = useStore((state) => state.setSoundEnabled);
 
   const lighthouseLevel = useStore((state) => state.lighthouseLevel);
+  const spiralProgress = useStore((state) => state.spiralProgress);
   const climbLighthouse = useStore((state) => state.climbLighthouse);
 
   const isIsland = worldScope === 'island';
@@ -117,7 +118,7 @@ export function HUDOverlay() {
 
         {/* Right Controls: Climb Tower, Mode, Time, Sound */}
         <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
-          {/* Quick button to climb up/down the 18m Lighthouse Tower */}
+          {/* Quick button to climb up/down the 72-step Spiral Staircase of the 18m Lighthouse Tower */}
           {isLighthouse && (
             <button
               onClick={() =>
@@ -125,15 +126,22 @@ export function HUDOverlay() {
               }
               className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-300 hover:to-teal-400 text-slate-950 text-xs font-extrabold shadow-xl border border-white/40 flex items-center gap-1.5 transition transform hover:scale-105 cursor-pointer"
             >
-              {lighthouseLevel === 'balcony' ? (
+              {lighthouseLevel === 'spiral' ? (
+                <>
+                  <ArrowUpCircle className="w-4 h-4 animate-spin" />
+                  <span>
+                    Thang xoắn ốc: Bậc {Math.max(1, Math.round(spiralProgress * 72))}/72
+                  </span>
+                </>
+              ) : lighthouseLevel === 'balcony' ? (
                 <>
                   <ArrowDownCircle className="w-4 h-4" />
-                  <span>Xuống sân Hải đăng</span>
+                  <span>Đi cầu thang xuống sân</span>
                 </>
               ) : (
                 <>
                   <ArrowUpCircle className="w-4 h-4" />
-                  <span>Leo lên đỉnh tháp (15m)</span>
+                  <span>Leo cầu thang lên đỉnh tháp (72 bậc)</span>
                 </>
               )}
             </button>

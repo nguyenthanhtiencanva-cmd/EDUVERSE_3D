@@ -1,10 +1,12 @@
 import { create } from 'zustand';
-import { LIGHTHOUSE_WORLD, TOWER, teleportFor, HOTSPOTS } from '../world/lighthouse/layout';
+import { LIGHTHOUSE_WORLD, TOWER, getSpiralPose } from '../world/lighthouse/layout';
 
 export const useStore = create((set) => ({
   worldScope: 'island',
   campusTour: false,
-  lighthouseLevel: 'ground',
+  lighthouseLevel: 'ground', // 'ground' | 'spiral' | 'balcony'
+  spiralProgress: 0, // 0.0 (chân tháp) -> 1.0 (ban công đỉnh tháp 15m)
+  autoClimb: null, // null | 'up' | 'down'
   activeHotspot: null,
   visitedHotspots: [],
   playerTeleport: null,
@@ -14,6 +16,8 @@ export const useStore = create((set) => ({
       worldScope: scope,
       campusTour: false,
       lighthouseLevel: 'ground',
+      spiralProgress: 0,
+      autoClimb: null,
       activeHotspot: null,
       cameraMode: scope === 'island' ? 'orbit' : 'fps',
       activeView:
@@ -44,56 +48,57 @@ export const useStore = create((set) => ({
       joystickInput: { moveX: 0, moveY: 0, isJumping: false },
     }),
 
-  setActiveHotspot: (hotspot) =>
-    set((state) => ({
-      activeHotspot: hotspot,
-      visitedHotspots:
-        hotspot && !state.visitedHotspots.includes(hotspot.id)
-          ? [...state.visitedHotspots, hotspot.id]
-          : state.visitedHotspots,
-    })),
+  setSpiralState: (patch) => set((state) => ({ ...state, ...patch })),
 
   climbLighthouse: (targetLevel) =>
     set((state) => {
-      const nextLevel = targetLevel || (state.lighthouseLevel === 'ground' ? 'balcony' : 'ground');
-      const tp =
-        nextLevel === 'balcony'
-          ? {
-              position: [TOWER.x, TOWER.balconyY, TOWER.z + 2.05],
-              yaw: Math.PI,
-              level: 'balcony',
-              nonce: Date.now(),
-            }
-          : {
-              position: [TOWER.x, TOWER.rotundaFloor, TOWER.z + 3.4],
-              yaw: Math.PI,
-              level: 'ground',
-              nonce: Date.now(),
-            };
-      const lanternSpot = HOTSPOTS.find((h) => h.id === 'lantern');
+      const goingUp = targetLevel
+        ? targetLevel === 'balcony'
+        : state.lighthouseLevel === 'ground' ||
+          (state.lighthouseLevel === 'spiral' && state.autoClimb === 'down');
+      const startT =
+        state.lighthouseLevel === 'spiral' ? state.spiralProgress : goingUp ? 0.0 : 1.0;
+      const pose = getSpiralPose(startT);
       return {
-        lighthouseLevel: nextLevel,
+        lighthouseLevel: 'spiral',
+        spiralProgress: startT,
+        autoClimb: goingUp ? 'up' : 'down',
         cameraMode: 'fps',
-        playerTeleport: tp,
-        activeHotspot: nextLevel === 'balcony' ? lanternSpot : null,
-        visitedHotspots:
-          nextLevel === 'balcony' && lanternSpot && !state.visitedHotspots.includes('lantern')
-            ? [...state.visitedHotspots, 'lantern']
-            : state.visitedHotspots,
+        playerTeleport: {
+          position: [pose.x, pose.y, pose.z],
+          yaw: goingUp ? pose.yawUp : pose.yawUp + Math.PI,
+          level: 'spiral',
+          nonce: Date.now(),
+        },
       };
     }),
 
-  teleportToHotspot: (hotspot) =>
-    set((state) => {
-      const tp = teleportFor(hotspot);
+  finishSpiralClimb: (finalLevel) =>
+    set(() => {
+      if (finalLevel === 'balcony') {
+        const topPose = getSpiralPose(1.0);
+        return {
+          lighthouseLevel: 'balcony',
+          spiralProgress: 1.0,
+          autoClimb: null,
+          playerTeleport: {
+            position: [TOWER.x, TOWER.balconyY, TOWER.z + 2.05],
+            yaw: topPose.yawUp,
+            level: 'balcony',
+            nonce: Date.now(),
+          },
+        };
+      }
       return {
-        lighthouseLevel: tp.level,
-        cameraMode: 'fps',
-        playerTeleport: { ...tp, nonce: Date.now() },
-        activeHotspot: hotspot,
-        visitedHotspots: !state.visitedHotspots.includes(hotspot.id)
-          ? [...state.visitedHotspots, hotspot.id]
-          : state.visitedHotspots,
+        lighthouseLevel: 'ground',
+        spiralProgress: 0.0,
+        autoClimb: null,
+        playerTeleport: {
+          position: [TOWER.x + 1.8, TOWER.rotundaFloor, TOWER.z + 2.8],
+          yaw: 0,
+          level: 'ground',
+          nonce: Date.now(),
+        },
       };
     }),
 
@@ -123,7 +128,7 @@ export const useStore = create((set) => ({
   minimapOpen: true,
   toggleMinimap: () => set((state) => ({ minimapOpen: !state.minimapOpen })),
 
-  // Player Position in World Space (for Minimap & POI distances)
+  // Player Position in World Space
   playerPosition: [4.0, -10.0, 1.7],
   setPlayerPosition: (pos) => set({ playerPosition: pos }),
 

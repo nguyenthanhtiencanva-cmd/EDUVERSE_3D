@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
-import { LIGHTHOUSE_WORLD, HOTSPOTS } from './lighthouse/layout';
+import { LIGHTHOUSE_WORLD, TOWER, getSpiralPose } from './lighthouse/layout';
 
 const BUILDINGS = [
   [9, 22, 0, 14],
@@ -51,15 +51,19 @@ export function CharacterController({ tourist = true }) {
   );
   const { actions } = useAnimations(animations, group);
   const walking = useStore((state) => state.cameraMode === 'fps');
-  const worldScope = useStore((state) => state.worldScope);
   const playerTeleport = useStore((state) => state.playerTeleport);
 
+  const initSpawn =
+    useStore.getState().worldScope === 'lighthouse'
+      ? LIGHTHOUSE_WORLD.spawn.position
+      : [1.5, 0, 6];
+
   const player = useRef({
-    position: new THREE.Vector3(1.5, 0, 6),
+    position: new THREE.Vector3(...initSpawn),
     facing: Math.PI,
     yaw: tourist ? Math.PI : 0,
-    pitch: 0.28,
-    distance: 4.2,
+    pitch: 0.24,
+    distance: 4.0,
     keys: new Set(),
     pointer: null,
     jumpPressed: false,
@@ -68,7 +72,6 @@ export function CharacterController({ tourist = true }) {
     clip: '',
     snap: true,
     positionTimer: 0,
-    lastHotspotId: null,
   }).current;
 
   const scratch = useMemo(
@@ -82,7 +85,7 @@ export function CharacterController({ tourist = true }) {
     [],
   );
 
-  // Handle teleport requests (e.g. entering Lighthouse 1:1, climbing tower, or picking a tour stop)
+  // Handle teleport requests
   useEffect(() => {
     if (!playerTeleport) return;
     const [tx, ty, tz] = playerTeleport.position;
@@ -141,15 +144,7 @@ export function CharacterController({ tourist = true }) {
       if (event.code.startsWith('Arrow') || event.code === 'Space') event.preventDefault();
       if (event.code === 'KeyE' && !event.repeat && useStore.getState().worldScope === 'lighthouse') {
         const st = useStore.getState();
-        if (st.lighthouseLevel === 'balcony') {
-          st.climbLighthouse('ground');
-        } else {
-          const [px, , pz] = [player.position.x, player.position.y, player.position.z];
-          const doorSpot = HOTSPOTS.find((h) => h.id === 'door');
-          if (doorSpot && Math.hypot(px - doorSpot.pos[0], pz - doorSpot.pos[1]) < 3.2) {
-            st.climbLighthouse('balcony');
-          }
-        }
+        st.climbLighthouse(st.lighthouseLevel === 'balcony' ? 'ground' : 'balcony');
         return;
       }
       player.keys.add(event.code);
@@ -210,7 +205,7 @@ export function CharacterController({ tourist = true }) {
     const checkWalk = (x, z) =>
       isLighthouse ? LIGHTHOUSE_WORLD.canWalk(x, z, level) : canWalkCampus(x, z);
     const getGroundY = (x, z) =>
-      isLighthouse ? LIGHTHOUSE_WORLD.groundAt(x, z, level) : 0;
+      isLighthouse ? LIGHTHOUSE_WORLD.groundAt(x, z, level, state.spiralProgress) : 0;
 
     if (walking) {
       const { joystickInput, setPlayerPosition } = state;
@@ -220,63 +215,96 @@ export function CharacterController({ tourist = true }) {
       const forward = axis('KeyW', 'ArrowUp', 'KeyS', 'ArrowDown') + joystickInput.moveY;
       const right = axis('KeyD', 'ArrowRight', 'KeyA', 'ArrowLeft') + joystickInput.moveX;
       const magnitude = Math.hypot(forward, right);
+      const running =
+        keys.has('ShiftLeft') ||
+        keys.has('ShiftRight') ||
+        Math.hypot(joystickInput.moveX, joystickInput.moveY) > 0.92;
 
-      if (magnitude > 0.12) {
-        const yaw = player.yaw + Math.atan2(-right, forward);
-        const running =
-          keys.has('ShiftLeft') ||
-          keys.has('ShiftRight') ||
-          Math.hypot(joystickInput.moveX, joystickInput.moveY) > 0.92;
-        const speed = tourist ? (running ? 5.2 : 2.6) : running ? 7.2 : 3.8;
-        const distance = speed * Math.min(magnitude, 1) * dt;
-        const x = position.x + Math.sin(yaw) * distance;
-        const z = position.z + Math.cos(yaw) * distance;
-        const moved =
-          (checkWalk(x, position.z) && x !== position.x) ||
-          (checkWalk(position.x, z) && z !== position.z);
-        if (checkWalk(x, position.z)) position.x = x;
-        if (checkWalk(position.x, z)) position.z = z;
-        if (moved) clip = running ? 'Run' : 'Walk';
-        const targetFacing = tourist ? yaw : yaw + Math.PI;
-        const rotation = targetFacing - player.facing;
-        player.facing += Math.atan2(Math.sin(rotation), Math.cos(rotation)) * (1 - Math.exp(-14 * dt));
+      // TRƯỜNG HỢP 1: Đang ở trên Cầu thang xoắn ốc 72 bậc bên trong lòng Tháp đèn (Chặng 2)
+      if (isLighthouse && level === 'spiral') {
+        let dir = 0;
+        if (state.autoClimb === 'up') dir = 1;
+        else if (state.autoClimb === 'down') dir = -1;
+        else if (Math.abs(forward) > 0.12) dir = forward > 0 ? 1 : -1;
 
-        // Tự động xoay camera góc nhìn thứ 3 bám theo lưng nhân vật khi rẽ trái/phải
-        if (!player.pointer && Math.abs(right) > 0.1) {
-          player.yaw -= right * 1.45 * dt;
+        if (dir !== 0) {
+          const climbSpeed = state.autoClimb || running ? 0.21 : 0.14;
+          const nextT = state.spiralProgress + dir * climbSpeed * dt;
+          clip = running || state.autoClimb ? 'Run' : 'Walk';
+
+          if (nextT >= 1.0) {
+            state.finishSpiralClimb('balcony');
+          } else if (nextT <= 0.0) {
+            state.finishSpiralClimb('ground');
+          } else {
+            state.setSpiralState({ spiralProgress: nextT });
+            const pose = getSpiralPose(nextT);
+            position.set(pose.x, pose.y, pose.z);
+            const moveYaw = dir > 0 ? pose.yawUp : pose.yawUp + Math.PI;
+            player.facing = tourist ? moveYaw : moveYaw + Math.PI;
+            if (!player.pointer) {
+              const camDiff = moveYaw - player.yaw;
+              player.yaw += Math.atan2(Math.sin(camDiff), Math.cos(camDiff)) * (1 - Math.exp(-8 * dt));
+            }
+          }
         }
-      }
-
-      const groundY = getGroundY(position.x, position.z);
-      const touchJump = joystickInput.isJumping && !player.jumpHeld;
-      if ((player.jumpPressed || touchJump) && Math.abs(position.y - groundY) < 0.05) {
-        player.lift = 5.5;
-      }
-      player.jumpPressed = false;
-      player.jumpHeld = joystickInput.isJumping;
-      if (player.lift > 0 || position.y > groundY) {
-        position.y = Math.max(groundY, position.y + player.lift * dt);
-        player.lift = position.y > groundY ? player.lift - 18 * dt : 0;
       } else {
-        position.y = groundY;
-      }
+        // TRƯỜNG HỢP 2: Đi bộ tự do trên Sảnh đón, 36 bậc Cầu thang sườn đồi (Chặng 1), Sân gạch đỏ hoặc Ban công
+        if (magnitude > 0.12) {
+          // Nếu người dùng bắt đầu tự điều khiển phím khi đang autoClimb thì hủy autoClimb
+          if (state.autoClimb) state.setSpiralState({ autoClimb: null });
 
-      // Check proximity to hotspots in Lighthouse mode
-      if (isLighthouse) {
-        let foundSpot = null;
-        for (const hs of HOTSPOTS) {
-          if (hs.level === level && Math.hypot(position.x - hs.pos[0], position.z - hs.pos[1]) < hs.radius) {
-            foundSpot = hs;
-            break;
+          const yaw = player.yaw + Math.atan2(-right, forward);
+          const speed = tourist ? (running ? 5.2 : 2.6) : running ? 7.2 : 3.8;
+          const distance = speed * Math.min(magnitude, 1) * dt;
+          const x = position.x + Math.sin(yaw) * distance;
+          const z = position.z + Math.cos(yaw) * distance;
+          const moved =
+            (checkWalk(x, position.z) && x !== position.x) ||
+            (checkWalk(position.x, z) && z !== position.z);
+          if (checkWalk(x, position.z)) position.x = x;
+          if (checkWalk(position.x, z)) position.z = z;
+          if (moved) clip = running ? 'Run' : 'Walk';
+          const targetFacing = tourist ? yaw : yaw + Math.PI;
+          const rotation = targetFacing - player.facing;
+          player.facing +=
+            Math.atan2(Math.sin(rotation), Math.cos(rotation)) * (1 - Math.exp(-14 * dt));
+
+          if (!player.pointer && Math.abs(right) > 0.1) {
+            player.yaw -= right * 1.45 * dt;
+          }
+
+          // Nếu nhân vật đi bộ tiến sát vào cửa chân tháp (bán kính < 2.25m từ tâm tháp), tự động bước vào Cầu thang xoắn ốc!
+          if (
+            isLighthouse &&
+            level === 'ground' &&
+            forward > 0.1 &&
+            Math.hypot(position.x - TOWER.x, position.z - TOWER.z) < 2.25
+          ) {
+            const startPose = getSpiralPose(0.03);
+            state.setSpiralState({
+              lighthouseLevel: 'spiral',
+              spiralProgress: 0.03,
+              autoClimb: null,
+            });
+            position.set(startPose.x, startPose.y, startPose.z);
+            player.facing = tourist ? startPose.yawUp : startPose.yawUp + Math.PI;
           }
         }
-        if (foundSpot && foundSpot.id !== player.lastHotspotId) {
-          player.lastHotspotId = foundSpot.id;
-          if (foundSpot.action !== 'up') {
-            state.setActiveHotspot(foundSpot);
-          }
-        } else if (!foundSpot) {
-          player.lastHotspotId = null;
+
+        const groundY = getGroundY(position.x, position.z);
+        const touchJump = joystickInput.isJumping && !player.jumpHeld;
+        if ((player.jumpPressed || touchJump) && Math.abs(position.y - groundY) < 0.08) {
+          player.lift = 5.5;
+        }
+        player.jumpPressed = false;
+        player.jumpHeld = joystickInput.isJumping;
+        if (player.lift > 0 || position.y > groundY + 0.05) {
+          position.y = Math.max(groundY, position.y + player.lift * dt);
+          player.lift = position.y > groundY ? player.lift - 18 * dt : 0;
+        } else {
+          // Bám mượt theo từng bậc cầu thang sườn đồi
+          position.y = THREE.MathUtils.lerp(position.y, groundY, 1 - Math.exp(-22 * dt));
         }
       }
 
@@ -303,7 +331,7 @@ export function CharacterController({ tourist = true }) {
 
       eye.copy(target).addScaledVector(direction, distance);
       const eyeGroundY = getGroundY(eye.x, eye.z);
-      if (eye.y < eyeGroundY + 0.6) {
+      if (level !== 'spiral' && eye.y < eyeGroundY + 0.6) {
         eye.y = eyeGroundY + 0.6;
       }
       if (player.snap || distance < player.distance) camera.position.copy(eye);
