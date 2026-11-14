@@ -27,6 +27,7 @@ const MODELS_DIR = path.join(CLIENT_DIR, 'public', 'assets', 'models');
 
 const SF3D_HOME = process.env.SF3D_HOME || path.join(os.homedir(), '.eduverse-sf3d');
 const SF3D_REPO = path.join(SF3D_HOME, 'sf3d-repo');
+const SF3D_WEIGHTS = path.join(SF3D_HOME, 'weights');
 const SF3D_PYTHON = path.join(SF3D_HOME, 'venv', 'bin', 'python');
 const SF3D_RUN_SCRIPT = path.join(SF3D_REPO, 'run.py');
 
@@ -91,7 +92,8 @@ let textureResolution = '1024';
 let remeshOption = 'none';
 let targetVertexCount = '-1';
 let device = 'mps';
-let pretrainedModel = process.env.SF3D_MODEL || 'patrickbdevaney/stable-fast-3d';
+const hasLocalWeights = fs.existsSync(path.join(SF3D_WEIGHTS, 'model.safetensors'));
+let pretrainedModel = process.env.SF3D_MODEL || (hasLocalWeights ? SF3D_WEIGHTS : 'cocktailpeanut/sf3d');
 
 for (let i = 0; i < args.length; i++) {
   const arg = args[i];
@@ -169,6 +171,7 @@ const result = spawnSync(SF3D_PYTHON, sf3dArgs, {
   env: {
     ...process.env,
     PYTORCH_ENABLE_MPS_FALLBACK: '1',
+    HF_HUB_DISABLE_XET: '1',
   },
 });
 
