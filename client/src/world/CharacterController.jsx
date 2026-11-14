@@ -4,6 +4,7 @@ import { useAnimations, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
 import { LIGHTHOUSE_WORLD, TOWER, getSpiralPose } from './lighthouse/layout';
+import { MODEL_URLS } from './models';
 
 const BUILDINGS = [
   [9, 22, 0, 14],
@@ -46,9 +47,7 @@ function canWalkCampus(x, z) {
 export function CharacterController({ tourist = true }) {
   const group = useRef(null);
   const { camera, gl } = useThree();
-  const { scene, animations } = useGLTF(
-    tourist ? '/models/tourist_meshy.glb' : '/models/student_character.glb',
-  );
+  const { scene, animations } = useGLTF(tourist ? MODEL_URLS.tourist : MODEL_URLS.student);
   const { actions } = useAnimations(animations, group);
   const walking = useStore((state) => state.cameraMode === 'fps');
   const playerTeleport = useStore((state) => state.playerTeleport);

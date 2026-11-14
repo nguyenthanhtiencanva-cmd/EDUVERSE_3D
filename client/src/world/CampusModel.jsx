@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { MODEL_URLS } from './models';
 
 export function CampusModel() {
-  const { scene } = useGLTF('/models/school_campus.glb');
+  const { scene } = useGLTF(MODEL_URLS.campus);
 
   // Optimize materials, high-anisotropy PBR textures & shadows on load
   useEffect(() => {
@@ -36,5 +37,3 @@ export function CampusModel() {
     </group>
   );
 }
-
-useGLTF.preload('/models/school_campus.glb');

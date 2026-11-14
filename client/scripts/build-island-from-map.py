@@ -26,8 +26,8 @@ ROOT_DIR = os.path.abspath(os.path.join(CLIENT_DIR, ".."))
 MAP_PNG = os.path.join(ROOT_DIR, "assets", "school", "reference_vinh_thuc_map.png")
 OUT_PATHS = [
     os.path.join(ROOT_DIR, "assets", "school", "vinh_thuc_island.glb"),
-    os.path.join(CLIENT_DIR, "public", "models", "vinh_thuc_island.glb"),
-    os.path.join(CLIENT_DIR, "public", "models", "vinh_thuc_island_v3.glb"),
+    os.path.join(CLIENT_DIR, "..", "assets", "web-models", "vinh_thuc_island.glb"),
+    os.path.join(CLIENT_DIR, "..", "assets", "web-models", "vinh_thuc_island_v3.glb"),
 ]
 
 WORLD_W = 144.0

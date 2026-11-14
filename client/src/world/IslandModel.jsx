@@ -2,9 +2,10 @@ import React, { useEffect, Suspense } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { LighthouseModel } from './LighthouseModel';
+import { MODEL_URLS } from './models';
 
 export function IslandModel() {
-  const { scene } = useGLTF('/models/vinh_thuc_island_v3.glb');
+  const { scene } = useGLTF(MODEL_URLS.island);
 
   useEffect(() => {
     if (!scene) return;
@@ -31,5 +32,3 @@ export function IslandModel() {
     </group>
   );
 }
-
-useGLTF.preload('/models/vinh_thuc_island_v3.glb');

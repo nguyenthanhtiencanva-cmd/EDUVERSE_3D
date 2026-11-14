@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename);
 const CLIENT_DIR = path.resolve(__dirname, '..');
 const ROOT_DIR = path.resolve(CLIENT_DIR, '..');
 const CHAR_DIR = path.resolve(ROOT_DIR, 'assets', 'characters');
-const PUBLIC_MODELS_DIR = path.resolve(CLIENT_DIR, 'public', 'models');
+const PUBLIC_MODELS_DIR = path.resolve(CLIENT_DIR, '..', 'assets', 'web-models');
 
 function parseGlb(filePath) {
   const buf = fs.readFileSync(filePath);
@@ -207,7 +207,7 @@ function main() {
     console.log(`✅ Đã đóng gói GLB (Idle + Walk + Run): ${t} (${(finalGlb.length / 1024 / 1024).toFixed(2)} MB)`);
   }
 
-  // Xóa các file tạm riêng lẻ trong public/models để giữ thư mục web gọn nhẹ
+  // Xóa các file tạm riêng lẻ trong assets/web-models để giữ thư mục web gọn nhẹ
   for (const tempName of ['tourist_meshy_idle.glb', 'tourist_meshy_walk.glb', 'tourist_meshy_run.glb']) {
     const p = path.join(PUBLIC_MODELS_DIR, tempName);
     if (fs.existsSync(p)) fs.unlinkSync(p);

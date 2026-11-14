@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useStore } from '../store/useStore';
+import { preloadScene } from '../world/models';
 import { X, Navigation, Building2, Info, CheckCircle2, Compass, Eye } from 'lucide-react';
 
 export function POIModal() {
@@ -8,6 +9,13 @@ export function POIModal() {
   const setCameraMode = useStore((state) => state.setCameraMode);
   const worldScope = useStore((state) => state.worldScope);
   const setWorldScope = useStore((state) => state.setWorldScope);
+
+  // Người dùng đang đọc POI có cảnh 1:1 thì tải trước cảnh đó.
+  useEffect(() => {
+    if (worldScope !== 'island') return;
+    if (activePOI?.hasDetailed3D) preloadScene('campus');
+    if (activePOI?.hasLighthouse3D) preloadScene('lighthouse');
+  }, [activePOI, worldScope]);
 
   if (!activePOI) return null;
 

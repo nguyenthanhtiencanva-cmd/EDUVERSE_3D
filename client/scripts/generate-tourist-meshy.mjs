@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 const CLIENT_DIR = path.resolve(__dirname, '..');
 const ROOT_DIR = path.resolve(CLIENT_DIR, '..');
 const CHAR_DIR = path.resolve(ROOT_DIR, 'assets', 'characters');
-const PUBLIC_MODELS_DIR = path.resolve(CLIENT_DIR, 'public', 'models');
+const PUBLIC_MODELS_DIR = path.resolve(CLIENT_DIR, '..', 'assets', 'web-models');
 const STATE_FILE = path.join(CHAR_DIR, 'meshy_tourist_state.json');
 
 const API_BASE = 'https://api.meshy.ai';
@@ -195,7 +195,7 @@ async function main() {
     }
   }
 
-  // Tải các file GLB về thư mục assets/characters và client/public/models
+  // Tải các file GLB về thư mục assets/characters và assets/web-models
   const basic = state.rigResult?.basic_animations || {};
   if (state.rigResult?.rigged_character_glb_url) {
     await downloadFile(

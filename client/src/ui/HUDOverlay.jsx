@@ -20,6 +20,7 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
 } from 'lucide-react';
+import { preloadScene } from '../world/models';
 
 export function HUDOverlay() {
   const worldScope = useStore((state) => state.worldScope);
@@ -87,6 +88,8 @@ export function HUDOverlay() {
             </button>
             <button
               onClick={() => setWorldScope('campus')}
+              onPointerEnter={() => preloadScene('campus')}
+              onFocus={() => preloadScene('campus')}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 worldScope === 'campus'
                   ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 shadow-md'
@@ -99,6 +102,8 @@ export function HUDOverlay() {
             </button>
             <button
               onClick={() => setWorldScope('lighthouse')}
+              onPointerEnter={() => preloadScene('lighthouse')}
+              onFocus={() => preloadScene('lighthouse')}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                 isLighthouse
                   ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 shadow-md'

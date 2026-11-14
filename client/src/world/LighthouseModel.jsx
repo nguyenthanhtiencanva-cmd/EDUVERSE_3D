@@ -1,18 +1,18 @@
 import React, { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { MODEL_URLS } from './models';
 
 /**
  * Hải đăng Vĩnh Thực (1962) — Mô hình 1 (Meshy AI Multi-Image-to-3D từ 4 góc ảnh thực tế)
  * đã được Thầy phê duyệt. Đặt tại mũi cực Đông Bắc đảo Vĩnh Thực.
  */
-const LIGHTHOUSE_URL = '/models/hai_dang_vinh_thuc_v2.glb';
 const BASE_POSITION = [62.6, 2.474, -22.82];
 const TARGET_WIDTH = 8.6;
 const ROTATION_Y = 0.17;
 
 export function LighthouseModel() {
-  const { scene } = useGLTF(LIGHTHOUSE_URL);
+  const { scene } = useGLTF(MODEL_URLS.lighthouse);
 
   const { model, scale, height, offset } = useMemo(() => {
     const cloned = scene.clone(true);
@@ -37,5 +37,3 @@ export function LighthouseModel() {
     </group>
   );
 }
-
-useGLTF.preload(LIGHTHOUSE_URL);

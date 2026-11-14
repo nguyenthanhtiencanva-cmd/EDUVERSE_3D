@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { CampusModel } from './world/CampusModel';
 import { IslandModel } from './world/IslandModel';
@@ -8,11 +8,22 @@ import { SceneLighting } from './world/SceneLighting';
 import { CameraController } from './world/CameraController';
 import { HUDOverlay } from './ui/HUDOverlay';
 import { CampusTourHUD } from './ui/CampusTourHUD';
+import { SceneLoader } from './ui/SceneLoader';
 import { useStore } from './store/useStore';
+
+// Được gắn làm fallback của Suspense, nên chỉ tồn tại trong lúc cảnh hiện tại còn tải mô hình.
+function LoadingFlag({ onChange }) {
+  useEffect(() => {
+    onChange(true);
+    return () => onChange(false);
+  }, [onChange]);
+  return null;
+}
 
 export default function LegacyWorld() {
   const worldScope = useStore((state) => state.worldScope);
   const campusTour = useStore((state) => state.campusTour);
+  const [loading, setLoading] = useState(false);
 
   return (
     <>
@@ -22,22 +33,25 @@ export default function LegacyWorld() {
         gl={{ antialias: true, powerPreference: 'high-performance' }}
       >
         <SceneLighting />
-        {worldScope === 'island' ? (
-          <IslandModel />
-        ) : worldScope === 'lighthouse' ? (
-          <>
-            <LighthouseScene />
-            <CharacterController key="tourist-lighthouse" tourist />
-          </>
-        ) : (
-          <>
-            <CampusModel />
-            <CharacterController key="tourist-meshy" tourist />
-          </>
-        )}
+        <Suspense fallback={<LoadingFlag onChange={setLoading} />}>
+          {worldScope === 'island' ? (
+            <IslandModel />
+          ) : worldScope === 'lighthouse' ? (
+            <>
+              <LighthouseScene />
+              <CharacterController key="tourist-lighthouse" tourist />
+            </>
+          ) : (
+            <>
+              <CampusModel />
+              <CharacterController key="tourist-meshy" tourist />
+            </>
+          )}
+        </Suspense>
         <CameraController />
       </Canvas>
       {campusTour ? <CampusTourHUD /> : <HUDOverlay />}
+      {loading && <SceneLoader />}
     </>
   );
 }

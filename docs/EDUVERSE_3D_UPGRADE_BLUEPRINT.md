@@ -123,6 +123,11 @@ Tiêu chí: frame time p95 khi đi bộ trong trường không quá 33 ms ở m�
 4. **TypeScript** cho store và dữ liệu POI trước, phần còn lại chuyển dần.
 5. **Nhiều người chơi.** Chỉ bắt đầu khi đợt 3 đã đạt tiêu chí. Đề xuất: một phòng cho mỗi cảnh, tối đa 30 người, đồng bộ vị trí 10 lần/giây và nội suy ở máy khách. Vercel không chạy được máy chủ WebSocket lâu dài, nên cần chọn giữa dịch vụ realtime có sẵn (PartyKit, Liveblocks) và tự chạy Socket.IO trên một máy chủ riêng (Fly.io, Railway). Dịch vụ có sẵn ít việc vận hành hơn và hợp với quy mô 10–50 người trong README.
 
+## Tiến độ
+
+- **Đợt 1:** xong ngày 14/11/2026 (commit `d6f1e78`). Build từ 63 MB xuống 38 MB.
+- **Đợt 2:** xong ngày 14/11/2026. Lượt mở đầu tải khoảng 2,3 MB (trước là khoảng 14 MB): đảo 0,54 MB, hải đăng 1,39 MB, JavaScript 0,31 MB gzip. Trường (1,89 MB) và nhân vật (0,67 MB) chỉ tải khi vào cảnh. Mục 2.3 (hải đăng bản nhẹ cho sa bàn) không làm: lưới Meshy bị chia vụn theo UV nên giảm lưới tự động chỉ bớt được 8% tam giác; sa bàn dùng chung bản nén 1,39 MB với cảnh hải đăng.
+
 ## 4. Thứ tự và phụ thuộc
 
 - Đợt 1 làm trước, không phụ thuộc gì.

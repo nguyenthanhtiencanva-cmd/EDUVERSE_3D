@@ -46,6 +46,7 @@ Toàn bộ tài liệu kỹ thuật, hồ sơ bàn giao, kế hoạch triển kh
   npm run dev
   ```
   Sau đó mở [http://localhost:3000](http://localhost:3000). Điện thoại cùng Wifi mở theo địa chỉ "Network" mà Vite in ra.
+- **Mô hình 3D:** bản nguồn nằm ở `assets/web-models/`. Sau khi sửa hoặc thêm mô hình, chạy `npm run models:compress` trong `client/` để sinh bản nén vào `client/src/assets/models/` (cần mạng ở lần chạy đầu để tải công cụ `gltf-transform`).
 - **Lưu ý:** `node_modules` phải được cài trên chính máy đang chạy. Bản cài từ hệ điều hành khác (đồng bộ qua Google Drive) sẽ không build được.
 
 ### Ba không gian

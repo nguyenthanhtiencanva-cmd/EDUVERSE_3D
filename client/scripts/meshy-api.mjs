@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLIENT_DIR = path.resolve(__dirname, '..');
 const ROOT_DIR = path.resolve(CLIENT_DIR, '..');
-const DEFAULT_OUTPUT_DIR = path.resolve(CLIENT_DIR, 'public', 'models');
+const DEFAULT_OUTPUT_DIR = path.resolve(CLIENT_DIR, '..', 'assets', 'web-models');
 
 const API_BASE = 'https://api.meshy.ai';
 

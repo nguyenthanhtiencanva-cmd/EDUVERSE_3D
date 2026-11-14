@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../../store/useStore';
+import { MODEL_URLS } from '../models';
 import {
   SEA_LEVEL,
   MESHY_SCALE,
@@ -13,8 +14,6 @@ import {
   HILL_STAIR_BALUSTRADES,
   getSpiralPose,
 } from './layout';
-
-const LIGHTHOUSE_GLB_URL = '/models/hai_dang_vinh_thuc_v2.glb';
 
 // Tạo đoạn lan can con tiện trắng - tay vịn vàng kem dọc cầu thang sườn đồi & sảnh đón
 function BalustradeSegment({ seg, colorRail = '#E8C77A', colorPost = '#F4F1EA', height = 0.92 }) {
@@ -108,7 +107,7 @@ function useOceanWaveTexture() {
 }
 
 export function LighthouseScene() {
-  const { scene } = useGLTF(LIGHTHOUSE_GLB_URL);
+  const { scene } = useGLTF(MODEL_URLS.lighthouse);
   const timeOfDay = useStore((state) => state.timeOfDay);
   const lighthouseLevel = useStore((state) => state.lighthouseLevel);
   const beaconRef = useRef();
@@ -396,5 +395,3 @@ export function LighthouseScene() {
     </group>
   );
 }
-
-useGLTF.preload(LIGHTHOUSE_GLB_URL);
