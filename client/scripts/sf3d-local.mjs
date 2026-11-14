@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CLIENT_DIR = path.resolve(__dirname, '..');
-const MODELS_DIR = path.join(CLIENT_DIR, 'public', 'assets', 'models');
+const MODELS_DIR = path.join(CLIENT_DIR, 'public', 'models');
 
 const SF3D_HOME = process.env.SF3D_HOME || path.join(os.homedir(), '.eduverse-sf3d');
 const SF3D_REPO = path.join(SF3D_HOME, 'sf3d-repo');

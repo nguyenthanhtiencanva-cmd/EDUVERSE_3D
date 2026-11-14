@@ -10,9 +10,9 @@ export const MESHY_SCALE = 18.4;
 export const MESHY_Y_OFFSET = 0.445 * MESHY_SCALE; // +8.188 để mặt sân gạch đỏ ở khoảng Y = 0.55m
 
 export const TOWER = {
-  x: -12.24,
-  z: -2.5,
-  rotundaRadius: 4.2,
+  x: -9.0,
+  z: 0.0,
+  rotundaRadius: 4.4,
   rotundaFloor: 0.55,
   rotundaHeight: 5.2,
   coreBottom: 2.1,
@@ -24,7 +24,7 @@ export const TOWER = {
   lanternBase: 15.8,
   lanternTop: 17.8,
   lanternRadius: 1.1,
-  lampY: 16.85,
+  lampY: 16.45,
   spiralTurns: 3.0,
   spiralSteps: 72,
   spiralStartAngle: Math.PI * 0.28, // Cửa vào cầu thang xoắn ốc hướng về phía Đông Nam (sân gạch đỏ)
@@ -46,10 +46,10 @@ export function getSpiralPose(t) {
 }
 
 export const HOUSE = {
-  x0: -5.5,
-  x1: 13.0,
-  z0: -6.5,
-  z1: 2.6,
+  x0: -4.8,
+  x1: 12.2,
+  z0: -8.5,
+  z1: 0.2,
   wallH: 5.5,
   wallT: 0.3,
   floor: 0.55,
@@ -58,19 +58,19 @@ export const HOUSE = {
   doorH: 2.9,
 };
 
-export const YARD = { x0: -15.5, x1: 13.5, z0: -8.5, z1: 8.5 };
+export const YARD = { x0: -14.2, x1: 12.2, z0: -4.5, z1: 8.5 };
 export const STAIRS = {
-  x0: 0.0,
-  x1: 2.4,
-  z0: 8.2,
+  x0: 2.7,
+  x1: 5.1,
+  z0: 8.0,
   z1: 22.0,
   yTop: 0.55,
   yBottom: -2.8,
   drop: 3.35,
   steps: 36,
 };
-export const VIEWPOINT = { x0: -3.2, x1: 5.6, z0: 22.0, z1: 26.8, y: -2.8 };
-export const FLAG = { x: 1.8, z: 5.2 };
+export const VIEWPOINT = { x0: -0.5, x1: 8.3, z0: 22.0, z1: 26.8, y: -2.8 };
+export const FLAG = { x: 4.8, z: 1.2 };
 
 // Các đoạn lan can con tiện trắng - tay vịn vàng kem cho Chặng 1 (Cầu thang sườn đồi & Sảnh đón ven biển)
 export const HILL_STAIR_BALUSTRADES = [
@@ -85,9 +85,9 @@ export const HILL_STAIR_BALUSTRADES = [
   [VIEWPOINT.x0, VIEWPOINT.y, VIEWPOINT.z1, VIEWPOINT.x0, VIEWPOINT.y, VIEWPOINT.z0],
 ];
 
-// Khối cản va chạm khi đi bộ quanh Mô hình 1 (khối nhà quản lý & trụ lõi giữa tháp)
+// Khối cản va chạm khi đi bộ quanh Mô hình Hải đăng (khối nhà Pháp & trụ lõi giữa tháp)
 const OBSTACLE_BOXES = [
-  [-5.2, 12.8, -6.2, 2.5], // Khối nhà quản lý
+  [-4.6, 12.0, -8.4, 0.1], // Khối nhà quản lý Pháp
 ];
 
 export function groundAt(x, z, level = 'ground', spiralT = 0) {
@@ -147,7 +147,7 @@ export function cameraDistance(target, direction, maxDistance, level = 'ground')
 export const LIGHTHOUSE_WORLD = {
   id: 'lighthouse',
   // Xuất phát tại Sảnh đón dưới chân cầu thang 36 bậc, nhìn thẳng lên ngọn Hải đăng 18m
-  spawn: { position: [1.2, VIEWPOINT.y, 24.4], yaw: Math.PI, level: 'ground' },
+  spawn: { position: [3.9, VIEWPOINT.y, 24.4], yaw: Math.PI, level: 'ground' },
   groundAt,
   canWalk,
   cameraDistance,

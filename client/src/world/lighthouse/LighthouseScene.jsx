@@ -14,7 +14,7 @@ import {
   getSpiralPose,
 } from './layout';
 
-const LIGHTHOUSE_GLB_URL = '/models/hai_dang_vinh_thuc_v2.glb';
+const LIGHTHOUSE_GLB_URL = '/models/hai_dang_vinh_thuc_sf3d_v2.glb';
 
 // Tạo đoạn lan can con tiện trắng - tay vịn vàng kem dọc cầu thang sườn đồi & sảnh đón
 function BalustradeSegment({ seg, colorRail = '#E8C77A', colorPost = '#F4F1EA', height = 0.92 }) {
@@ -362,7 +362,7 @@ export function LighthouseScene() {
 
       {/* Sảnh đón ven biển dưới chân cầu thang 36 bậc */}
       <mesh
-        position={[1.2, VIEWPOINT.y - 0.6, (VIEWPOINT.z0 + VIEWPOINT.z1) / 2]}
+        position={[(VIEWPOINT.x0 + VIEWPOINT.x1) / 2, VIEWPOINT.y - 0.6, (VIEWPOINT.z0 + VIEWPOINT.z1) / 2]}
         receiveShadow
         castShadow
       >
@@ -376,7 +376,7 @@ export function LighthouseScene() {
         <meshStandardMaterial color="#3A3F45" roughness={0.88} />
       </mesh>
       <mesh
-        position={[1.2, VIEWPOINT.y - 0.04, (VIEWPOINT.z0 + VIEWPOINT.z1) / 2]}
+        position={[(VIEWPOINT.x0 + VIEWPOINT.x1) / 2, VIEWPOINT.y - 0.04, (VIEWPOINT.z0 + VIEWPOINT.z1) / 2]}
         receiveShadow
       >
         <boxGeometry
