@@ -33,7 +33,7 @@ export function LighthouseModel() {
     <group name="HaiDang_VinhThuc" position={BASE_POSITION} rotation={[0, ROTATION_Y, 0]} scale={scale}>
       <primitive object={model} position={offset} />
       {/* Ánh đèn hải đăng phát sáng ở đỉnh tháp */}
-      <pointLight position={[-0.46, height * 0.94, 0.0]} color="#fff2a0" intensity={2.5} distance={45} />
+      <pointLight position={[-0.45, height * 0.94, -0.02]} color="#fff2a0" intensity={2.5} distance={45} />
     </group>
   );
 }

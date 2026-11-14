@@ -207,17 +207,11 @@ export function LighthouseScene() {
       {/* Vòng bọt sóng trắng vỗ quanh chân mỏm đá Hải đăng */}
       <mesh
         ref={foamRef}
-        position={[0, SEA_LEVEL + 0.06, 5]}
+        position={[0, SEA_LEVEL + 0.05, 0]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
-        <ringGeometry args={[21.5, 25.0, 48]} />
+        <ringGeometry args={[15.8, 18.8, 48]} />
         <meshBasicMaterial color="#E0F2FE" transparent opacity={0.55} side={THREE.DoubleSide} />
-      </mesh>
-
-      {/* Bệ đá gốc dưới chân Mô hình 1 tiếp giáp mặt nước biển */}
-      <mesh position={[0, SEA_LEVEL + 1.35, 1.0]} receiveShadow>
-        <cylinderGeometry args={[16.8, 19.8, 2.8, 36]} />
-        <meshStandardMaterial color="#3B4D3B" roughness={0.9} />
       </mesh>
 
       {/* Hòn đá ngoài khơi phía Tây Bắc tháp đèn (đúng như trong ảnh thực tế số 1) */}

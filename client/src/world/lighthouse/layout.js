@@ -10,7 +10,7 @@ export const MESHY_SCALE = 18.4;
 export const MESHY_Y_OFFSET = 0.445 * MESHY_SCALE; // +8.188 để mặt sân gạch đỏ ở khoảng Y = 0.55m
 
 export const TOWER = {
-  x: -9.0,
+  x: -8.55,
   z: 0.0,
   rotundaRadius: 4.4,
   rotundaFloor: 0.55,
