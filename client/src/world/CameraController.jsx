@@ -22,10 +22,10 @@ export const ISLAND_PRESET_VIEWS = {
     target: new THREE.Vector3(-19.27, 2.0, -1.83),
     name: '🏫 Phân hiệu Vĩnh Trung',
   },
-  dau_dong_main: {
+  truong_vinh_thuc: {
     pos: new THREE.Vector3(23.20, 16.0, 15.0),
     target: new THREE.Vector3(23.20, 2.2, -4.22),
-    name: '🏫 Điểm chính Vĩnh Thực & Đầu Đông',
+    name: '🏫 Trường TH&THCS Vĩnh Thực',
   },
   lighthouse_peak: {
     pos: new THREE.Vector3(52.0, 18.0, -4.0),

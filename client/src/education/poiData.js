@@ -30,9 +30,9 @@ export const ISLAND_POI_LIST = [
     ],
   },
   {
-    id: 'island-campus-dau-dong',
-    title: 'Phân Hiệu Điểm Chính (Vĩnh Thực) - Trường TH&THCS Vĩnh Thực',
-    shortTitle: '🏫 Phân hiệu Điểm chính (Vĩnh Thực)',
+    id: 'island-truong-vinh-thuc',
+    title: 'Trường TH&THCS Vĩnh Thực',
+    shortTitle: '🏫 Trường TH&THCS Vĩnh Thực',
     category: 'Hệ thống Giáo dục (3 Phân hiệu)',
     isSchoolCampus: true,
     hasDetailed3D: false,
@@ -46,7 +46,7 @@ export const ISLAND_POI_LIST = [
     details: [
       { label: 'Vị trí địa lý', value: 'Xã Vĩnh Thực, TP. Móng Cái, Quảng Ninh' },
       { label: 'Vai trò', value: 'Phân hiệu điểm chính - Trung tâm điều hành & giảng dạy TH&THCS Vĩnh Thực' },
-      { label: 'Kết nối giao thông', value: 'Nằm ngay ngã ba trục đường xuyên đảo, gần Bãi biển Đầu Đông' },
+      { label: 'Kết nối giao thông', value: 'Nằm ngay ngã ba trục đường xuyên đảo' },
       { label: 'Định hướng mở rộng 3D', value: 'Sẵn sàng tích hợp mô hình 1:1 khi cập nhật bình đồ vệ tinh & ảnh chụp thực địa' },
     ],
   },
