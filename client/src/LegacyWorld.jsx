@@ -25,11 +25,15 @@ function LoadingFlag({ onChange }) {
 }
 
 const MAX_DPR = { low: 1, medium: 1.5, high: 2 };
+// Bản đồ đảo nhìn từ rất xa. Mặt gần 0,2 làm bộ đệm độ sâu không đủ mịn ở khoảng cách đó,
+// khiến mặt biển và bờ đất tranh nhau từng điểm ảnh (nhấp nháy). Camera không bao giờ tới gần hơn 12.
+const GEO_CAMERA_RANGE = { near: 3, far: 3000 };
 
 export default function LegacyWorld() {
   const worldScope = useStore((state) => state.worldScope);
   const campusTour = useStore((state) => state.campusTour);
   const [loading, setLoading] = useState(false);
+  const geoIsland = GEO_MAP_ENABLED && worldScope === 'island';
   const quality = useStore((state) => state.quality);
   const qualityAuto = useStore((state) => state.qualityAuto);
   const lowerQuality = useStore((state) => state.lowerQuality);
@@ -41,7 +45,7 @@ export default function LegacyWorld() {
       <Canvas
         shadows={quality !== 'low'}
         dpr={[1, MAX_DPR[quality]]}
-        camera={{ position: [0, 52, 88], fov: 46, near: 0.2, far: GEO_MAP_ENABLED ? 3000 : 900 }}
+        camera={{ position: [0, 52, 88], fov: 46, ...(geoIsland ? GEO_CAMERA_RANGE : { near: 0.2, far: 900 }) }}
         gl={{ antialias, powerPreference: 'high-performance' }}
       >
         <SceneLighting />

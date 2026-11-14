@@ -87,12 +87,12 @@ export function GeoIslandModel() {
       <primitive object={scene} />
 
       {/* Mặt biển tô màu theo khoảng cách tới bờ, nằm ngay trên mực nước 0 m */}
-      <mesh rotation-x={-Math.PI / 2} position={[SEA_CENTER[0], 0.012, SEA_CENTER[1]]}>
+      <mesh rotation-x={-Math.PI / 2} position={[SEA_CENTER[0], 0.02, SEA_CENTER[1]]}>
         <planeGeometry args={SEA_SIZE} />
         <meshBasicMaterial map={seaStyle} toneMapped={false} />
       </mesh>
       {/* Biển xa ngoài phạm vi dữ liệu */}
-      <mesh rotation-x={-Math.PI / 2} position={[SEA_CENTER[0], -0.05, SEA_CENTER[1]]}>
+      <mesh rotation-x={-Math.PI / 2} position={[SEA_CENTER[0], -1.5, SEA_CENTER[1]]}>
         <planeGeometry args={[6000, 6000]} />
         <meshBasicMaterial color="#bfe3ea" toneMapped={false} />
       </mesh>
