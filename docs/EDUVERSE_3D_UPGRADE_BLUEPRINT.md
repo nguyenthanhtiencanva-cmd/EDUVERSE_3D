@@ -128,6 +128,8 @@ Tiêu chí: frame time p95 khi đi bộ trong trường không quá 33 ms ở m�
 - **Đợt 1:** xong ngày 14/11/2026 (commit `d6f1e78`). Build từ 63 MB xuống 38 MB.
 - **Đợt 2:** xong ngày 14/11/2026. Lượt mở đầu tải khoảng 2,3 MB (trước là khoảng 14 MB): đảo 0,54 MB, hải đăng 1,39 MB, JavaScript 0,31 MB gzip. Trường (1,89 MB) và nhân vật (0,67 MB) chỉ tải khi vào cảnh. Mục 2.3 (hải đăng bản nhẹ cho sa bàn) không làm: lưới Meshy bị chia vụn theo UV nên giảm lưới tự động chỉ bớt được 8% tam giác; sa bàn dùng chung bản nén 1,39 MB với cảnh hải đăng.
 
+- **Đợt 3:** xong ngày 14/11/2026, làm không cần Blender. Số lệnh vẽ ở cảnh trường (đo trên máy Mac, mức Cao): đi bộ từ 503 xuống 49–66, toàn cảnh từ 2.049 xuống 79. Mô hình trường còn 0,90 MB. Có ba mức chất lượng (Thấp, Vừa, Cao), tự hạ khi máy chạy chậm. Va chạm trong trường dò theo lưới mô hình bằng `three-mesh-bvh`. Thêm `?stats` vào địa chỉ trang để xem FPS và số lệnh vẽ. Chưa làm: bỏ vẽ hai mặt (mọi vật liệu trong GLB đều xuất hai mặt, cần Blender để kiểm tra hướng mặt trước khi bỏ); chuyển cảnh hải đăng sang cùng cơ chế va chạm; đo trên điện thoại Android thật.
+
 ## 4. Thứ tự và phụ thuộc
 
 - Đợt 1 làm trước, không phụ thuộc gì.

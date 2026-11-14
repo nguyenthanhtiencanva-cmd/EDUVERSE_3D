@@ -60,3 +60,5 @@ Toàn bộ tài liệu kỹ thuật, hồ sơ bàn giao, kế hoạch triển kh
 - **Bản đồ mini:** hiện vị trí và hướng nhìn của nhân vật.
 - **Điểm tham quan (POI):** bấm vào huy hiệu để xem thông tin và ảnh thực địa.
 - **Ánh sáng:** ban ngày, hoàng hôn, ban đêm.
+- **Chất lượng hình ảnh:** ba mức Thấp, Vừa, Cao (nút đồng hồ trên thanh công cụ). Ứng dụng tự hạ mức khi máy chạy chậm, cho đến khi người dùng tự chọn.
+- **Đo hiệu năng:** thêm `?stats` vào cuối địa chỉ trang để xem FPS, số lệnh vẽ và số tam giác.

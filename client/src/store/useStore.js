@@ -1,7 +1,47 @@
 import { create } from 'zustand';
 import { LIGHTHOUSE_WORLD, TOWER, getSpiralPose } from '../world/lighthouse/layout';
 
+const QUALITY_LEVELS = ['low', 'medium', 'high'];
+const QUALITY_KEY = 'eduverse-quality';
+
+function readSavedQuality() {
+  try {
+    const saved = localStorage.getItem(QUALITY_KEY);
+    return QUALITY_LEVELS.includes(saved) ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+function guessQuality() {
+  try {
+    return window.matchMedia('(pointer: coarse)').matches ? 'medium' : 'high';
+  } catch {
+    return 'high';
+  }
+}
+
+const savedQuality = readSavedQuality();
+
 export const useStore = create((set) => ({
+  // Mức chất lượng hình ảnh: 'low' | 'medium' | 'high'.
+  // Khi người dùng chưa tự chọn (qualityAuto), ứng dụng tự hạ mức nếu máy chạy chậm.
+  quality: savedQuality || guessQuality(),
+  qualityAuto: !savedQuality,
+  setQuality: (quality) => {
+    try {
+      localStorage.setItem(QUALITY_KEY, quality);
+    } catch {
+      // Không lưu được thì vẫn áp dụng cho phiên này.
+    }
+    set({ quality, qualityAuto: false });
+  },
+  lowerQuality: () =>
+    set((state) => {
+      const index = QUALITY_LEVELS.indexOf(state.quality);
+      return state.qualityAuto && index > 0 ? { quality: QUALITY_LEVELS[index - 1] } : {};
+    }),
+
   worldScope: 'island',
   campusTour: false,
   lighthouseLevel: 'ground', // 'ground' | 'spiral' | 'balcony'

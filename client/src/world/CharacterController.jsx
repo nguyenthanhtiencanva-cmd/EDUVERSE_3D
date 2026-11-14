@@ -5,18 +5,8 @@ import * as THREE from 'three';
 import { useStore } from '../store/useStore';
 import { LIGHTHOUSE_WORLD, TOWER, getSpiralPose } from './lighthouse/layout';
 import { MODEL_URLS } from './models';
+import { campusCameraDistance, campusCanWalk, campusGroundAt } from './campusCollision';
 
-const BUILDINGS = [
-  [9, 22, 0, 14],
-  [-14, 16, -26, -16],
-  [-27, -15, -8, 16],
-  [12, 26, 18, 28],
-  [-10, 6, 26, 29],
-];
-const CAMERA_BOXES = BUILDINGS.map(
-  ([left, right, near, far]) =>
-    new THREE.Box3(new THREE.Vector3(left, 0, near), new THREE.Vector3(right, 10, far)),
-);
 const MOVE_KEYS = new Set([
   'KeyW',
   'KeyA',
@@ -31,18 +21,6 @@ const MOVE_KEYS = new Set([
   'Space',
   'KeyE',
 ]);
-
-function canWalkCampus(x, z) {
-  const radius = 0.45;
-  return (
-    Math.abs(x) <= 28 &&
-    Math.abs(z) <= 28 &&
-    !BUILDINGS.some(
-      ([left, right, near, far]) =>
-        x + radius > left && x - radius < right && z + radius > near && z - radius < far,
-    )
-  );
-}
 
 export function CharacterController({ tourist = true }) {
   const group = useRef(null);
@@ -78,8 +56,6 @@ export function CharacterController({ tourist = true }) {
       target: new THREE.Vector3(),
       eye: new THREE.Vector3(),
       direction: new THREE.Vector3(),
-      intersection: new THREE.Vector3(),
-      ray: new THREE.Ray(),
     }),
     [],
   );
@@ -202,9 +178,11 @@ export function CharacterController({ tourist = true }) {
     const isLighthouse = state.worldScope === 'lighthouse';
     const level = state.lighthouseLevel || 'ground';
     const checkWalk = (x, z) =>
-      isLighthouse ? LIGHTHOUSE_WORLD.canWalk(x, z, level) : canWalkCampus(x, z);
+      isLighthouse ? LIGHTHOUSE_WORLD.canWalk(x, z, level) : campusCanWalk(position, x, z);
     const getGroundY = (x, z) =>
-      isLighthouse ? LIGHTHOUSE_WORLD.groundAt(x, z, level, state.spiralProgress) : 0;
+      isLighthouse
+        ? LIGHTHOUSE_WORLD.groundAt(x, z, level, state.spiralProgress)
+        : campusGroundAt(x, position.y, z) ?? position.y;
 
     if (walking) {
       const { joystickInput, setPlayerPosition } = state;
@@ -307,7 +285,7 @@ export function CharacterController({ tourist = true }) {
         }
       }
 
-      const { target, eye, direction, ray, intersection } = scratch;
+      const { target, eye, direction } = scratch;
       target.copy(position);
       target.y += 1.25;
       direction.set(
@@ -320,12 +298,7 @@ export function CharacterController({ tourist = true }) {
       if (isLighthouse) {
         distance = LIGHTHOUSE_WORLD.cameraDistance(target, direction, player.distance, level);
       } else {
-        ray.set(target, direction);
-        for (const box of CAMERA_BOXES) {
-          if (!box.containsPoint(target) && ray.intersectBox(box, intersection)) {
-            distance = Math.min(distance, Math.max(2.0, target.distanceTo(intersection) - 0.25));
-          }
-        }
+        distance = campusCameraDistance(target, direction, player.distance);
       }
 
       eye.copy(target).addScaledVector(direction, distance);

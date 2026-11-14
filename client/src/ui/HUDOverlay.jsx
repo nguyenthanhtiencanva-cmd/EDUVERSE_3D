@@ -11,6 +11,7 @@ import {
   Sun,
   Sunset,
   Moon,
+  Gauge,
   Plane,
   Footprints,
   HelpCircle,
@@ -22,6 +23,9 @@ import {
 } from 'lucide-react';
 import { preloadScene } from '../world/models';
 
+const QUALITY_LABELS = { low: 'Thấp', medium: 'Vừa', high: 'Cao' };
+const NEXT_QUALITY = { low: 'medium', medium: 'high', high: 'low' };
+
 export function HUDOverlay() {
   const worldScope = useStore((state) => state.worldScope);
   const setWorldScope = useStore((state) => state.setWorldScope);
@@ -30,6 +34,8 @@ export function HUDOverlay() {
   const activeView = useStore((state) => state.activeView);
   const setActiveView = useStore((state) => state.setActiveView);
   const timeOfDay = useStore((state) => state.timeOfDay);
+  const quality = useStore((state) => state.quality);
+  const setQuality = useStore((state) => state.setQuality);
   const setTimeOfDay = useStore((state) => state.setTimeOfDay);
 
   const lighthouseLevel = useStore((state) => state.lighthouseLevel);
@@ -214,6 +220,16 @@ export function HUDOverlay() {
               <Moon className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Mức chất lượng hình ảnh: bấm để chuyển Thấp -> Vừa -> Cao */}
+          <button
+            onClick={() => setQuality(NEXT_QUALITY[quality])}
+            className="glass-panel flex items-center gap-1.5 px-2.5 py-2 rounded-2xl text-xs font-semibold text-slate-200 hover:text-amber-400 transition shadow-lg cursor-pointer"
+            title="Chất lượng hình ảnh. Chọn Thấp nếu máy chạy giật."
+          >
+            <Gauge className="w-4 h-4" />
+            <span>{QUALITY_LABELS[quality]}</span>
+          </button>
         </div>
       </header>
 

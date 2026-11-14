@@ -6,6 +6,8 @@ export function SceneLighting() {
   const timeOfDay = useStore((state) => state.timeOfDay);
   const worldScope = useStore((state) => state.worldScope);
   const isIsland = worldScope === 'island';
+  const quality = useStore((state) => state.quality);
+  const shadowMapSize = quality === 'high' ? 2048 : 1024;
 
   const configs = {
     day: {
@@ -70,12 +72,13 @@ export function SceneLighting() {
 
       {/* Primary Directional Sunlight with Shadows */}
       <directionalLight
+        key={shadowMapSize}
         position={current.sunPos}
         intensity={current.sunIntensity}
         color={current.sunColor}
-        castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        castShadow={quality !== 'low'}
+        shadow-mapSize-width={shadowMapSize}
+        shadow-mapSize-height={shadowMapSize}
         shadow-camera-near={0.5}
         shadow-camera-far={280}
         shadow-camera-left={-shadowExtent}
