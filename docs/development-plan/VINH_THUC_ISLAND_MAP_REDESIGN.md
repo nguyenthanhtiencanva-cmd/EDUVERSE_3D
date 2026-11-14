@@ -112,3 +112,4 @@ Sa bàn mới phát triển song song sau địa chỉ `?map=new`. Sa bàn cũ v
   - Mặt biển dùng ảnh tô màu có sẵn. Cả cảnh 4 lệnh vẽ, 60 FPS trên máy Mac.
   - Hai ghim thử: Phân hiệu Vĩnh Trung (tọa độ từ hồ sơ) và Hải đăng (ước lượng từ ảnh vệ tinh). Nhãn Trà Cổ, Đảo Cái Chiên là ước lượng, chờ đối chiếu.
   - Chưa có: mây, công trình thu nhỏ, đường, danh sách các chặng, camera ba cấp. Mép vùng dữ liệu biển còn lộ thành một dải ở chân trời.
+- **15/11/2026, Đợt B và C (bản thử):** 9 địa danh có tọa độ nháp trong `client/src/education/island-places.json` (Phân hiệu 2 đã bỏ theo yêu cầu của thầy). Ghim ưu tiên luôn hiện; ghim phụ chỉ hiện khi camera cách dưới 13 km. Thẻ thông tin gọn ở mép dưới, nút **Các chặng** mở danh sách, chọn điểm thì camera bay tới và đóng thẻ thì camera ở lại. Chưa có: camera chọn hướng nhìn theo địa hình (điểm ở bờ Bắc đang bị dãy núi che khi nhìn từ phía Nam), công trình thu nhỏ, đường, mây.

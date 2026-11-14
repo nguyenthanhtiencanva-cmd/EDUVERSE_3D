@@ -6,6 +6,8 @@ import {
   LIGHTHOUSE_PRESET_VIEWS,
 } from '../world/CameraController';
 import { POIModal } from './POIModal';
+import { GeoPlacesPanel } from './GeoPlacesPanel';
+import { GEO_MAP_ENABLED } from '../world/geo';
 import { VirtualJoystick } from './VirtualJoystick';
 import {
   Sun,
@@ -69,7 +71,9 @@ export function HUDOverlay() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               </div>
               <h1 className="text-sm sm:text-base font-bold text-white tracking-tight">
-                {isIsland
+                {isIsland && GEO_MAP_ENABLED
+                  ? 'Bản Đồ Số Đảo Vĩnh Thực'
+                  : isIsland
                   ? 'Sa Bàn Số Đảo Vĩnh Thực & 3 Phân Hiệu'
                   : isLighthouse
                   ? 'Trạm Hải Đăng Vĩnh Thực (1962) • Không Gian 1:1'
@@ -262,7 +266,7 @@ export function HUDOverlay() {
       <VirtualJoystick />
 
       {/* Point of Interest Information Modal */}
-      <POIModal />
+      {GEO_MAP_ENABLED && isIsland ? <GeoPlacesPanel /> : <POIModal />}
     </div>
   );
 }

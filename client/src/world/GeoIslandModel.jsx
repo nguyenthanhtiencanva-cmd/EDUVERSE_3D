@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { Html, useGLTF, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
@@ -20,6 +21,9 @@ const BACKGROUND_LABELS = [
   { name: 'Vịnh Bắc Bộ', longitude: 108.03, latitude: 21.32, sea: true },
 ];
 
+const SECONDARY_PIN_RANGE = 130;
+const scratch = new THREE.Vector3();
+
 const [WEST_X, NORTH_Z] = lonLatToWorld(GEO_EXTENT.west, GEO_EXTENT.north);
 const [EAST_X, SOUTH_Z] = lonLatToWorld(GEO_EXTENT.east, GEO_EXTENT.south);
 const SEA_SIZE = [EAST_X - WEST_X, SOUTH_Z - NORTH_Z];
@@ -29,6 +33,9 @@ export function GeoIslandModel() {
   const { scene } = useGLTF(MODEL_URLS.terrain);
   const [satellite, seaStyle] = useTexture([satelliteUrl, SEA_STYLE_URL]);
   const setActivePOI = useStore((state) => state.setActivePOI);
+  const activePOI = useStore((state) => state.activePOI);
+  const [nearby, setNearby] = useState('');
+  const timer = useRef(0);
 
   const terrain = useMemo(() => {
     const mesh = scene.getObjectByProperty('isMesh', true);
@@ -62,6 +69,19 @@ export function GeoIslandModel() {
     });
   }, [scene, terrain]);
 
+  // Địa danh phụ chỉ hiện khi camera đủ gần, để nhãn không chồng nhau ở góc nhìn toàn đảo.
+  useFrame(({ camera }, delta) => {
+    timer.current += delta;
+    if (timer.current < 0.25) return;
+    timer.current = 0;
+    const visible = places
+      .filter((place) => place.priority === 1 || camera.position.distanceTo(scratch.set(...place.position)) < SECONDARY_PIN_RANGE)
+      .map((place) => place.poiId)
+      .join(',');
+    if (visible !== nearby) setNearby(visible);
+  });
+  const visibleIds = nearby.split(',');
+
   return (
     <group name="VinhThuc_GeoIsland">
       <primitive object={scene} />
@@ -77,13 +97,15 @@ export function GeoIslandModel() {
         <meshBasicMaterial color="#bfe3ea" toneMapped={false} />
       </mesh>
 
-      {places.map((place) => (
+      {places.filter((place) => visibleIds.includes(place.poiId) || activePOI?.id === place.poiId).map((place) => (
         <Html key={place.poiId} position={place.position} center zIndexRange={place.priority === 1 ? [15, 11] : [10, 6]}>
           <button
             onClick={() => setActivePOI(ISLAND_POI_LIST.find((poi) => poi.id === place.poiId) || null)}
             title={place.confidence === 'estimated' ? 'Vị trí ước lượng, chờ đối chiếu thực địa' : place.name}
             className={
-              place.priority === 1
+              activePOI?.id === place.poiId
+                ? 'whitespace-nowrap rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-900 shadow-lg ring-2 ring-sky-400 cursor-pointer'
+                : place.priority === 1
                 ? 'whitespace-nowrap rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-slate-900 shadow-lg ring-2 ring-white/70 transition hover:bg-amber-300 cursor-pointer'
                 : 'whitespace-nowrap rounded-full bg-slate-900/80 px-2 py-0.5 text-[11px] font-semibold text-white shadow ring-1 ring-white/50 transition hover:bg-slate-700 cursor-pointer'
             }

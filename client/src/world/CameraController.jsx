@@ -129,9 +129,12 @@ export function CameraController() {
   const cameraMode = useStore((state) => state.cameraMode);
   const activeView = useStore((state) => state.activeView);
   const activePOI = useStore((state) => state.activePOI);
+  const viewNonce = useStore((state) => state.viewNonce);
 
   const targetPos = useRef(new THREE.Vector3(0.0, 58.0, 92.0));
   const targetLook = useRef(new THREE.Vector3(2.0, 2.0, 0.0));
+
+  const lastGeoPlace = useRef(null);
 
   useEffect(() => {
     const geoPlace =
@@ -143,6 +146,10 @@ export function CameraController() {
       const [x, z] = lonLatToWorld(geoPlace.longitude, geoPlace.latitude);
       targetPos.current.set(x - 6, 22, z + 34);
       targetLook.current.set(x, 1, z);
+      lastGeoPlace.current = `${worldScope}:${activeView}:${viewNonce}`;
+    } else if (lastGeoPlace.current === `${worldScope}:${activeView}:${viewNonce}`) {
+      // Vừa đóng thẻ địa danh mà chưa đổi góc nhìn: giữ camera tại chỗ.
+      lastGeoPlace.current = null;
     } else if (activePOI) {
       targetPos.current.set(...activePOI.cameraPosition);
       targetLook.current.set(...activePOI.cameraTarget);
@@ -156,7 +163,7 @@ export function CameraController() {
       targetPos.current.copy(PRESET_VIEWS[activeView].pos);
       targetLook.current.copy(PRESET_VIEWS[activeView].target);
     }
-  }, [worldScope, activeView, activePOI]);
+  }, [worldScope, activeView, activePOI, viewNonce]);
 
   useFrame(() => {
     if (cameraMode === 'orbit') {

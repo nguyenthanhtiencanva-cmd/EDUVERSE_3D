@@ -150,7 +150,10 @@ export const useStore = create((set) => ({
 
   // Preset Views in Orbit Mode
   activeView: 'island_overview',
-  setActiveView: (view) => set({ activeView: view, cameraMode: 'orbit', activePOI: null }),
+  // viewNonce tăng mỗi lần chọn góc nhìn, để chọn lại đúng góc đang chọn vẫn đưa camera về.
+  viewNonce: 0,
+  setActiveView: (view) =>
+    set((state) => ({ activeView: view, cameraMode: 'orbit', activePOI: null, viewNonce: state.viewNonce + 1 })),
 
   // Selected Point of Interest (POI)
   activePOI: null,
