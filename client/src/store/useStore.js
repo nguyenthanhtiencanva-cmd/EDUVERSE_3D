@@ -94,8 +94,8 @@ export const useStore = create((set) => ({
         spiralProgress: 0.0,
         autoClimb: null,
         playerTeleport: {
-          position: [TOWER.x + 1.8, TOWER.rotundaFloor, TOWER.z + 2.8],
-          yaw: 0,
+          position: [-1.4, TOWER.rotundaFloor, 4.2],
+          yaw: 0.25,
           level: 'ground',
           nonce: Date.now(),
         },

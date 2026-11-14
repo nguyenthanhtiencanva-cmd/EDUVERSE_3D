@@ -274,12 +274,13 @@ export function CharacterController({ tourist = true }) {
             player.yaw -= right * 1.45 * dt;
           }
 
-          // Nếu nhân vật đi bộ tiến sát vào cửa chân tháp (bán kính < 2.25m từ tâm tháp), tự động bước vào Cầu thang xoắn ốc!
+          // Nếu nhân vật đi bộ tiến sát vào lối vòm chân tháp (phía Tây sân gạch đỏ), tự động bước vào Cầu thang xoắn ốc!
           if (
             isLighthouse &&
             level === 'ground' &&
             forward > 0.1 &&
-            Math.hypot(position.x - TOWER.x, position.z - TOWER.z) < 2.25
+            ((position.x <= -2.1 && position.z <= 4.5) ||
+              Math.hypot(position.x - TOWER.x, position.z - TOWER.z) < 2.25)
           ) {
             const startPose = getSpiralPose(0.03);
             state.setSpiralState({

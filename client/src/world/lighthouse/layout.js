@@ -13,18 +13,18 @@ export const TOWER = {
   x: -8.55,
   z: 0.0,
   rotundaRadius: 4.4,
-  rotundaFloor: 0.55,
+  rotundaFloor: 0.4,
   rotundaHeight: 5.2,
   coreBottom: 2.1,
   coreTop: 1.65,
   coreHeight: 15.0,
-  balconyY: 14.8,
-  balconyRadius: 2.55,
-  drumRadius: 1.05,
-  lanternBase: 15.8,
-  lanternTop: 17.8,
+  balconyY: 14.35,
+  balconyRadius: 2.45,
+  drumRadius: 1.15,
+  lanternBase: 15.3,
+  lanternTop: 17.6,
   lanternRadius: 1.1,
-  lampY: 16.45,
+  lampY: 16.3,
   spiralTurns: 3.0,
   spiralSteps: 72,
   spiralStartAngle: Math.PI * 0.28, // Cửa vào cầu thang xoắn ốc hướng về phía Đông Nam (sân gạch đỏ)
@@ -58,18 +58,18 @@ export const HOUSE = {
   doorH: 2.9,
 };
 
-export const YARD = { x0: -14.2, x1: 12.2, z0: -4.5, z1: 8.5 };
+export const YARD = { x0: -2.5, x1: 7.4, z0: 2.0, z1: 6.4 };
 export const STAIRS = {
-  x0: 2.7,
+  x0: 3.1,
   x1: 5.1,
-  z0: 8.0,
-  z1: 22.0,
-  yTop: 0.55,
+  z0: 6.2,
+  z1: 19.2,
+  yTop: 0.4,
   yBottom: -2.8,
-  drop: 3.35,
+  drop: 3.2,
   steps: 36,
 };
-export const VIEWPOINT = { x0: -0.5, x1: 8.3, z0: 22.0, z1: 26.8, y: -2.8 };
+export const VIEWPOINT = { x0: -0.2, x1: 8.4, z0: 19.2, z1: 24.0, y: -2.8 };
 export const FLAG = { x: 4.8, z: 1.2 };
 
 // Các đoạn lan can con tiện trắng - tay vịn vàng kem cho Chặng 1 (Cầu thang sườn đồi & Sảnh đón ven biển)
@@ -147,7 +147,7 @@ export function cameraDistance(target, direction, maxDistance, level = 'ground')
 export const LIGHTHOUSE_WORLD = {
   id: 'lighthouse',
   // Xuất phát tại Sảnh đón dưới chân cầu thang 36 bậc, nhìn thẳng lên ngọn Hải đăng 18m
-  spawn: { position: [3.9, VIEWPOINT.y, 24.4], yaw: Math.PI, level: 'ground' },
+  spawn: { position: [4.1, VIEWPOINT.y, 21.8], yaw: Math.PI, level: 'ground' },
   groundAt,
   canWalk,
   cameraDistance,
