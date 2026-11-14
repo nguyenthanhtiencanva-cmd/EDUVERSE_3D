@@ -14,7 +14,7 @@ import {
   getSpiralPose,
 } from './layout';
 
-const LIGHTHOUSE_GLB_URL = '/models/hai_dang_vinh_thuc_sf3d_v2.glb';
+const LIGHTHOUSE_GLB_URL = '/models/hai_dang_vinh_thuc_v2.glb';
 
 // Tạo đoạn lan can con tiện trắng - tay vịn vàng kem dọc cầu thang sườn đồi & sảnh đón
 function BalustradeSegment({ seg, colorRail = '#E8C77A', colorPost = '#F4F1EA', height = 0.92 }) {
@@ -207,11 +207,17 @@ export function LighthouseScene() {
       {/* Vòng bọt sóng trắng vỗ quanh chân mỏm đá Hải đăng */}
       <mesh
         ref={foamRef}
-        position={[0, SEA_LEVEL + 0.05, 0]}
+        position={[0, SEA_LEVEL + 0.06, 5]}
         rotation={[-Math.PI / 2, 0, 0]}
       >
-        <ringGeometry args={[15.8, 18.8, 48]} />
+        <ringGeometry args={[21.5, 25.0, 48]} />
         <meshBasicMaterial color="#E0F2FE" transparent opacity={0.55} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* Bệ đá gốc dưới chân Mô hình 1 tiếp giáp mặt nước biển */}
+      <mesh position={[0, SEA_LEVEL + 1.35, 1.0]} receiveShadow>
+        <cylinderGeometry args={[16.8, 19.8, 2.8, 36]} />
+        <meshStandardMaterial color="#3B4D3B" roughness={0.9} />
       </mesh>
 
       {/* Hòn đá ngoài khơi phía Tây Bắc tháp đèn (đúng như trong ảnh thực tế số 1) */}
@@ -356,7 +362,7 @@ export function LighthouseScene() {
 
       {/* Sảnh đón ven biển dưới chân cầu thang 36 bậc */}
       <mesh
-        position={[(VIEWPOINT.x0 + VIEWPOINT.x1) / 2, VIEWPOINT.y - 0.6, (VIEWPOINT.z0 + VIEWPOINT.z1) / 2]}
+        position={[1.2, VIEWPOINT.y - 0.6, (VIEWPOINT.z0 + VIEWPOINT.z1) / 2]}
         receiveShadow
         castShadow
       >
@@ -370,7 +376,7 @@ export function LighthouseScene() {
         <meshStandardMaterial color="#3A3F45" roughness={0.88} />
       </mesh>
       <mesh
-        position={[(VIEWPOINT.x0 + VIEWPOINT.x1) / 2, VIEWPOINT.y - 0.04, (VIEWPOINT.z0 + VIEWPOINT.z1) / 2]}
+        position={[1.2, VIEWPOINT.y - 0.04, (VIEWPOINT.z0 + VIEWPOINT.z1) / 2]}
         receiveShadow
       >
         <boxGeometry
