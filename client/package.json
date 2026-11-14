@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "terrain:prepare": "node scripts/prepare-island-terrain.mjs",
     "test:geography": "node --test scripts/geography.test.mjs",
-    "meshy": "node scripts/meshy-api.mjs"
+    "meshy": "node scripts/meshy-api.mjs",
+    "sf3d": "node scripts/sf3d-local.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.0",
