@@ -4,16 +4,15 @@ import * as THREE from 'three';
 import { useStore } from '../store/useStore';
 import { GEO_EXTENT, VERTICAL_EXAGGERATION, lonLatToWorld } from './geo';
 import { MODEL_URLS } from './models';
+import { ISLAND_POI_LIST } from '../education/poiData';
+import PLACES from '../education/island-places.json';
 import satelliteUrl from '../assets/terrain/vinh-thuc-satellite.jpg?url';
 
 const SEA_STYLE_URL = '/terrain/vinh-thuc-style.png';
 
-// Bản thử: chỉ Phân hiệu Vĩnh Trung có tọa độ từ hồ sơ dự án. Các điểm còn lại ước lượng từ ảnh vệ tinh,
-// chờ thầy cô đối chiếu thực địa trước khi dùng chính thức.
-const PLACES = [
-  { name: 'Phân hiệu Vĩnh Trung', longitude: 107.9043412, latitude: 21.3712629, scope: 'campus' },
-  { name: 'Hải đăng Vĩnh Thực', longitude: 108.0015, latitude: 21.3975, scope: 'lighthouse' },
-];
+// Tọa độ địa danh nằm trong island-places.json. Trường `confidence` cho biết độ tin cậy:
+// confirmed (đã xác nhận), osm (có tên trên OpenStreetMap), osm-unnamed (đối tượng OSM chưa đặt tên),
+// estimated (quy đổi từ sa bàn cũ, chờ thầy cô đối chiếu thực địa).
 const BACKGROUND_LABELS = [
   { name: 'Đảo Vĩnh Thực', longitude: 107.955, latitude: 21.392, large: true },
   { name: 'Trà Cổ', longitude: 107.995, latitude: 21.452 },
@@ -29,7 +28,7 @@ const SEA_CENTER = [(WEST_X + EAST_X) / 2, (NORTH_Z + SOUTH_Z) / 2];
 export function GeoIslandModel() {
   const { scene } = useGLTF(MODEL_URLS.terrain);
   const [satellite, seaStyle] = useTexture([satelliteUrl, SEA_STYLE_URL]);
-  const setWorldScope = useStore((state) => state.setWorldScope);
+  const setActivePOI = useStore((state) => state.setActivePOI);
 
   const terrain = useMemo(() => {
     const mesh = scene.getObjectByProperty('isMesh', true);
@@ -79,19 +78,25 @@ export function GeoIslandModel() {
       </mesh>
 
       {places.map((place) => (
-        <Html key={place.name} position={place.position} center zIndexRange={[15, 0]}>
+        <Html key={place.poiId} position={place.position} center zIndexRange={place.priority === 1 ? [15, 11] : [10, 6]}>
           <button
-            onClick={() => setWorldScope(place.scope)}
-            className="whitespace-nowrap rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-slate-900 shadow-lg ring-2 ring-white/70 transition hover:bg-amber-300 cursor-pointer"
+            onClick={() => setActivePOI(ISLAND_POI_LIST.find((poi) => poi.id === place.poiId) || null)}
+            title={place.confidence === 'estimated' ? 'Vị trí ước lượng, chờ đối chiếu thực địa' : place.name}
+            className={
+              place.priority === 1
+                ? 'whitespace-nowrap rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-slate-900 shadow-lg ring-2 ring-white/70 transition hover:bg-amber-300 cursor-pointer'
+                : 'whitespace-nowrap rounded-full bg-slate-900/80 px-2 py-0.5 text-[11px] font-semibold text-white shadow ring-1 ring-white/50 transition hover:bg-slate-700 cursor-pointer'
+            }
           >
             {place.name}
+            {place.confidence === 'estimated' ? ' ?' : ''}
           </button>
         </Html>
       ))}
       {BACKGROUND_LABELS.map((label) => {
         const [x, z] = lonLatToWorld(label.longitude, label.latitude);
         return (
-          <Html key={label.name} position={[x, label.sea ? 0.1 : 2, z]} center zIndexRange={[10, 0]} style={{ pointerEvents: 'none' }}>
+          <Html key={label.name} position={[x, label.sea ? 0.1 : 2, z]} center zIndexRange={[5, 0]} style={{ pointerEvents: 'none' }}>
             <span
               className={`whitespace-nowrap font-semibold italic ${label.large ? 'text-base' : 'text-xs'} ${label.sea ? 'tracking-[0.2em] text-white/80' : 'text-white'}`}
               style={{ textShadow: '0 1px 3px rgba(0,0,0,0.75)' }}

@@ -3,7 +3,8 @@ import { useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
-import { GEO_MAP_ENABLED } from './geo';
+import { GEO_MAP_ENABLED, lonLatToWorld } from './geo';
+import ISLAND_PLACES from '../education/island-places.json';
 
 export const ISLAND_PRESET_VIEWS = {
   island_overview: {
@@ -133,7 +134,16 @@ export function CameraController() {
   const targetLook = useRef(new THREE.Vector3(2.0, 2.0, 0.0));
 
   useEffect(() => {
-    if (activePOI) {
+    const geoPlace =
+      GEO_MAP_ENABLED && worldScope === 'island' && activePOI
+        ? ISLAND_PLACES.find((place) => place.poiId === activePOI.id)
+        : null;
+    if (geoPlace) {
+      // Bay tới địa danh trên bản đồ dữ liệu thật, nhìn nghiêng từ phía Nam.
+      const [x, z] = lonLatToWorld(geoPlace.longitude, geoPlace.latitude);
+      targetPos.current.set(x - 6, 22, z + 34);
+      targetLook.current.set(x, 1, z);
+    } else if (activePOI) {
       targetPos.current.set(...activePOI.cameraPosition);
       targetLook.current.set(...activePOI.cameraTarget);
     } else if (worldScope === 'island' && ACTIVE_ISLAND_VIEWS[activeView]) {

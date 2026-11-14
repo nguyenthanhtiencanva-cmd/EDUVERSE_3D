@@ -51,26 +51,6 @@ export const ISLAND_POI_LIST = [
     ],
   },
   {
-    id: 'island-campus-vinh-thuc-2',
-    title: 'Phân Hiệu 2 (Khu Vực Trung Tâm Xã Vĩnh Thực) - Trường TH&THCS Vĩnh Thực',
-    shortTitle: '🏫 Phân hiệu 2 (Xã Vĩnh Thực)',
-    category: 'Hệ thống Giáo dục (3 Phân hiệu)',
-    isSchoolCampus: true,
-    hasDetailed3D: false,
-    position: [3.23, 2.2, -2.11],
-    badgePosition: [3.23, 5.2, -2.11],
-    cameraTarget: [3.23, 2.0, -2.11],
-    cameraPosition: [3.23, 14.0, 15.0],
-    image: '/images/preview_island_overview.png',
-    description:
-      'Phân hiệu thứ 3 trong hệ thống trường liên cấp xã đảo, tọa lạc tại khu vực trung tâm Xã Vĩnh Thực dọc trục đường chính xuyên đảo.',
-    details: [
-      { label: 'Đơn vị chủ quản', value: 'Trường Tiểu học & THCS Vĩnh Thực (TP. Móng Cái)' },
-      { label: 'Vị trí trên đảo', value: 'Khu vực trung tâm xã đảo Vĩnh Thực, cạnh trục đường xuyên đảo' },
-      { label: 'Quy mô kiến trúc', value: 'Tổ hợp dãy nhà học 2 tầng mái ngói đỏ & sân chào cờ trung tâm' },
-    ],
-  },
-  {
     id: 'island-cang-van-gia',
     title: 'Bến Tàu Vạn Gia (Bờ Bắc Đảo Vĩnh Thực)',
     shortTitle: '⚓ Bến Tàu Vạn Gia (Bờ Bắc)',

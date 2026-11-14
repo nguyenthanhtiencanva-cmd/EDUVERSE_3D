@@ -46,3 +46,20 @@ test('bundled terrain is complete, finite and covers the school anchor', async (
   const east = sampleElevation(grid, heights, 108 + 1e-9, 21.36);
   assert.ok(Math.abs(west - east) < 0.01);
 });
+
+test('island places sit on land inside the island area', async () => {
+  const places = JSON.parse(await readFile(new URL('../src/education/island-places.json', import.meta.url), 'utf8'));
+  const { ISLAND_POI_LIST } = await import('../src/education/poiData.js');
+  const grid = JSON.parse(await readFile(new URL('../public/terrain/vinh-thuc.json', import.meta.url), 'utf8'));
+  const bytes = await readFile(new URL('../public/terrain/vinh-thuc.f32', import.meta.url));
+  const values = new Float32Array(bytes.buffer, bytes.byteOffset, grid.width * grid.height);
+  assert.equal(new Set(places.map((place) => place.poiId)).size, places.length);
+  for (const place of places) {
+    assert.ok(ISLAND_POI_LIST.some((poi) => poi.id === place.poiId), `${place.name}: không có POI ${place.poiId}`);
+    assert.ok(place.longitude > 107.82 && place.longitude < 108.02 && place.latitude > 21.33 && place.latitude < 21.42, `${place.name}: ngoài vùng đảo`);
+    // Bến, bãi và hải đăng nằm sát mép nước, nên chấp nhận đất trong bán kính khoảng 100 m.
+    const offsets = [0, -0.001, 0.001];
+    const nearLand = offsets.some((dx) => offsets.some((dy) => sampleElevation(grid, values, place.longitude + dx, place.latitude + dy) > 0));
+    assert.ok(nearLand, `${place.name}: nằm ngoài biển`);
+  }
+});
