@@ -1,13 +1,9 @@
 /**
  * Bố cục 1:1 (1 đơn vị = 1 mét) cho Mô hình 1 Hải đăng Vĩnh Thực (Meshy Multi-Image 3D đã duyệt).
- * Khi phóng theo tỷ lệ thực tế (SCALE = 18.4, chiều rộng toàn quần thể ~35 m, đỉnh tháp cao 18,0 m):
- * - Tháp đèn nằm tại (X = -12.24, Z = -2.50), ban công đỉnh tháp ở Y = 14.8 m, tâm đèn Y = 16.85 m.
- * - Nhà quản lý mái ngói đỏ nằm tại X từ -5.5 đến +13.0, Z từ -6.5 đến +2.6.
- * - Sân gạch đỏ phía trước: X từ -11.5 đến +12.5, Z từ +3.2 đến +8.2 (cao độ mặt sân Y ≈ 0.55 m).
- * - Cầu thang sườn đồi phía trước: X từ -0.2 đến +2.6, Z từ +8.2 xuống +24.0.
+ * Xung quanh trạm hải đăng là mặt biển Đông Bắc bao la ngay dưới chân mũi đảo.
  */
 
-export const SEA_LEVEL = -66;
+export const SEA_LEVEL = -3.4;
 export const MESHY_SCALE = 18.4;
 export const MESHY_Y_OFFSET = 0.445 * MESHY_SCALE; // +8.188 để mặt sân gạch đỏ ở khoảng Y = 0.55m
 
@@ -43,8 +39,8 @@ export const HOUSE = {
 };
 
 export const YARD = { x0: -13.5, x1: 13.5, z0: -8.5, z1: 8.5 };
-export const STAIRS = { x0: -0.4, x1: 2.8, z0: 8.2, z1: 22.0, drop: 3.8 };
-export const VIEWPOINT = { x0: -3.5, x1: 6.0, z0: 22.0, z1: 28.0, y: -3.25 };
+export const STAIRS = { x0: -0.4, x1: 2.8, z0: 8.2, z1: 16.5, drop: 2.6 };
+export const VIEWPOINT = { x0: -3.5, x1: 6.0, z0: 16.5, z1: 21.5, y: -2.05 };
 export const FLAG = { x: 1.8, z: 5.2 };
 
 // Các khối cản va chạm khi đi bộ quanh Mô hình 1 (thân tháp & khối nhà quản lý)
