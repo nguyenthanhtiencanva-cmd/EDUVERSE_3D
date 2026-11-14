@@ -2,7 +2,7 @@ import React from 'react';
 import { useStore } from '../store/useStore';
 import {
   PRESET_VIEWS,
-  ISLAND_PRESET_VIEWS,
+  ACTIVE_ISLAND_VIEWS,
   LIGHTHOUSE_PRESET_VIEWS,
 } from '../world/CameraController';
 import { POIModal } from './POIModal';
@@ -45,7 +45,7 @@ export function HUDOverlay() {
   const isIsland = worldScope === 'island';
   const isLighthouse = worldScope === 'lighthouse';
   const currentPresets = isIsland
-    ? ISLAND_PRESET_VIEWS
+    ? ACTIVE_ISLAND_VIEWS
     : isLighthouse
     ? LIGHTHOUSE_PRESET_VIEWS
     : PRESET_VIEWS;

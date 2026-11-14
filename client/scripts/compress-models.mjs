@@ -22,6 +22,8 @@ const OUTPUT = fileURLToPath(new URL('../src/assets/models/', import.meta.url));
 const MODELS = [
   { source: 'school_campus.glb', output: 'school_campus.glb', texture: 1024, merge: true },
   { source: 'vinh_thuc_island_v3.glb', output: 'vinh_thuc_island.glb' },
+  // Địa hình thật, sinh bởi `npm run terrain:build`.
+  { source: 'vinh_thuc_terrain.glb', output: 'vinh_thuc_terrain.glb' },
   { source: 'hai_dang_vinh_thuc_v2.glb', output: 'hai_dang.glb', texture: 1024 },
   { source: 'tourist_meshy.glb', output: 'tourist.glb', texture: 1024 },
   { source: 'student_character.glb', output: 'student.glb' },

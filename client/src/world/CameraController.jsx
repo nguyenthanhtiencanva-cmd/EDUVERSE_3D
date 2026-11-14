@@ -3,6 +3,7 @@ import { useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
+import { GEO_MAP_ENABLED } from './geo';
 
 export const ISLAND_PRESET_VIEWS = {
   island_overview: {
@@ -34,6 +35,25 @@ export const ISLAND_PRESET_VIEWS = {
     pos: new THREE.Vector3(-62.0, 15.0, 18.0),
     target: new THREE.Vector3(-67.08, 1.2, 0.70),
     name: '⚓ Bến cá Mũi Tây',
+  },
+};
+
+// Góc nhìn của bản đồ đảo dựng từ dữ liệu thật (bản thử ?map=new).
+export const GEO_ISLAND_PRESET_VIEWS = {
+  island_overview: {
+    pos: new THREE.Vector3(10, 150, 165),
+    target: new THREE.Vector3(8, 0, 8),
+    name: '🌏 Toàn đảo Vĩnh Thực',
+  },
+  geo_tilt: {
+    pos: new THREE.Vector3(-70, 42, 120),
+    target: new THREE.Vector3(5, 0, -5),
+    name: '⛰️ Nhìn nghiêng từ phía Nam',
+  },
+  geo_top: {
+    pos: new THREE.Vector3(8, 300, 12),
+    target: new THREE.Vector3(8, 0, 8),
+    name: '🧭 Từ trên xuống, Bắc ở trên',
   },
 };
 
@@ -98,6 +118,8 @@ export const PRESET_VIEWS = {
   },
 };
 
+export const ACTIVE_ISLAND_VIEWS = GEO_MAP_ENABLED ? GEO_ISLAND_PRESET_VIEWS : ISLAND_PRESET_VIEWS;
+
 export function CameraController() {
   const { camera } = useThree();
   const orbitRef = useRef();
@@ -114,9 +136,9 @@ export function CameraController() {
     if (activePOI) {
       targetPos.current.set(...activePOI.cameraPosition);
       targetLook.current.set(...activePOI.cameraTarget);
-    } else if (worldScope === 'island' && ISLAND_PRESET_VIEWS[activeView]) {
-      targetPos.current.copy(ISLAND_PRESET_VIEWS[activeView].pos);
-      targetLook.current.copy(ISLAND_PRESET_VIEWS[activeView].target);
+    } else if (worldScope === 'island' && ACTIVE_ISLAND_VIEWS[activeView]) {
+      targetPos.current.copy(ACTIVE_ISLAND_VIEWS[activeView].pos);
+      targetLook.current.copy(ACTIVE_ISLAND_VIEWS[activeView].target);
     } else if (worldScope === 'lighthouse' && LIGHTHOUSE_PRESET_VIEWS[activeView]) {
       targetPos.current.copy(LIGHTHOUSE_PRESET_VIEWS[activeView].pos);
       targetLook.current.copy(LIGHTHOUSE_PRESET_VIEWS[activeView].target);
@@ -145,7 +167,7 @@ export function CameraController() {
           enableDamping
           dampingFactor={0.06}
           minDistance={worldScope === 'island' ? 12 : 4}
-          maxDistance={worldScope === 'island' ? 180 : 120}
+          maxDistance={worldScope === 'island' ? (GEO_MAP_ENABLED ? 600 : 180) : 120}
           maxPolarAngle={Math.PI / 2 - 0.05}
         />
       )}

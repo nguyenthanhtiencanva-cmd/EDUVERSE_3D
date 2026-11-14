@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sky } from '@react-three/drei';
 import { useStore } from '../store/useStore';
+import { GEO_MAP_ENABLED } from './geo';
 
 export function SceneLighting() {
   const timeOfDay = useStore((state) => state.timeOfDay);
@@ -45,7 +46,13 @@ export function SceneLighting() {
     },
   };
 
-  const current = configs[timeOfDay] || configs.day;
+  const current = { ...(configs[timeOfDay] || configs.day) };
+  // Bản đồ đảo dữ liệu thật rộng hơn sa bàn cũ nhiều lần, nên sương mù phải lùi ra xa.
+  const geoIsland = isIsland && GEO_MAP_ENABLED;
+  if (geoIsland) {
+    current.fogNear = 380;
+    current.fogFar = 1500;
+  }
   const shadowExtent = isIsland ? 72 : 55;
 
   return (
@@ -96,7 +103,7 @@ export function SceneLighting() {
           <pointLight position={[14.0, 3.8, 0.0]} color="#FDE047" intensity={3} distance={18} />
         </>
       )}
-      {timeOfDay === 'night' && isIsland && (
+      {timeOfDay === 'night' && isIsland && !geoIsland && (
         <>
           <pointLight position={[57.0, 18.0, -21.5]} color="#FDE047" intensity={10} distance={45} />
           <pointLight position={[-18.0, 5.0, 7.0]} color="#FBBF24" intensity={5} distance={25} />
