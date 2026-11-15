@@ -88,24 +88,6 @@ export const ISLAND_POI_LIST = [
     ],
   },
   {
-    id: 'island-don-bien-phong',
-    title: 'Đồn Biên Phòng Cửa Khẩu Cảng Vạn Gia',
-    shortTitle: '🛡️ Đồn Biên phòng Cảng Vạn Gia',
-    category: 'Chủ quyền & Quốc phòng Biển đảo',
-    position: [17.16, 2.0, -13.92],
-    badgePosition: [17.16, 5.5, -13.92],
-    cameraTarget: [17.16, 1.8, -13.92],
-    cameraPosition: [17.16, 14.0, 2.5],
-    image: '/images/preview_island_overview.png',
-    description:
-      'Đơn vị Bộ đội Biên phòng trực tiếp đóng quân bảo vệ cửa ngõ hàng hải Vạn Gia và an ninh chủ quyền toàn bộ 2 xã đảo Vĩnh Thực – Vĩnh Trung, nằm trên trục đường nhánh Bắc nối từ Bến tàu Vạn Gia vào trung tâm đảo.',
-    details: [
-      { label: 'Vị trí đóng quân', value: 'Trục đường nhánh Bắc Vạn Gia, kiểm soát trọn luồng lạch đường thủy' },
-      { label: 'Nhiệm vụ chiến lược', value: 'Tuần tra biển, bảo vệ an ninh trật tự, đồng hành cùng nhà trường và ngư dân' },
-      { label: 'Hạng mục 3D', value: 'Sở chỉ huy 2 tầng, sân điều lệnh, cột cờ Tổ quốc & vọng gác biên phòng' },
-    ],
-  },
-  {
     id: 'island-hai-dang',
     title: 'Hải Đăng Vĩnh Thực (Mũi Đầu Tán - 1962)',
     shortTitle: '🗼 Hải đăng Vĩnh Thực (1962)',
