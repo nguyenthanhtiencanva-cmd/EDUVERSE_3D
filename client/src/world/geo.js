@@ -18,6 +18,7 @@ export function lonLatToWorld(longitude, latitude) {
 
 const params = typeof window === 'undefined' ? new URLSearchParams() : new URLSearchParams(window.location.search);
 
-// Bản thử: mở bằng ?map=new. Thêm &exag=2 để đổi độ phóng đại chiều đứng (mặc định 3).
-export const GEO_MAP_ENABLED = params.get('map') === 'new';
+// Mặc định dùng bản đồ dữ liệu thật; ?map=old mở sa bàn cũ để đối chiếu.
+// ?map=new vẫn được hỗ trợ. Dùng ?exag=2 để đổi độ phóng đại chiều đứng (mặc định 3).
+export const GEO_MAP_ENABLED = params.get('map') !== 'old';
 export const VERTICAL_EXAGGERATION = Math.min(Math.max(Number(params.get('exag')) || 3, 1), 6);
