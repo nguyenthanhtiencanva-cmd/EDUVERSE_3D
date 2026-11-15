@@ -15,7 +15,8 @@ const down = new THREE.Vector3(0, -1, 0);
 const origin = new THREE.Vector3();
 const direction = new THREE.Vector3();
 
-function groundAt(terrain, x, z) {
+// Độ cao địa hình tại (x, z); trả về 0 khi bên dưới là biển.
+export function groundAt(terrain, x, z) {
   raycaster.set(origin.set(x, 200, z), down);
   raycaster.far = Infinity;
   return raycaster.intersectObject(terrain, false)[0]?.point.y ?? 0;

@@ -5,7 +5,8 @@ import * as THREE from 'three';
 import { useStore } from '../store/useStore';
 import { GEO_EXTENT, VERTICAL_EXAGGERATION, lonLatToWorld } from './geo';
 import { MODEL_URLS } from './models';
-import { GEO_TERRAIN_NAME } from './geoCamera';
+import { GEO_TERRAIN_NAME, groundAt } from './geoCamera';
+import { GeoClouds, Landmark, LANDMARK_HEIGHT } from './GeoLandmarks';
 import { ISLAND_POI_LIST } from '../education/poiData';
 import PLACES from '../education/island-places.json';
 import satelliteUrl from '../assets/terrain/vinh-thuc-satellite.jpg?url';
@@ -23,6 +24,21 @@ const BACKGROUND_LABELS = [
 ];
 
 const SECONDARY_PIN_RANGE = 130;
+const FAR_SEA_COLOR = '#bfe3ea';
+const FAR_SEA_LINEAR = new THREE.Color(FAR_SEA_COLOR);
+
+// Hòa mép ảnh biển vào màu biển xa, để không còn đường thẳng ở rìa vùng dữ liệu.
+function fadeSeaEdges(shader) {
+  shader.uniforms.farSeaColor = { value: FAR_SEA_LINEAR };
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', '#include <common>\nuniform vec3 farSeaColor;')
+    .replace(
+      '#include <map_fragment>',
+      `#include <map_fragment>
+      float geoEdge = min(min(vMapUv.x, 1.0 - vMapUv.x), min(vMapUv.y, 1.0 - vMapUv.y));
+      diffuseColor.rgb = mix(farSeaColor, diffuseColor.rgb, smoothstep(0.0, 0.12, geoEdge));`,
+    );
+}
 const scratch = new THREE.Vector3();
 
 const [WEST_X, NORTH_Z] = lonLatToWorld(GEO_EXTENT.west, GEO_EXTENT.north);
@@ -35,6 +51,7 @@ export function GeoIslandModel() {
   const [satellite, seaStyle] = useTexture([satelliteUrl, SEA_STYLE_URL]);
   const setActivePOI = useStore((state) => state.setActivePOI);
   const activePOI = useStore((state) => state.activePOI);
+  const quality = useStore((state) => state.quality);
   const [nearby, setNearby] = useState('');
   const timer = useRef(0);
 
@@ -46,6 +63,16 @@ export function GeoIslandModel() {
     satellite.anisotropy = 8;
     // Ảnh Sentinel-2 khá tối; nhân màu lên để đảo sáng và tươi như bản đồ minh họa.
     mesh.material = new THREE.MeshStandardMaterial({ map: satellite, color: new THREE.Color(1.9, 2.0, 1.7), roughness: 1 });
+    // Tăng độ tươi và nâng vùng tối, cho rừng xanh và bãi cát rõ như bản đồ minh họa.
+    mesh.material.onBeforeCompile = (shader) => {
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <map_fragment>',
+        `#include <map_fragment>
+        float geoLuma = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+        diffuseColor.rgb = mix(vec3(geoLuma), diffuseColor.rgb, 1.5);
+        diffuseColor.rgb = pow(max(diffuseColor.rgb, vec3(0.0)), vec3(0.85));`,
+      );
+    };
     mesh.castShadow = false;
     mesh.receiveShadow = false;
     mesh.name = GEO_TERRAIN_NAME; // Bộ điều khiển camera tìm địa hình theo tên này
@@ -61,13 +88,26 @@ export function GeoIslandModel() {
   const places = useMemo(() => {
     scene.scale.set(1, VERTICAL_EXAGGERATION, 1);
     scene.updateMatrixWorld(true);
-    const raycaster = new THREE.Raycaster();
-    const down = new THREE.Vector3(0, -1, 0);
     return PLACES.map((place) => {
       const [x, z] = lonLatToWorld(place.longitude, place.latitude);
-      raycaster.set(new THREE.Vector3(x, 100, z), down);
-      const hit = raycaster.intersectObject(terrain, false)[0];
-      return { ...place, position: [x, (hit ? hit.point.y : 0) + 0.6, z] };
+      const ground = groundAt(terrain, x, z);
+      // Hướng ra biển: phía có mặt đất thấp nhất cách địa danh 250 m.
+      let seaward = 0;
+      let lowest = Infinity;
+      for (let step = 0; step < 8; step++) {
+        const angle = (step / 8) * Math.PI * 2;
+        const height = groundAt(terrain, x + Math.sin(angle) * 2.5, z + Math.cos(angle) * 2.5);
+        if (height < lowest) {
+          lowest = height;
+          seaward = angle;
+        }
+      }
+      return {
+        ...place,
+        seaward,
+        base: [x, ground, z],
+        position: [x, ground + (LANDMARK_HEIGHT[place.kind] || 0) + 0.9, z],
+      };
     });
   }, [scene, terrain]);
 
@@ -88,15 +128,22 @@ export function GeoIslandModel() {
     <group name="VinhThuc_GeoIsland">
       <primitive object={scene} />
 
+      {places.map((place) => (
+        <group key={place.poiId} position={place.base}>
+          <Landmark kind={place.kind} seaward={place.seaward} />
+        </group>
+      ))}
+      {quality !== 'low' && <GeoClouds />}
+
       {/* Mặt biển tô màu theo khoảng cách tới bờ, nằm ngay trên mực nước 0 m */}
       <mesh rotation-x={-Math.PI / 2} position={[SEA_CENTER[0], 0.02, SEA_CENTER[1]]}>
         <planeGeometry args={SEA_SIZE} />
-        <meshBasicMaterial map={seaStyle} toneMapped={false} />
+        <meshBasicMaterial map={seaStyle} toneMapped={false} onBeforeCompile={fadeSeaEdges} />
       </mesh>
       {/* Biển xa ngoài phạm vi dữ liệu */}
       <mesh rotation-x={-Math.PI / 2} position={[SEA_CENTER[0], -1.5, SEA_CENTER[1]]}>
         <planeGeometry args={[6000, 6000]} />
-        <meshBasicMaterial color="#bfe3ea" toneMapped={false} />
+        <meshBasicMaterial color={FAR_SEA_COLOR} toneMapped={false} />
       </mesh>
 
       {places.filter((place) => visibleIds.includes(place.poiId) || activePOI?.id === place.poiId).map((place) => (
