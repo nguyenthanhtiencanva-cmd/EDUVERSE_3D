@@ -9,6 +9,7 @@ import { GEO_TERRAIN_NAME, groundAt } from './geoCamera';
 import { GeoClouds, Landmark, LANDMARK_HEIGHT } from './GeoLandmarks';
 import { ISLAND_POI_LIST } from '../education/poiData';
 import PLACES from '../education/island-places.json';
+import { GeoPin } from '../ui/GeoPin';
 import satelliteUrl from '../assets/terrain/vinh-thuc-satellite.jpg?url';
 
 const SEA_STYLE_URL = '/terrain/vinh-thuc-style.png';
@@ -106,7 +107,8 @@ export function GeoIslandModel() {
         ...place,
         seaward,
         base: [x, ground, z],
-        position: [x, ground + (LANDMARK_HEIGHT[place.kind] || 0) + 0.9, z],
+        // Mũi ghim chạm ngay trên nóc công trình thu nhỏ.
+        position: [x, ground + (LANDMARK_HEIGHT[place.kind] || 0) + 0.15, z],
       };
     });
   }, [scene, terrain]);
@@ -147,21 +149,12 @@ export function GeoIslandModel() {
       </mesh>
 
       {places.filter((place) => visibleIds.includes(place.poiId) || activePOI?.id === place.poiId).map((place) => (
-        <Html key={place.poiId} position={place.position} center zIndexRange={place.priority === 1 ? [15, 11] : [10, 6]}>
-          <button
-            onClick={() => setActivePOI(ISLAND_POI_LIST.find((poi) => poi.id === place.poiId) || null)}
-            title={place.confidence === 'estimated' ? 'Vị trí ước lượng, chờ đối chiếu thực địa' : place.name}
-            className={
-              activePOI?.id === place.poiId
-                ? 'whitespace-nowrap rounded-full bg-white px-3 py-1 text-xs font-bold text-slate-900 shadow-lg ring-2 ring-sky-400 cursor-pointer'
-                : place.priority === 1
-                ? 'whitespace-nowrap rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-slate-900 shadow-lg ring-2 ring-white/70 transition hover:bg-amber-300 cursor-pointer'
-                : 'whitespace-nowrap rounded-full bg-slate-900/80 px-2 py-0.5 text-[11px] font-semibold text-white shadow ring-1 ring-white/50 transition hover:bg-slate-700 cursor-pointer'
-            }
-          >
-            {place.name}
-            {place.confidence === 'estimated' ? ' ?' : ''}
-          </button>
+        <Html key={place.poiId} position={place.position} zIndexRange={place.priority === 1 ? [15, 11] : [10, 6]}>
+          <GeoPin
+            place={place}
+            active={activePOI?.id === place.poiId}
+            onSelect={() => setActivePOI(ISLAND_POI_LIST.find((poi) => poi.id === place.poiId) || null)}
+          />
         </Html>
       ))}
       {BACKGROUND_LABELS.map((label) => {
