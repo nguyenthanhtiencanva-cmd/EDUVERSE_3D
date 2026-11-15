@@ -7,7 +7,26 @@
 // ============================================================================
 // 1. CẤP ĐỘ TOÀN ĐẢO VĨNH THỰC (ISLAND OVERVIEW POIs - 10 ĐỊA DANH CHUẨN VỆ TINH)
 // ============================================================================
+import { GEO_MAP_ENABLED } from '../world/geo.js';
+
 export const ISLAND_POI_LIST = [
+  ...(GEO_MAP_ENABLED ? [{
+    id: 'island-mam-non-vinh-thuc',
+    title: 'Trường Mầm non Vĩnh Thực',
+    shortTitle: '🏫 Trường Mầm non Vĩnh Thực',
+    category: 'Giáo dục mầm non',
+    isSchoolCampus: true,
+    hasDetailed3D: false,
+    position: [19.76, 1, 15.13],
+    badgePosition: [19.76, 1.6, 15.13],
+    cameraTarget: [19.76, 1, 15.13],
+    cameraPosition: [13.76, 22, 49.13],
+    description: 'Trường Mầm non Vĩnh Thực, Vĩnh Thực, Quảng Ninh. Vị trí do thầy cung cấp.',
+    details: [
+      { label: 'Địa chỉ', value: 'Vĩnh Thực, Quảng Ninh' },
+      { label: 'Plus Code', value: '9WCX+GJ (7PH99WCX+GJ)' },
+    ],
+  }] : []),
   {
     id: 'island-campus-vinh-trung',
     title: 'Phân Hiệu Vĩnh Trung - Trường TH&THCS Vĩnh Thực (Mô Hình 1:1)',

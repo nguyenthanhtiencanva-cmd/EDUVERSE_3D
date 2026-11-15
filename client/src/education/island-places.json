@@ -1,4 +1,5 @@
 [
+  {"poiId": "island-mam-non-vinh-thuc", "name": "Trường Mầm non Vĩnh Thực", "longitude": 107.9490625, "latitude": 21.3713125, "priority": 2, "confidence": "confirmed", "source": "Vị trí do thầy cung cấp ngày 15/11/2026: Plus Code 9WCX+GJ, Vĩnh Thực, Quảng Ninh (đầy đủ 7PH99WCX+GJ); tọa độ tâm ô Plus Code"},
   {"poiId": "island-campus-vinh-trung", "name": "Phân hiệu Vĩnh Trung", "longitude": 107.9043412, "latitude": 21.3712629, "priority": 1, "confidence": "confirmed", "source": "Hồ sơ dự án, thầy đã xác nhận trên bản thử 14/11/2026"},
   {"poiId": "island-hai-dang", "name": "Hải đăng Vĩnh Thực", "longitude": 108.00246, "latitude": 21.39623, "priority": 1, "confidence": "osm", "source": "OpenStreetMap: công trình man_made=lighthouse tên Hải đăng Vĩnh Thực"},
   {"poiId": "island-cang-van-gia", "name": "Bến tàu Vạn Gia", "longitude": 107.94538, "latitude": 21.39299, "priority": 1, "confidence": "osm", "source": "OpenStreetMap: bến phà amenity=ferry_terminal tên Vạn Gia"},
