@@ -74,7 +74,7 @@ export function HUDOverlay() {
                 {isIsland && GEO_MAP_ENABLED
                   ? 'Bản Đồ Số Đảo Vĩnh Thực'
                   : isIsland
-                  ? 'Sa Bàn Số Đảo Vĩnh Thực & 3 Phân Hiệu'
+                  ? 'Sa Bàn Số Đảo Vĩnh Thực'
                   : isLighthouse
                   ? 'Trạm Hải Đăng Vĩnh Thực (1962) • Không Gian 1:1'
                   : 'Trường TH&THCS Vĩnh Thực (Phân Hiệu Vĩnh Trung)'}

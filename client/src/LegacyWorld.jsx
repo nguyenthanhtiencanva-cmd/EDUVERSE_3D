@@ -29,10 +29,34 @@ const MAX_DPR = { low: 1, medium: 1.5, high: 2 };
 // khiến mặt biển và bờ đất tranh nhau từng điểm ảnh (nhấp nháy). Camera không bao giờ tới gần hơn 12.
 const GEO_CAMERA_RANGE = { near: 3, far: 3000 };
 
+// Trình duyệt làm chậm hoặc dừng hẳn việc vẽ khi trang bị ẩn (chuyển tab, thu nhỏ cửa sổ).
+// Số đo tốc độ trong lúc đó và vài giây sau khi quay lại không phản ánh sức máy,
+// nên bộ tự hạ chất lượng chỉ chạy khi trang đã hiện ổn định.
+const STEADY_DELAY_MS = 4000;
+
+function usePageSteady() {
+  const [steady, setSteady] = useState(() => !document.hidden);
+  useEffect(() => {
+    let timer;
+    const update = () => {
+      clearTimeout(timer);
+      if (document.hidden) setSteady(false);
+      else timer = setTimeout(() => setSteady(true), STEADY_DELAY_MS);
+    };
+    document.addEventListener('visibilitychange', update);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', update);
+    };
+  }, []);
+  return steady;
+}
+
 export default function LegacyWorld() {
   const worldScope = useStore((state) => state.worldScope);
   const campusTour = useStore((state) => state.campusTour);
   const [loading, setLoading] = useState(false);
+  const pageSteady = usePageSteady();
   const geoIsland = GEO_MAP_ENABLED && worldScope === 'island';
   const quality = useStore((state) => state.quality);
   const qualityAuto = useStore((state) => state.qualityAuto);
@@ -49,7 +73,7 @@ export default function LegacyWorld() {
         gl={{ antialias, powerPreference: 'high-performance' }}
       >
         <SceneLighting />
-        {qualityAuto && !loading && <PerformanceMonitor onDecline={lowerQuality} />}
+        {qualityAuto && !loading && pageSteady && <PerformanceMonitor onDecline={lowerQuality} />}
         <Suspense fallback={<LoadingFlag onChange={setLoading} />}>
           {worldScope === 'island' ? (
             GEO_MAP_ENABLED ? <GeoIslandModel /> : <IslandModel />
