@@ -71,8 +71,12 @@ export default function LegacyWorld() {
       {campusTour ? <CampusTourHUD /> : <HUDOverlay />}
       {loading && <SceneLoader />}
       {GEO_MAP_ENABLED && worldScope === 'island' && (
-        <p className="pointer-events-none absolute bottom-1 right-2 z-10 text-[10px] text-white/80" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-          Ảnh: Sentinel-2 cloudless, s2maps.eu, EOX IT Services GmbH (dữ liệu Copernicus Sentinel 2016 đã chỉnh sửa) · Cao độ: Copernicus DEM GLO-30
+        <p
+          className="pointer-events-none absolute right-2 top-1 z-10 max-w-[60%] text-right text-[9px] leading-tight text-white/75 sm:bottom-1 sm:top-auto sm:max-w-none sm:text-[10px]"
+          style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+          title="Sentinel-2 cloudless, s2maps.eu, EOX IT Services GmbH (dữ liệu Copernicus Sentinel 2016 đã chỉnh sửa). Cao độ: Copernicus DEM GLO-30."
+        >
+          Ảnh: Sentinel-2 cloudless © EOX (Copernicus Sentinel 2016) · Cao độ: Copernicus DEM
         </p>
       )}
       {STATS_ENABLED && (

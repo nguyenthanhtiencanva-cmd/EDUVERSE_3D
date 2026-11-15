@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useStore } from '../store/useStore';
 import { GEO_MAP_ENABLED, lonLatToWorld } from './geo';
 import ISLAND_PLACES from '../education/island-places.json';
+import { chooseGeoView } from './geoCamera';
 
 export const ISLAND_PRESET_VIEWS = {
   island_overview: {
@@ -122,7 +123,7 @@ export const PRESET_VIEWS = {
 export const ACTIVE_ISLAND_VIEWS = GEO_MAP_ENABLED ? GEO_ISLAND_PRESET_VIEWS : ISLAND_PRESET_VIEWS;
 
 export function CameraController() {
-  const { camera } = useThree();
+  const { camera, scene } = useThree();
   const orbitRef = useRef();
 
   const worldScope = useStore((state) => state.worldScope);
@@ -142,10 +143,11 @@ export function CameraController() {
         ? ISLAND_PLACES.find((place) => place.poiId === activePOI.id)
         : null;
     if (geoPlace) {
-      // Bay tới địa danh trên bản đồ dữ liệu thật, nhìn nghiêng từ phía Nam.
+      // Bay tới địa danh trên bản đồ dữ liệu thật, từ hướng không bị địa hình che.
       const [x, z] = lonLatToWorld(geoPlace.longitude, geoPlace.latitude);
-      targetPos.current.set(x - 6, 22, z + 34);
-      targetLook.current.set(x, 1, z);
+      const view = chooseGeoView(scene, x, z);
+      targetPos.current.copy(view.position);
+      targetLook.current.copy(view.target);
       lastGeoPlace.current = `${worldScope}:${activeView}:${viewNonce}`;
     } else if (lastGeoPlace.current === `${worldScope}:${activeView}:${viewNonce}`) {
       // Vừa đóng thẻ địa danh mà chưa đổi góc nhìn: giữ camera tại chỗ.

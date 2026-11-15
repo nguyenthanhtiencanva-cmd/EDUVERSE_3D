@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useStore } from '../store/useStore';
 import { GEO_EXTENT, VERTICAL_EXAGGERATION, lonLatToWorld } from './geo';
 import { MODEL_URLS } from './models';
+import { GEO_TERRAIN_NAME } from './geoCamera';
 import { ISLAND_POI_LIST } from '../education/poiData';
 import PLACES from '../education/island-places.json';
 import satelliteUrl from '../assets/terrain/vinh-thuc-satellite.jpg?url';
@@ -47,6 +48,7 @@ export function GeoIslandModel() {
     mesh.material = new THREE.MeshStandardMaterial({ map: satellite, color: new THREE.Color(1.9, 2.0, 1.7), roughness: 1 });
     mesh.castShadow = false;
     mesh.receiveShadow = false;
+    mesh.name = GEO_TERRAIN_NAME; // Bộ điều khiển camera tìm địa hình theo tên này
     return mesh;
   }, [scene, satellite]);
 

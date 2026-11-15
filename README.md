@@ -50,7 +50,8 @@ Toàn bộ tài liệu kỹ thuật, hồ sơ bàn giao, kế hoạch triển kh
 - **Lưu ý:** `node_modules` phải được cài trên chính máy đang chạy. Bản cài từ hệ điều hành khác (đồng bộ qua Google Drive) sẽ không build được.
 
 ### Ba không gian
-- **Sa bàn đảo Vĩnh Thực:** nhìn toàn cảnh từ trên cao, 6 góc nhìn có sẵn (toàn đảo, bến tàu Vạn Gia, phân hiệu Vĩnh Trung, Trường TH&THCS Vĩnh Thực, hải đăng, bến cá Mũi Tây).
+- **Bản đồ đảo Vĩnh Thực (mặc định):** địa hình thật từ dữ liệu Copernicus phủ ảnh vệ tinh Sentinel-2, có ghim địa danh, danh sách **Các chặng** và thẻ thông tin. Tọa độ địa danh nằm trong `client/src/education/island-places.json`.
+- **Sa bàn đảo vẽ tay (bản cũ, mở bằng `?map=old`):** nhìn toàn cảnh từ trên cao, 6 góc nhìn có sẵn (toàn đảo, bến tàu Vạn Gia, phân hiệu Vĩnh Trung, Trường TH&THCS Vĩnh Thực, hải đăng, bến cá Mũi Tây).
 - **Phân hiệu Vĩnh Trung:** khuôn viên trường tỷ lệ 1:1, có chế độ tham quan.
 - **Trạm hải đăng Vĩnh Thực (1962):** leo cầu thang sườn đồi và cầu thang xoắn trong tháp lên ban công.
 
