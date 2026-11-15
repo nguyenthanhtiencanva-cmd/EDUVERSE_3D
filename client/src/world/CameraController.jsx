@@ -16,7 +16,7 @@ export const ISLAND_PRESET_VIEWS = {
   van_gia_north: {
     pos: new THREE.Vector3(18.14, 18.0, 2.0),
     target: new THREE.Vector3(18.14, 1.5, -18.56),
-    name: '⚓ Bến Tàu Vạn Gia (Bờ Bắc)',
+    name: '⚓ Cảng Vạn Gia (Bờ Bắc)',
   },
   vinh_trung_campus: {
     pos: new THREE.Vector3(-19.27, 16.0, 16.0),
@@ -36,7 +36,7 @@ export const ISLAND_PRESET_VIEWS = {
   fishermans_wharf: {
     pos: new THREE.Vector3(-62.0, 15.0, 18.0),
     target: new THREE.Vector3(-67.08, 1.2, 0.70),
-    name: '⚓ Bến cá Mũi Tây',
+    name: '⚓ Cảng Vụng Dầm',
   },
 };
 

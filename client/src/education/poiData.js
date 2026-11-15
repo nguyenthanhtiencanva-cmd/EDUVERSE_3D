@@ -71,8 +71,8 @@ export const ISLAND_POI_LIST = [
   },
   {
     id: 'island-cang-van-gia',
-    title: 'Bến Tàu Vạn Gia (Bờ Bắc Đảo Vĩnh Thực)',
-    shortTitle: '⚓ Bến Tàu Vạn Gia (Bờ Bắc)',
+    title: 'Cảng Vạn Gia (Bờ Bắc Đảo Vĩnh Thực)',
+    shortTitle: '⚓ Cảng Vạn Gia (Bờ Bắc)',
     category: 'Giao thông Hàng hải & Kinh tế Biển',
     position: [18.14, 1.5, -18.56],
     badgePosition: [18.14, 5.2, -18.56],
@@ -83,7 +83,7 @@ export const ISLAND_POI_LIST = [
       'Cửa ngõ hàng hải huyết mạch nằm tại bờ Bắc đảo Vĩnh Thực, điểm đầu của tuyến tàu cao tốc kết nối đất liền (Bến Mũi Ngọc - TP. Móng Cái) với đảo.',
     details: [
       { label: 'Vị trí bản đồ', value: 'Bờ Bắc đảo Vĩnh Thực (Đầu tuyến đường biển nét đứt hướng Đông Bắc)' },
-      { label: 'Tuyến kết nối', value: 'Bến Mũi Ngọc ↔ Bến Tàu Vạn Gia (~15–20 phút xuồng cao tốc)' },
+      { label: 'Tuyến kết nối', value: 'Bến Mũi Ngọc ↔ Cảng Vạn Gia (~15–20 phút xuồng cao tốc)' },
       { label: 'Hạng mục 3D', value: 'Cầu cảng bê tông hướng Bắc, nhà ga bến cảng & đội xuồng cao tốc chở khách' },
     ],
   },
@@ -143,8 +143,8 @@ export const ISLAND_POI_LIST = [
   },
   {
     id: 'island-fishermans-wharf',
-    title: 'Mũi Tây & Bến Cá Dân Sinh (Cực Tây Nhánh Tây Bắc)',
-    shortTitle: '⚓ Bến cá Mũi Tây',
+    title: 'Cảng Vụng Dầm',
+    shortTitle: '⚓ Cảng Vụng Dầm',
     category: 'Ngư nghiệp & Đời sống Dân sinh',
     position: [-67.08, 1.2, 0.70],
     badgePosition: [-67.08, 4.4, 0.70],
