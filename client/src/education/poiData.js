@@ -106,24 +106,6 @@ export const ISLAND_POI_LIST = [
     ],
   },
   {
-    id: 'island-den-le-ba-duc',
-    title: 'Đền Thờ Tướng Quân Lê Bá Đức (Miếu Bến Hèn)',
-    shortTitle: '⛩️ Đền thờ Tướng quân Lê Bá Đức',
-    category: 'Di tích Lịch sử & Văn hóa Tâm linh',
-    position: [-26.30, 2.0, 2.81],
-    badgePosition: [-26.30, 5.2, 2.81],
-    cameraTarget: [-26.30, 1.8, 2.81],
-    cameraPosition: [-26.30, 13.0, 18.5],
-    image: '/images/preview_island_overview.png',
-    description:
-      'Di tích văn hóa tâm linh thiêng liêng tại khu vực Bến Hèn (Vĩnh Trung), thờ Tả tướng quân Lê Bá Đức (thời nhà Trần) có công lao to lớn bảo vệ biên cương bờ cõi biển Đông Bắc, tựa lưng vào đồi cây cổ thụ hướng mặt ra Bãi cát Bến Hèn.',
-    details: [
-      { label: 'Nhân vật lịch sử', value: 'Tả tướng quân Lê Bá Đức - Danh tướng triều Trần (Thế kỷ XIII)' },
-      { label: 'Vị trí', value: 'Vĩnh Trung, cạnh Bãi biển Bến Hèn' },
-      { label: 'Kiến trúc 3D', value: 'Sân gạch đỏ, chính điện mái đao cong truyền thống & Tả vu - Hữu vu' },
-    ],
-  },
-  {
     id: 'island-hai-dang',
     title: 'Hải Đăng Vĩnh Thực (Mũi Đầu Tán - 1962)',
     shortTitle: '🗼 Hải đăng Vĩnh Thực (1962)',
@@ -157,23 +139,6 @@ export const ISLAND_POI_LIST = [
     details: [
       { label: 'Vị trí bản đồ', value: 'Bờ biển cát vàng phía Đông Nam dưới khu vực trung tâm Vĩnh Thực' },
       { label: 'Đặc trưng sinh thái', value: 'Bãi cát mịn thoải dài, rừng phi lao chắn sóng và chòi nghỉ ven biển' },
-    ],
-  },
-  {
-    id: 'island-bai-ben-hen',
-    title: 'Bãi Biển Bến Hèn & Bán Đảo Tây Nam (Xã Vĩnh Trung)',
-    shortTitle: '🏖️ Bãi biển Bến Hèn',
-    category: 'Sinh thái & Danh thắng Biển đảo',
-    position: [-28.41, 1.2, 7.73],
-    badgePosition: [-28.41, 4.4, 7.73],
-    cameraTarget: [-28.41, 1.0, 7.73],
-    cameraPosition: [-28.41, 13.0, 23.5],
-    image: '/images/preview_island_overview.png',
-    description:
-      'Dải bờ biển Bến Hèn và bán đảo vòng cung phía Tây Nam ôm trọn vùng vịnh kín gió cùng cụm 4 đảo nhỏ đặc trưng của xã Vĩnh Trung.',
-    details: [
-      { label: 'Hình thái địa chất', value: 'Bán đảo cát chắn sóng tự nhiên bao quanh vịnh Bến Hèn và cụm đảo nhỏ' },
-      { label: 'Địa danh gắn liền', value: 'Đền Lê Bá Đức, vịnh Bến Hèn và làng chài ven biển' },
     ],
   },
   {
