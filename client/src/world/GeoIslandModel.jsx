@@ -10,6 +10,7 @@ import { GeoClouds, Landmark, LANDMARK_HEIGHT } from './GeoLandmarks';
 import { ISLAND_POI_LIST } from '../education/poiData';
 import PLACES from '../education/island-places.json';
 import { GeoPin } from '../ui/GeoPin';
+import { GeoRoads } from './GeoRoads';
 import satelliteUrl from '../assets/terrain/vinh-thuc-satellite.jpg?url';
 
 const SEA_STYLE_URL = '/terrain/vinh-thuc-style.png';
@@ -20,6 +21,8 @@ const SEA_STYLE_URL = '/terrain/vinh-thuc-style.png';
 const BACKGROUND_LABELS = [
   { name: 'Đảo Vĩnh Thực', longitude: 107.955, latitude: 21.392, large: true },
   { name: 'Trà Cổ', longitude: 107.995, latitude: 21.452 },
+  // Đầu tuyến phà phía đất liền theo OpenStreetMap; thầy xác nhận đây là bến Mũi Ngọc.
+  { name: 'Bến Mũi Ngọc', longitude: 107.96556, latitude: 21.43522 },
   { name: 'Đảo Cái Chiên', longitude: 107.79, latitude: 21.335 },
   { name: 'Vịnh Bắc Bộ', longitude: 108.03, latitude: 21.32, sea: true },
 ];
@@ -135,6 +138,7 @@ export function GeoIslandModel() {
           <Landmark kind={place.kind} seaward={place.seaward} />
         </group>
       ))}
+      <GeoRoads />
       {quality !== 'low' && <GeoClouds />}
 
       {/* Mặt biển tô màu theo khoảng cách tới bờ, nằm ngay trên mực nước 0 m */}

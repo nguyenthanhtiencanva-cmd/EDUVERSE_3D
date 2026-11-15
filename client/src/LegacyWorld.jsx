@@ -98,9 +98,9 @@ export default function LegacyWorld() {
         <p
           className="pointer-events-none absolute right-2 top-1 z-10 max-w-[60%] text-right text-[9px] leading-tight text-white/75 sm:bottom-1 sm:top-auto sm:max-w-none sm:text-[10px]"
           style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
-          title="Sentinel-2 cloudless, s2maps.eu, EOX IT Services GmbH (dữ liệu Copernicus Sentinel 2016 đã chỉnh sửa). Cao độ: Copernicus DEM GLO-30."
+          title="Sentinel-2 cloudless, s2maps.eu, EOX IT Services GmbH (dữ liệu Copernicus Sentinel 2016 đã chỉnh sửa). Cao độ: Copernicus DEM GLO-30. Đường và tuyến phà: © OpenStreetMap contributors (ODbL)."
         >
-          Ảnh: Sentinel-2 cloudless © EOX (Copernicus Sentinel 2016) · Cao độ: Copernicus DEM
+          Ảnh: Sentinel-2 cloudless © EOX (Copernicus Sentinel 2016) · Cao độ: Copernicus DEM · Đường: © OpenStreetMap
         </p>
       )}
       {STATS_ENABLED && (
