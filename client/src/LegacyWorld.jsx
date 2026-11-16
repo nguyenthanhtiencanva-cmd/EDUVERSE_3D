@@ -12,6 +12,8 @@ import { CameraController } from './world/CameraController';
 import { HUDOverlay } from './ui/HUDOverlay';
 import { CampusTourHUD } from './ui/CampusTourHUD';
 import { SceneLoader } from './ui/SceneLoader';
+import { RideHUD } from './ui/RideHUD';
+import { useRideStore } from './store/useRideStore';
 import { PerfProbe, STATS_ENABLED } from './world/PerfProbe';
 import { useStore } from './store/useStore';
 
@@ -58,6 +60,12 @@ export default function LegacyWorld() {
   const [loading, setLoading] = useState(false);
   const pageSteady = usePageSteady();
   const geoIsland = GEO_MAP_ENABLED && worldScope === 'island';
+  const riding = useRideStore((state) => state.riding);
+  const cameraMode = useStore((state) => state.cameraMode);
+  // Rời bản đồ đảo hoặc chuyển về camera thường thì kết thúc chuyến xe.
+  useEffect(() => {
+    if (riding && (cameraMode !== 'ride' || !geoIsland)) useRideStore.getState().stopRide();
+  }, [riding, cameraMode, geoIsland]);
   const quality = useStore((state) => state.quality);
   const qualityAuto = useStore((state) => state.qualityAuto);
   const lowerQuality = useStore((state) => state.lowerQuality);
@@ -94,6 +102,7 @@ export default function LegacyWorld() {
       </Canvas>
       {campusTour ? <CampusTourHUD /> : <HUDOverlay />}
       {loading && <SceneLoader />}
+      {riding && geoIsland && <RideHUD />}
       {GEO_MAP_ENABLED && worldScope === 'island' && (
         <p
           className="pointer-events-none absolute right-2 top-1 z-10 max-w-[60%] text-right text-[9px] leading-tight text-white/75 sm:bottom-1 sm:top-auto sm:max-w-none sm:text-[10px]"

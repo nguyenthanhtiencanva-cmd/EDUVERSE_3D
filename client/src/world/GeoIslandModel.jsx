@@ -11,6 +11,8 @@ import { ISLAND_POI_LIST } from '../education/poiData';
 import PLACES from '../education/island-places.json';
 import { GeoPin } from '../ui/GeoPin';
 import { GeoRoads } from './GeoRoads';
+import { GeoRide } from './GeoRide';
+import { useRideStore } from '../store/useRideStore';
 import satelliteUrl from '../assets/terrain/vinh-thuc-satellite.jpg?url';
 
 const SEA_STYLE_URL = '/terrain/vinh-thuc-style.png';
@@ -56,6 +58,7 @@ export function GeoIslandModel() {
   const setActivePOI = useStore((state) => state.setActivePOI);
   const activePOI = useStore((state) => state.activePOI);
   const quality = useStore((state) => state.quality);
+  const riding = useRideStore((state) => state.riding);
   const [nearby, setNearby] = useState('');
   const timer = useRef(0);
 
@@ -139,6 +142,7 @@ export function GeoIslandModel() {
         </group>
       ))}
       <GeoRoads />
+      {riding && <GeoRide />}
       {quality !== 'low' && <GeoClouds />}
 
       {/* Mặt biển tô màu theo khoảng cách tới bờ, nằm ngay trên mực nước 0 m */}

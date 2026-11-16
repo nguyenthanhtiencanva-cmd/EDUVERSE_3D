@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Compass, List, MapPin, X } from 'lucide-react';
+import { Bike, Compass, List, MapPin, X } from 'lucide-react';
+import { useRideStore } from '../store/useRideStore';
 import { useStore } from '../store/useStore';
 import { ISLAND_POI_LIST } from '../education/poiData';
 import PLACES from '../education/island-places.json';
@@ -23,6 +24,14 @@ export function GeoPlacesPanel() {
   const setActivePOI = useStore((state) => state.setActivePOI);
   const setWorldScope = useStore((state) => state.setWorldScope);
   const [listOpen, setListOpen] = useState(false);
+  const riding = useRideStore((state) => state.riding);
+
+  const startRide = () => {
+    setListOpen(false);
+    setActivePOI(null);
+    useRideStore.getState().startRide();
+    useStore.getState().setCameraMode('ride');
+  };
 
   const place = activePOI && PLACES.find((item) => item.poiId === activePOI.id);
   const frame = 'pointer-events-auto glass-panel absolute bottom-20 left-3 right-3 z-30 rounded-2xl border border-white/15 shadow-2xl sm:right-auto sm:w-96';
@@ -80,6 +89,8 @@ export function GeoPlacesPanel() {
     );
   }
 
+  if (riding) return null;
+
   if (listOpen) {
     return (
       <section className={`${frame} max-h-[46vh] overflow-y-auto p-2`} aria-label="Các chặng">
@@ -115,12 +126,22 @@ export function GeoPlacesPanel() {
   }
 
   return (
-    <button
-      onClick={() => setListOpen(true)}
-      className="pointer-events-auto glass-panel absolute bottom-20 left-3 z-30 flex items-center gap-2 rounded-2xl border border-white/15 px-3 py-2 text-sm font-semibold text-white shadow-xl transition hover:text-amber-300 cursor-pointer"
-    >
-      <List className="h-4 w-4" />
-      Các chặng
-    </button>
+    <div className="absolute bottom-20 left-3 z-30 flex items-center gap-2">
+      <button
+        onClick={() => setListOpen(true)}
+        className="pointer-events-auto glass-panel flex items-center gap-2 rounded-2xl border border-white/15 px-3 py-2 text-sm font-semibold text-white shadow-xl transition hover:text-amber-300 cursor-pointer"
+      >
+        <List className="h-4 w-4" />
+        Các chặng
+      </button>
+      <button
+        onClick={startRide}
+        title="Lái xe máy từ Cảng Vạn Gia đi thăm các địa danh"
+        className="pointer-events-auto flex items-center gap-2 rounded-2xl bg-amber-400 px-3 py-2 text-sm font-bold text-slate-950 shadow-xl transition hover:bg-amber-300 cursor-pointer"
+      >
+        <Bike className="h-4 w-4" />
+        Đi xe máy
+      </button>
+    </div>
   );
 }
