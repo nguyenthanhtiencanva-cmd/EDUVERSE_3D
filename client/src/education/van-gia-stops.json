@@ -1,0 +1,47 @@
+{
+  "_ghi_chu": "Các điểm tham quan trong cảnh Cảng Vạn Gia 1:1. Thầy cô sửa chữ trực tiếp ở đây, không cần đụng code. 'position' là tọa độ [x, z] trong cảnh (mét), 'huongDan' là lời chỉ đường tới điểm này. Nội dung là bản nháp dựng theo mô hình, cần thầy kiểm tra lại cho đúng thực tế.",
+  "stops": [
+    {
+      "id": "vg-cau-dan",
+      "title": "Bến tàu khách",
+      "position": [0, 27],
+      "huongDan": "Bạn vừa xuống tàu. Đi dọc cầu dẫn vào bờ.",
+      "description": "Cầu dẫn bê tông thấp chạy ra biển để tàu khách và xuồng cập mạn. Hai bên cầu treo lốp xe cũ làm đệm chắn va, giúp vỏ tàu không bị trầy khi cập bến lúc sóng lớn."
+    },
+    {
+      "id": "vg-bien-chao",
+      "title": "Biển chào mừng đảo Vĩnh Thực",
+      "position": [5, -1],
+      "huongDan": "Leo bậc lên mặt bến, nhìn biển đỏ chào mừng bên phải.",
+      "description": "Lên hết bậc là tới mặt bến. Biển xanh ghi tên Cảng Vạn Gia và biển đỏ \"Nhiệt liệt chào mừng đến với đảo Vĩnh Thực\" là thứ đầu tiên du khách nhìn thấy khi lên đảo."
+    },
+    {
+      "id": "vg-nha-cho",
+      "title": "Nhà chờ và phòng vé",
+      "position": [30, -7],
+      "huongDan": "Qua vạch sang đường, rẽ phải tới nhà chờ mái tôn xanh.",
+      "description": "Nhà chờ mái tôn có ghế ngồi cho khách đợi tàu, phòng vé ở góc trong cùng. Trước nhà chờ là chỗ đỗ xe đón khách đi vào các thôn trên đảo."
+    },
+    {
+      "id": "vg-hang-quan",
+      "title": "Dãy hàng quán ven kè",
+      "position": [-35, -1.5],
+      "huongDan": "Quay lại mép bến, đi về phía tây dưới các mái bạt.",
+      "description": "Dọc kè đá có các quán nhỏ che bạt, bày bàn ghế nhựa thấp nhìn ra biển. Đây là nơi khách nghỉ chân, uống nước trong lúc chờ tàu."
+    },
+    {
+      "id": "vg-hai-quan",
+      "title": "Nhà hải quan và Trạm Vạn Gia",
+      "position": [-80, -8],
+      "huongDan": "Tiếp tục đi về phía tây tới dãy nhà vàng mái đỏ.",
+      "description": "Nhà hải quan ba tầng và các dãy nhà vàng của Trạm Vạn Gia nằm sát bến. Vĩnh Thực là đảo biên giới gần Trung Quốc, nên việc quản lý tàu thuyền ra vào ở đây rất quan trọng."
+    },
+    {
+      "id": "vg-cau-cang",
+      "title": "Cầu cảng bê tông",
+      "position": [-114, 24],
+      "huongDan": "Đi ra cầu cảng dài có lan can trắng ở cuối bến.",
+      "description": "Cầu cảng bê tông vươn ra chỗ nước sâu, đầu cầu rộng để tàu công tác và tàu hàng cập. Mép đầu cầu sơn vạch vàng đen để dễ nhìn thấy khi tàu vào bến."
+    }
+  ]
+}

@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { MeshBVH } from 'three-mesh-bvh';
 
-// Va chạm trong trường dò thẳng trên lưới của mô hình, nên tự khớp khi mô hình thay đổi.
-const HALF_EXTENT = 28; // Ranh giới khu vực đi bộ quanh sân trường (m)
+// Va chạm dò thẳng trên lưới của mô hình, nên tự khớp khi mô hình thay đổi.
+// Dùng chung cho các cảnh 1:1 đi bộ (trường, Cảng Vạn Gia); mỗi cảnh truyền ranh giới riêng.
+const CAMPUS_BOUNDS = { minX: -28, maxX: 28, minZ: -28, maxZ: 28 }; // Khu vực đi bộ quanh sân trường (m)
 const PLAYER_RADIUS = 0.4;
 const STEP_HEIGHT = 0.4; // Bậc cao nhất nhân vật tự bước lên được (bậc thềm, bồn cỏ; ghế và bàn thì không)
 const BODY_HEIGHTS = [0.45, 0.9, 1.4]; // Độ cao dò tường, tính từ bàn chân
@@ -13,16 +14,19 @@ const PASS_THROUGH = /^MAT_(Bunt_|Marking_|Light_Glow|Water_)/;
 const DOWN = new THREE.Vector3(0, -1, 0);
 const ray = new THREE.Ray();
 let bvh = null;
+let bounds = CAMPUS_BOUNDS;
 
-// Gom mọi tam giác của trường vào một lưới duy nhất trong tọa độ thế giới.
+// Gom mọi tam giác của cảnh vào một lưới duy nhất trong tọa độ thế giới.
 // Tọa độ đỉnh trong GLB đã nén là số nguyên lượng tử hóa, nên phải đọc qua fromBufferAttribute
 // để được giá trị thật trước khi áp ma trận của mesh.
-export function buildCampusCollision(scene) {
+// `passThrough`: vật liệu không cản đường và không làm mặt đất (ví dụ mặt nước: không đứng được trên đó).
+export function buildCampusCollision(scene, { walkBounds = CAMPUS_BOUNDS, passThrough = PASS_THROUGH } = {}) {
   scene.updateMatrixWorld(true);
+  bounds = walkBounds;
   const meshes = [];
   let vertexCount = 0;
   scene.traverse((child) => {
-    if (!child.isMesh || PASS_THROUGH.test(child.material?.name || '')) return;
+    if (!child.isMesh || passThrough.test(child.material?.name || '')) return;
     meshes.push(child);
     vertexCount += (child.geometry.index || child.geometry.attributes.position).count;
   });
@@ -41,8 +45,13 @@ export function buildCampusCollision(scene) {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
   bvh = new MeshBVH(geometry);
+  const built = bvh;
   return () => {
-    bvh = null;
+    // Cảnh mới có thể đã dựng lưới của nó trước khi cảnh cũ dọn dẹp.
+    if (bvh === built) {
+      bvh = null;
+      bounds = CAMPUS_BOUNDS;
+    }
     geometry.dispose();
   };
 }
@@ -63,7 +72,7 @@ export function campusGroundAt(x, feetY, z) {
 }
 
 export function campusCanWalk(from, toX, toZ) {
-  if (Math.abs(toX) > HALF_EXTENT || Math.abs(toZ) > HALF_EXTENT) return false;
+  if (toX < bounds.minX || toX > bounds.maxX || toZ < bounds.minZ || toZ > bounds.maxZ) return false;
   if (!bvh) return true;
   const dx = toX - from.x;
   const dz = toZ - from.z;

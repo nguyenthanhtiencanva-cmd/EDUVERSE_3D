@@ -27,6 +27,8 @@ const MODELS = [
   { source: 'hai_dang_vinh_thuc_v2.glb', output: 'hai_dang.glb', texture: 1024 },
   { source: 'tourist_salomon_glasses.glb', output: 'tourist.glb', texture: 1024 },
   { source: 'student_character.glb', output: 'student.glb' },
+  // Cảng Vạn Gia 1:1, sinh bởi assets/landmarks/cang_van_gia/build_cang_van_gia.py. Không có texture.
+  { source: 'cang_van_gia.glb', output: 'cang_van_gia.glb', merge: true },
 ];
 
 const megabytes = (file) => `${(fs.statSync(file).size / 1048576).toFixed(2)} MB`;

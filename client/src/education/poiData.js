@@ -74,6 +74,7 @@ export const ISLAND_POI_LIST = [
     title: 'Cảng Vạn Gia (Bờ Bắc Đảo Vĩnh Thực)',
     shortTitle: '⚓ Cảng Vạn Gia (Bờ Bắc)',
     category: 'Giao thông Hàng hải & Kinh tế Biển',
+    hasVanGia3D: true,
     position: [18.14, 1.5, -18.56],
     badgePosition: [18.14, 5.2, -18.56],
     cameraTarget: [18.14, 1.2, -18.56],
@@ -84,7 +85,7 @@ export const ISLAND_POI_LIST = [
     details: [
       { label: 'Vị trí bản đồ', value: 'Bờ Bắc đảo Vĩnh Thực (Đầu tuyến đường biển nét đứt hướng Đông Bắc)' },
       { label: 'Tuyến kết nối', value: 'Bến Mũi Ngọc ↔ Cảng Vạn Gia (~15–20 phút xuồng cao tốc)' },
-      { label: 'Hạng mục 3D', value: 'Cầu cảng bê tông hướng Bắc, nhà ga bến cảng & đội xuồng cao tốc chở khách' },
+      { label: 'Tham quan 1:1', value: 'Xuống tàu ở cầu dẫn, đi bộ qua bến tàu khách, nhà chờ, dãy hàng quán, nhà hải quan và cầu cảng bê tông (6 điểm)' },
     ],
   },
   {

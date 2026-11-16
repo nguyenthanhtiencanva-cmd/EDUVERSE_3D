@@ -3,6 +3,7 @@ import { Compass, List, MapPin, X } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { ISLAND_POI_LIST } from '../education/poiData';
 import PLACES from '../education/island-places.json';
+import { preloadScene } from '../world/models';
 
 const CONFIDENCE_NOTES = {
   confirmed: 'Vị trí đã được xác nhận.',
@@ -28,7 +29,13 @@ export function GeoPlacesPanel() {
   const frame = 'pointer-events-auto glass-panel absolute bottom-20 left-3 right-3 z-30 rounded-2xl border border-white/15 shadow-2xl sm:right-auto sm:w-96';
 
   if (place) {
-    const scope = activePOI.hasDetailed3D ? 'campus' : activePOI.hasLighthouse3D ? 'lighthouse' : null;
+    const scope = activePOI.hasDetailed3D
+      ? 'campus'
+      : activePOI.hasLighthouse3D
+      ? 'lighthouse'
+      : activePOI.hasVanGia3D
+      ? 'vangia'
+      : null;
     const details = (activePOI.details || []).filter((detail) => !OLD_DIORAMA_DETAIL.test(detail.label));
     return (
       <section className={`${frame} max-h-[46vh] overflow-y-auto p-4`} aria-label={place.name}>
@@ -70,6 +77,8 @@ export function GeoPlacesPanel() {
               setActivePOI(null);
               setWorldScope(scope);
             }}
+            onPointerEnter={() => preloadScene(scope)}
+            onFocus={() => preloadScene(scope)}
             className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-amber-400 px-4 py-2.5 text-sm font-bold text-slate-950 shadow-lg transition hover:bg-amber-300 cursor-pointer"
           >
             <Compass className="h-4 w-4" />

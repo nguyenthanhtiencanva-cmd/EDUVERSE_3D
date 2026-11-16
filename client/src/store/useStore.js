@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { LIGHTHOUSE_WORLD, TOWER, getSpiralPose } from '../world/lighthouse/layout';
 import { nearbyLighthouseStop, readTourProgress, saveTourProgress } from '../world/lighthouse/tour';
+import { VAN_GIA_SPAWN, nearbyVanGiaStop, readVanGiaProgress, saveVanGiaProgress } from '../world/vangia/layout';
 
 const QUALITY_LEVELS = ['low', 'medium', 'high'];
 const QUALITY_KEY = 'eduverse-quality';
@@ -50,6 +51,7 @@ export const useStore = create((set) => ({
   spiralProgress: 0, // 0.0 (chân tháp) -> 1.0 (ban công đỉnh tháp 15m)
   autoClimb: null, // null | 'up' | 'down'
   visitedHotspots: readTourProgress(),
+  vanGiaVisited: readVanGiaProgress(),
   playerTeleport: null,
 
   setWorldScope: (scope) =>
@@ -65,11 +67,17 @@ export const useStore = create((set) => ({
           ? 'island_overview'
           : scope === 'lighthouse'
           ? 'lh_overview'
+          : scope === 'vangia'
+          ? 'vg_overview'
           : 'aerial',
       activePOI: null,
+      // Đặt sẵn vị trí người chơi ở điểm xuất hiện, để thẻ tham quan không đọc vị trí của cảnh trước trong lúc tải.
+      ...(scope === 'vangia' ? { playerPosition: [VAN_GIA_SPAWN.position[0], VAN_GIA_SPAWN.position[1] + 1.4, VAN_GIA_SPAWN.position[2]] } : {}),
       playerTeleport:
         scope === 'lighthouse'
           ? { ...LIGHTHOUSE_WORLD.spawn, nonce: Date.now() }
+          : scope === 'vangia'
+          ? { ...VAN_GIA_SPAWN, nonce: Date.now() }
           : scope === 'campus'
           ? { position: [1.5, 0, 6], yaw: Math.PI, level: 'ground', nonce: Date.now() }
           : null,
@@ -170,6 +178,13 @@ export const useStore = create((set) => ({
   setPlayerPosition: (playerPosition, landedFromTeleport = false) =>
     set((state) => {
       const patch = landedFromTeleport ? { playerPosition, playerTeleport: null } : { playerPosition };
+      if (state.worldScope === 'vangia') {
+        const stop = nearbyVanGiaStop(playerPosition);
+        if (!stop || state.vanGiaVisited.includes(stop.id)) return patch;
+        const vanGiaVisited = [...state.vanGiaVisited, stop.id];
+        saveVanGiaProgress(vanGiaVisited);
+        return { ...patch, vanGiaVisited };
+      }
       if (state.worldScope !== 'lighthouse') return patch;
       const stop = nearbyLighthouseStop({ ...state, ...patch });
       if (!stop || state.visitedHotspots.includes(stop.id)) return patch;

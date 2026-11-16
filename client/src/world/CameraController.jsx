@@ -122,6 +122,35 @@ export const PRESET_VIEWS = {
 
 export const ACTIVE_ISLAND_VIEWS = GEO_MAP_ENABLED ? GEO_ISLAND_PRESET_VIEWS : ISLAND_PRESET_VIEWS;
 
+// Cảng Vạn Gia 1:1. Gốc tọa độ ở đầu bậc tàu khách, biển ở phía +Z, đồi ở phía -Z.
+export const VAN_GIA_PRESET_VIEWS = {
+  vg_overview: {
+    pos: new THREE.Vector3(-30, 38, 120),
+    target: new THREE.Vector3(-35, 2, -6),
+    name: '⚓ Toàn cảng từ biển',
+  },
+  vg_terminal: {
+    pos: new THREE.Vector3(16, 7, 52),
+    target: new THREE.Vector3(5, 2, -4),
+    name: '🚤 Bến tàu khách',
+  },
+  vg_shelter: {
+    pos: new THREE.Vector3(12, 9, 20),
+    target: new THREE.Vector3(30, 1.5, -8),
+    name: '🎫 Nhà chờ & phòng vé',
+  },
+  vg_shops: {
+    pos: new THREE.Vector3(-30, 6, 40),
+    target: new THREE.Vector3(-38, 2, -4),
+    name: '☕ Kè & hàng quán',
+  },
+  vg_pier: {
+    pos: new THREE.Vector3(-150, 16, 66),
+    target: new THREE.Vector3(-108, 1, 6),
+    name: '🏗️ Cầu cảng & Trạm Vạn Gia',
+  },
+};
+
 export function CameraController() {
   const { camera, scene } = useThree();
   const orbitRef = useRef();
@@ -161,6 +190,9 @@ export function CameraController() {
     } else if (worldScope === 'lighthouse' && LIGHTHOUSE_PRESET_VIEWS[activeView]) {
       targetPos.current.copy(LIGHTHOUSE_PRESET_VIEWS[activeView].pos);
       targetLook.current.copy(LIGHTHOUSE_PRESET_VIEWS[activeView].target);
+    } else if (worldScope === 'vangia' && VAN_GIA_PRESET_VIEWS[activeView]) {
+      targetPos.current.copy(VAN_GIA_PRESET_VIEWS[activeView].pos);
+      targetLook.current.copy(VAN_GIA_PRESET_VIEWS[activeView].target);
     } else if (worldScope === 'campus' && PRESET_VIEWS[activeView]) {
       targetPos.current.copy(PRESET_VIEWS[activeView].pos);
       targetLook.current.copy(PRESET_VIEWS[activeView].target);
@@ -186,7 +218,7 @@ export function CameraController() {
           enableDamping
           dampingFactor={0.06}
           minDistance={worldScope === 'island' ? 12 : 4}
-          maxDistance={worldScope === 'island' ? (GEO_MAP_ENABLED ? 600 : 180) : worldScope === 'lighthouse' ? 260 : 120}
+          maxDistance={worldScope === 'island' ? (GEO_MAP_ENABLED ? 600 : 180) : worldScope === 'lighthouse' || worldScope === 'vangia' ? 260 : 120}
           maxPolarAngle={Math.PI / 2 - 0.05}
         />
       )}

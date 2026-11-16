@@ -4,7 +4,9 @@ import {
   PRESET_VIEWS,
   ACTIVE_ISLAND_VIEWS,
   LIGHTHOUSE_PRESET_VIEWS,
+  VAN_GIA_PRESET_VIEWS,
 } from '../world/CameraController';
+import { VanGiaTourCard } from './VanGiaTourCard';
 import { POIModal } from './POIModal';
 import { GeoPlacesPanel } from './GeoPlacesPanel';
 import { GEO_MAP_ENABLED } from '../world/geo';
@@ -23,6 +25,7 @@ import {
   Landmark,
   ArrowUpCircle,
   ArrowDownCircle,
+  Anchor,
 } from 'lucide-react';
 import { preloadScene } from '../world/models';
 
@@ -49,10 +52,13 @@ export function HUDOverlay() {
 
   const isIsland = worldScope === 'island';
   const isLighthouse = worldScope === 'lighthouse';
+  const isVanGia = worldScope === 'vangia';
   const currentPresets = isIsland
     ? ACTIVE_ISLAND_VIEWS
     : isLighthouse
     ? LIGHTHOUSE_PRESET_VIEWS
+    : isVanGia
+    ? VAN_GIA_PRESET_VIEWS
     : PRESET_VIEWS;
 
   return (
@@ -80,6 +86,8 @@ export function HUDOverlay() {
                   ? 'Sa Bàn Số Đảo Vĩnh Thực'
                   : isLighthouse
                   ? 'Trạm Hải Đăng Vĩnh Thực'
+                  : isVanGia
+                  ? 'Cảng Vạn Gia (Bờ Bắc Đảo)'
                   : 'Trường TH&THCS Vĩnh Thực (Phân Hiệu Vĩnh Trung)'}
               </h1>
             </div>
@@ -98,6 +106,20 @@ export function HUDOverlay() {
             >
               <Globe className="w-4 h-4" />
               <span>Toàn đảo Vĩnh Thực</span>
+            </button>
+            <button
+              onClick={() => setWorldScope('vangia')}
+              onPointerEnter={() => preloadScene('vangia')}
+              onFocus={() => preloadScene('vangia')}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                isVanGia
+                  ? 'bg-gradient-to-r from-sky-400 to-blue-500 text-slate-950 shadow-md'
+                  : 'text-slate-300 hover:text-white hover:bg-white/10'
+              }`}
+              title="Xuống tàu ở Cảng Vạn Gia và đi bộ tham quan bến (tỷ lệ 1:1)"
+            >
+              <Anchor className="w-4 h-4" />
+              <span>Cảng Vạn Gia (1:1)</span>
             </button>
             <button
               onClick={() => setWorldScope('campus')}
@@ -250,6 +272,7 @@ export function HUDOverlay() {
 
       {/* BOTTOM SECTION */}
       <footer className="flex flex-col items-center gap-2.5 w-full">
+        {isVanGia && <VanGiaTourCard />}
         {/* Preset Viewpoints Dock (Visible in Flycam mode) */}
         {cameraMode === 'orbit' && (
           <div className="glass-panel p-1.5 rounded-2xl flex items-center gap-1.5 shadow-2xl pointer-events-auto max-w-full overflow-x-auto scrollbar-none border border-white/15">

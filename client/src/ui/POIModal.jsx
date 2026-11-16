@@ -15,6 +15,7 @@ export function POIModal() {
     if (worldScope !== 'island') return;
     if (activePOI?.hasDetailed3D) preloadScene('campus');
     if (activePOI?.hasLighthouse3D) preloadScene('lighthouse');
+    if (activePOI?.hasVanGia3D) preloadScene('vangia');
   }, [activePOI, worldScope]);
 
   if (!activePOI) return null;
@@ -111,6 +112,17 @@ export function POIModal() {
               >
                 <Compass className="w-4 h-4" />
                 <span>Vào tham quan Trạm Hải đăng Vĩnh Thực (1:1)</span>
+              </button>
+            ) : isIsland && activePOI.hasVanGia3D ? (
+              <button
+                onClick={() => {
+                  setActivePOI(null);
+                  setWorldScope('vangia');
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-sm transition shadow-lg cursor-pointer"
+              >
+                <Compass className="w-4 h-4" />
+                <span>Xuống tàu tham quan Cảng Vạn Gia (1:1)</span>
               </button>
             ) : isIsland ? (
               <button

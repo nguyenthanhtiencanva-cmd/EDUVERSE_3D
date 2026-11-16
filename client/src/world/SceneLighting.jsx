@@ -53,7 +53,8 @@ export function SceneLighting() {
     current.fogNear = 380;
     current.fogFar = 1500;
   }
-  const shadowExtent = isIsland ? 72 : 55;
+  // Cảng Vạn Gia trải dài hơn 200 m dọc bờ, cần vùng bóng rộng hơn trường.
+  const shadowExtent = isIsland ? 72 : worldScope === 'vangia' ? 80 : 55;
 
   return (
     <>

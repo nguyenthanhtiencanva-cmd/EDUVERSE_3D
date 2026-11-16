@@ -6,6 +6,7 @@ import { IslandModel } from './world/IslandModel';
 import { GeoIslandModel } from './world/GeoIslandModel';
 import { GEO_MAP_ENABLED } from './world/geo';
 import { LighthouseScene } from './world/lighthouse/LighthouseScene';
+import { VanGiaModel } from './world/vangia/VanGiaModel';
 import { CharacterController } from './world/CharacterController';
 import { SceneLighting } from './world/SceneLighting';
 import { CameraController } from './world/CameraController';
@@ -81,6 +82,11 @@ export default function LegacyWorld() {
             <>
               <LighthouseScene />
               <CharacterController key="tourist-lighthouse" tourist />
+            </>
+          ) : worldScope === 'vangia' ? (
+            <>
+              <VanGiaModel />
+              <CharacterController key="tourist-vangia" tourist />
             </>
           ) : (
             <>
