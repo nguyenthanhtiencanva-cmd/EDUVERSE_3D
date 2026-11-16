@@ -11,6 +11,7 @@ import { ISLAND_POI_LIST } from '../education/poiData';
 import PLACES from '../education/island-places.json';
 import { GeoPin } from '../ui/GeoPin';
 import { GeoRoads } from './GeoRoads';
+import { GeoTrees } from './GeoTrees';
 import satelliteUrl from '../assets/terrain/vinh-thuc-satellite.jpg?url';
 
 const SEA_STYLE_URL = '/terrain/vinh-thuc-style.png';
@@ -139,6 +140,7 @@ export function GeoIslandModel() {
         </group>
       ))}
       <GeoRoads />
+      <GeoTrees />
       {quality !== 'low' && <GeoClouds />}
 
       {/* Mặt biển tô màu theo khoảng cách tới bờ, nằm ngay trên mực nước 0 m */}

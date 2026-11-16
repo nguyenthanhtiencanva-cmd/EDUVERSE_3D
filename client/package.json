@@ -10,6 +10,7 @@
     "terrain:prepare": "node scripts/prepare-island-terrain.mjs",
     "terrain:build": "node scripts/build-island-terrain.mjs",
     "roads:build": "node scripts/build-island-roads.mjs",
+    "trees:build": "node scripts/build-island-trees.mjs",
     "test:geography": "node --test scripts/geography.test.mjs",
     "models:compress": "node scripts/compress-models.mjs",
     "meshy": "node scripts/meshy-api.mjs",
