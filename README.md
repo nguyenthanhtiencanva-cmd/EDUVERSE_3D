@@ -1,6 +1,6 @@
-# EDUVERSE 3D -- Virtual Campus
+# DU LỊCH VĨNH THỰC SỐ
 
-Dự án tái hiện không gian trường học thực tế trên môi trường 3D tương tác Web (Website + PWA), định hướng phong cách **Stylized Realistic (Style C)**.
+Dự án tái hiện không gian du lịch và khám phá đảo Vĩnh Thực (Móng Cái, Quảng Ninh) trên môi trường 3D tương tác Web (Website + PWA), định hướng phong cách **Stylized Realistic (Style C)**.
 
 ## 📌 Tổng Quan Dự Án
 - **Mục tiêu:** Tái tạo khuôn viên trường học thực tế (dự kiến: *Trường TH&THCS Vĩnh Thực*).

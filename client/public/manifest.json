@@ -1,7 +1,7 @@
 {
-  "name": "EDUVERSE 3D - Trường TH&THCS Vĩnh Thực",
-  "short_name": "EDUVERSE 3D",
-  "description": "Khuôn viên 3D tương tác thực tế ảo Trường TH&THCS Vĩnh Thực",
+  "name": "DU LỊCH VĨNH THỰC SỐ",
+  "short_name": "VĨNH THỰC SỐ",
+  "description": "Không gian 3D tương tác du lịch và khám phá đảo Vĩnh Thực (Quảng Ninh)",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1A2A44",

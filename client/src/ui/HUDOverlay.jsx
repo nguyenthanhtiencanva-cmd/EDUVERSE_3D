@@ -69,7 +69,7 @@ export function HUDOverlay() {
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-bold text-amber-400 tracking-wider">
-                  EDUVERSE 3D • QUẢNG NINH
+                  DU LỊCH VĨNH THỰC SỐ
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               </div>
