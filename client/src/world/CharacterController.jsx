@@ -84,8 +84,14 @@ export function CharacterController({ tourist = true }) {
   useEffect(() => {
     scene.traverse((child) => {
       if (!child.isMesh) return;
-      child.castShadow = true;
-      child.receiveShadow = true;
+      const mat = Array.isArray(child.material) ? child.material[0] : child.material;
+      const isLens = mat?.name === 'MAT_Glasses_Lens';
+      child.castShadow = !isLens;
+      child.receiveShadow = !isLens;
+      if (isLens && mat) {
+        mat.depthWrite = false;
+        mat.needsUpdate = true;
+      }
     });
   }, [scene]);
 
