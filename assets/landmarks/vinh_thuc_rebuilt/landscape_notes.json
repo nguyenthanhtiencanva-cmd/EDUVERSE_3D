@@ -1,0 +1,7 @@
+{
+  "reference": "User supplied video, sampled frames 00, 05, 06, 07 show lighthouse hill",
+  "trees": 1251,
+  "scope": "Hill, coastal vegetation, clear stair corridor, road cutting, sea and coastal rocks",
+  "accuracy": "Visual reconstruction from video; terrain elevations, distances and individual tree locations estimated",
+  "export": "GLB excludes sea and lights; Blender retains editable objects"
+}

@@ -141,7 +141,7 @@ export function HUDOverlay() {
                 <>
                   <ArrowUpCircle className="w-4 h-4 animate-spin" />
                   <span>
-                    Thang xoắn ốc: Bậc {Math.max(1, Math.round(spiralProgress * 72))}/72
+                    Đang leo tháp: {Math.round(spiralProgress * 100)}%
                   </span>
                 </>
               ) : lighthouseLevel === 'balcony' ? (
@@ -152,7 +152,7 @@ export function HUDOverlay() {
               ) : (
                 <>
                   <ArrowUpCircle className="w-4 h-4" />
-                  <span>Leo cầu thang lên đỉnh tháp (72 bậc)</span>
+                  <span>Leo cầu thang lên đỉnh tháp</span>
                 </>
               )}
             </button>

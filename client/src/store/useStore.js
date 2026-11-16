@@ -122,7 +122,7 @@ export const useStore = create((set) => ({
           spiralProgress: 1.0,
           autoClimb: null,
           playerTeleport: {
-            position: [TOWER.x, TOWER.balconyY, TOWER.z + 2.05],
+            position: [TOWER.x, TOWER.balconyY, TOWER.z + 1.55],
             yaw: topPose.yawUp,
             level: 'balcony',
             nonce: Date.now(),

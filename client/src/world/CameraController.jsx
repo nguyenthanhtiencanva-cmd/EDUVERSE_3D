@@ -61,19 +61,19 @@ export const GEO_ISLAND_PRESET_VIEWS = {
 
 export const LIGHTHOUSE_PRESET_VIEWS = {
   lh_overview: {
-    pos: new THREE.Vector3(-12.0, 15.0, 26.0),
-    target: new THREE.Vector3(-2.0, 6.0, -1.0),
+    pos: new THREE.Vector3(-55, 48, 95),
+    target: new THREE.Vector3(0, 1, 10),
     name: '🗼 Toàn cảnh Trạm Hải đăng',
   },
   lh_rotunda: {
-    pos: new THREE.Vector3(-12.2, 4.5, 10.5),
-    target: new THREE.Vector3(-12.2, 4.5, -2.5),
+    pos: new THREE.Vector3(-18, 6, 14),
+    target: new THREE.Vector3(-10, 3, 0),
     name: '🏛️ Hiên vòm tròn & Chân tháp',
   },
   lh_lantern: {
-    pos: new THREE.Vector3(-5.0, 18.5, 7.0),
-    target: new THREE.Vector3(-12.24, 16.2, -2.5),
-    name: '💡 Lồng đèn & Ban công 18m',
+    pos: new THREE.Vector3(-3, 23, 10),
+    target: new THREE.Vector3(-10, 21, 0),
+    name: '💡 Lồng đèn & Ban công',
   },
   lh_house: {
     pos: new THREE.Vector3(4.0, 5.5, 12.5),
@@ -81,8 +81,8 @@ export const LIGHTHOUSE_PRESET_VIEWS = {
     name: '🏠 Nhà quản lý & Sân gạch đỏ',
   },
   lh_viewpoint: {
-    pos: new THREE.Vector3(1.2, 2.5, 29.0),
-    target: new THREE.Vector3(-1.0, 6.0, -2.0),
+    pos: new THREE.Vector3(12, -8, 57),
+    target: new THREE.Vector3(0, 8, 0),
     name: '🔭 Điểm ngắm biển & Cầu thang',
   },
 };
@@ -186,7 +186,7 @@ export function CameraController() {
           enableDamping
           dampingFactor={0.06}
           minDistance={worldScope === 'island' ? 12 : 4}
-          maxDistance={worldScope === 'island' ? (GEO_MAP_ENABLED ? 600 : 180) : 120}
+          maxDistance={worldScope === 'island' ? (GEO_MAP_ENABLED ? 600 : 180) : worldScope === 'lighthouse' ? 260 : 120}
           maxPolarAngle={Math.PI / 2 - 0.05}
         />
       )}
