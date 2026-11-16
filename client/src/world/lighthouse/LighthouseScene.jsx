@@ -49,17 +49,17 @@ function SpiralSteps({ visible }) {
       transform.updateMatrix();
       steps.current.setMatrixAt(i, transform.matrix);
 
-      // Trụ đứng lan can mép ngoài cao ngang người nhân vật (1.05m)
+      // Trụ đứng lan can mép ngoài cao ngang lan can (0.84m)
       if (posts.current) {
         const outerX = TOWER.x + Math.cos(pose.angle) * 1.62;
         const outerZ = TOWER.z + Math.sin(pose.angle) * 1.62;
-        transform.position.set(outerX, pose.y + 0.48, outerZ);
+        transform.position.set(outerX, pose.y + 0.36, outerZ);
         transform.rotation.set(0, 0, 0);
         transform.updateMatrix();
         posts.current.setMatrixAt(i, transform.matrix);
       }
 
-      // Thanh tay vịn nối các trụ ở độ cao ngang người (~1.05m)
+      // Thanh tay vịn nối các trụ ở độ cao ngang bằng lan can (0.84m)
       if (railSegments.current) {
         const nextPose = getSpiralPose(Math.min(1, (i + 1.5) / count));
         const currX = TOWER.x + Math.cos(pose.angle) * 1.62;
@@ -67,7 +67,7 @@ function SpiralSteps({ visible }) {
         const nextX = TOWER.x + Math.cos(nextPose.angle) * 1.62;
         const nextZ = TOWER.z + Math.sin(nextPose.angle) * 1.62;
         const midX = (currX + nextX) / 2;
-        const midY = (pose.y + nextPose.y) / 2 + 1.02;
+        const midY = (pose.y + nextPose.y) / 2 + 0.84;
         const midZ = (currZ + nextZ) / 2;
         const yaw = Math.atan2(nextX - currX, nextZ - currZ);
         const pitch = -Math.atan2(nextPose.y - pose.y, Math.hypot(nextX - currX, nextZ - currZ));
@@ -96,12 +96,12 @@ function SpiralSteps({ visible }) {
         <boxGeometry args={[0.8, 0.12, 0.3]} />
         <meshStandardMaterial color="#bc8542" roughness={0.6} />
       </instancedMesh>
-      {/* Trụ lan can inox trắng cao ngang người (1.05m) */}
+      {/* Trụ lan can inox trắng cao ngang lan can (0.84m) */}
       <instancedMesh ref={posts} args={[null, null, TOWER.spiralSteps]}>
-        <cylinderGeometry args={[0.02, 0.02, 1.05, 8]} />
+        <cylinderGeometry args={[0.02, 0.02, 0.84, 8]} />
         <meshStandardMaterial color="#e2e8f0" metalness={0.6} roughness={0.3} />
       </instancedMesh>
-      {/* Tay vịn liên tục ở đỉnh trụ cao ngang người (1.05m) */}
+      {/* Tay vịn liên tục ở đỉnh trụ cao ngang bằng chiều cao lan can (0.84m) */}
       <instancedMesh ref={railSegments} args={[null, null, TOWER.spiralSteps]}>
         <boxGeometry args={[0.07, 0.05, 0.38]} />
         <meshStandardMaterial color="#cbd5e1" metalness={0.5} roughness={0.35} />
@@ -110,7 +110,7 @@ function SpiralSteps({ visible }) {
   );
 }
 
-// Điều chỉnh chiều cao tay vịn và lan can cầu thang sườn đồi cao ngang người nhân vật (~1.08m)
+// Điều chỉnh chiều cao tay vịn cầu thang cao ngang bằng với chiều cao của lan can (0.84m)
 function adjustStairRailing(mesh) {
   if (!mesh.isMesh || !mesh.geometry) return;
   const geometry = mesh.geometry.clone();
@@ -126,13 +126,13 @@ function adjustStairRailing(mesh) {
     const z = pos.getZ(i);
 
     // Dọc tuyến cầu thang sườn đồi từ chân (Z~44.6) lên cổng sân (Z~7.5)
-    if (z < 6.8 || z > 45.2) continue;
+    if (z < 7.20 || z > 45.2) continue;
 
     // Hai dải tay vịn và con tiện lan can hai bên mép cầu thang:
-    // Mép trái: X ~ 2.55 (phạm vi 2.25 đến 2.80)
-    // Mép phải: X ~ 5.45 (phạm vi 5.20 đến 5.75)
-    const isLeft = x >= 2.25 && x <= 2.80;
-    const isRight = x >= 5.20 && x <= 5.75;
+    // Mép trái: X ~ 2.55 (phạm vi 2.20 đến 2.85)
+    // Mép phải: X ~ 5.45 (phạm vi 5.15 đến 5.80)
+    const isLeft = x >= 2.20 && x <= 2.85;
+    const isRight = x >= 5.15 && x <= 5.80;
     if (!isLeft && !isRight) continue;
 
     // Mặt dốc chuẩn của từng bậc thang tại tọa độ Z:
@@ -140,12 +140,16 @@ function adjustStairRailing(mesh) {
     const t = Math.max(0, Math.min(1, (z - 7.5) / (44.63 - 7.5)));
     const stepBaseY = t * -17.472;
 
-    // Độ cao của điểm đỉnh/thân lan can so với mặt bậc:
-    // Bản gốc bị nhân hệ số 2.8x nên cao tới ~2.35m (vượt quá đầu nhân vật).
-    // Ta đưa về chiều cao chuẩn ngang người nhân vật (~1.08m).
     const h = y - stepBaseY;
-    if (h >= -0.2 && h <= 2.6) {
-      const scaleFactor = 1.08 / 2.352;
+    // Với đoạn tiếp giáp sân (z < 7.45), chỉ scale các đỉnh tay vịn cầu thang (h > 1.1)
+    // để không làm biến dạng lan can ngang của sân (vốn đã ở độ cao chuẩn 0.94m)
+    if (z < 7.45 && h < 1.1) continue;
+
+    // Độ cao của điểm đỉnh/thân lan can so với mặt bậc:
+    // Bản gốc bị nhân hệ số 2.8x nên cao tới ~2.35m.
+    // Đưa về chiều cao chuẩn ngang bằng với chiều cao của lan can (0.84m).
+    if (h >= -0.2 && h <= 3.0) {
+      const scaleFactor = 1.0 / 2.8; // 0.84m / 2.352m = 1/2.8, khôi phục tay vịn và con tiện khớp chuẩn với lan can
       pos.setY(i, stepBaseY + h * scaleFactor);
       modified = true;
     }

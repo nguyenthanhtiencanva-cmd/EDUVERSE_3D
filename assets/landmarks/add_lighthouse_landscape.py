@@ -37,7 +37,7 @@ for poly in o.data.polygons:
  # centers computed after mesh update
  if (17<x<53 and -48<y<-20) or z<-28:poly.material_index=1
 # Extend the approach stairs and attached balusters consistently about the top landing.
-# Handrail and balusters are kept at human height (~1.08m) instead of scaling 2.8x.
+# Handrail and balusters are kept at standard lan can height (0.84m) instead of scaling 2.8x.
 for o in list(bpy.context.scene.objects):
  is_step = o.name.startswith('Hill stair')
  is_rail = o.name.startswith('Stair handrail') or (o.name.startswith('Baluster') and o.location.y < -7.45 and 2.4 < o.location.x < 5.6)
@@ -51,7 +51,7 @@ for o in list(bpy.context.scene.objects):
     p.z *= 2.8
    else:
     rel_z = p.z - (-((orig_y + 7.5) / 0.34) * 0.16)
-    p.z = step_base_z + rel_z * (1.08 / 0.84)
+    p.z = step_base_z + rel_z
    v.co = o.matrix_world.inverted() @ p
 # Road on the right side of the hill, running across the approach landing.
 pts=[]
