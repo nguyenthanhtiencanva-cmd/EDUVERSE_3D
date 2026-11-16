@@ -4,6 +4,7 @@ import { useStore } from '../store/useStore';
 
 export function VirtualJoystick() {
   const cameraMode = useStore((state) => state.cameraMode);
+  const paused = useStore((state) => Boolean(state.activeHotspot));
   const base = useRef(null);
   const activePointer = useRef(null);
   const [knob, setKnob] = useState([0, 0]);
@@ -15,7 +16,7 @@ export function VirtualJoystick() {
   }
 
   useEffect(() => {
-    if (cameraMode !== 'fps') return;
+    if (cameraMode !== 'fps' || paused) return;
     function resetInput() {
       resetMove();
       useStore.getState().setJoystickJump(false);
@@ -25,7 +26,7 @@ export function VirtualJoystick() {
       window.removeEventListener('blur', resetInput);
       resetInput();
     };
-  }, [cameraMode]);
+  }, [cameraMode, paused]);
 
   function move(event) {
     if (event.pointerId !== activePointer.current) return;
@@ -42,7 +43,7 @@ export function VirtualJoystick() {
     if (event.pointerId === activePointer.current) resetMove();
   }
 
-  if (cameraMode !== 'fps') return null;
+  if (cameraMode !== 'fps' || paused) return null;
   return <div className="tour-touch-controls pointer-events-none fixed inset-0 z-30 select-none">
     <div ref={base} aria-label="Joystick di chuyển"
       className="pointer-events-auto absolute bottom-6 left-5 grid h-28 w-28 touch-none place-items-center rounded-full border-2 border-white/40 bg-slate-950/60 shadow-xl"

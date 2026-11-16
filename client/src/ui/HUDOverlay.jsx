@@ -9,6 +9,7 @@ import { POIModal } from './POIModal';
 import { GeoPlacesPanel } from './GeoPlacesPanel';
 import { GEO_MAP_ENABLED } from '../world/geo';
 import { VirtualJoystick } from './VirtualJoystick';
+import { LighthouseTour } from './LighthouseTour';
 import {
   Sun,
   Sunset,
@@ -76,7 +77,7 @@ export function HUDOverlay() {
                   : isIsland
                   ? 'Sa Bàn Số Đảo Vĩnh Thực'
                   : isLighthouse
-                  ? 'Trạm Hải Đăng Vĩnh Thực (1962) • Không Gian 1:1'
+                  ? 'Trạm Hải Đăng Vĩnh Thực'
                   : 'Trường TH&THCS Vĩnh Thực (Phân Hiệu Vĩnh Trung)'}
               </h1>
             </div>
@@ -119,7 +120,7 @@ export function HUDOverlay() {
                   ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 shadow-md'
                   : 'text-slate-300 hover:text-white hover:bg-white/10'
               }`}
-              title="Tham quan trải nghiệm 1:1 Trạm Hải đăng Vĩnh Thực (1962)"
+              title="Tham quan Trạm Hải đăng Vĩnh Thực"
             >
               <Landmark className="w-4 h-4" />
               <span>Hải đăng Vĩnh Thực (1:1)</span>
@@ -235,6 +236,7 @@ export function HUDOverlay() {
             <span>{QUALITY_LABELS[quality]}</span>
           </button>
         </div>
+        {isLighthouse && <LighthouseTour />}
       </header>
 
       {/* BOTTOM SECTION */}

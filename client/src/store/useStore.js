@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { LIGHTHOUSE_WORLD, TOWER, getSpiralPose } from '../world/lighthouse/layout';
+import { nearbyLighthouseStop, readTourProgress, saveTourProgress } from '../world/lighthouse/tour';
 
 const QUALITY_LEVELS = ['low', 'medium', 'high'];
 const QUALITY_KEY = 'eduverse-quality';
@@ -48,8 +49,24 @@ export const useStore = create((set) => ({
   spiralProgress: 0, // 0.0 (chân tháp) -> 1.0 (ban công đỉnh tháp 15m)
   autoClimb: null, // null | 'up' | 'down'
   activeHotspot: null,
-  visitedHotspots: [],
+  visitedHotspots: readTourProgress(),
   playerTeleport: null,
+
+  openLighthouseStop: () =>
+    set((state) => {
+      const stop = nearbyLighthouseStop(state);
+      if (!stop || state.activeHotspot) return state;
+      const visitedHotspots = state.visitedHotspots.includes(stop.id)
+        ? state.visitedHotspots
+        : [...state.visitedHotspots, stop.id];
+      if (visitedHotspots !== state.visitedHotspots) saveTourProgress(visitedHotspots);
+      return {
+        activeHotspot: stop,
+        visitedHotspots,
+        joystickInput: { moveX: 0, moveY: 0, isJumping: false },
+      };
+    }),
+  closeLighthouseStop: () => set({ activeHotspot: null }),
 
   setWorldScope: (scope) =>
     set({
@@ -80,6 +97,7 @@ export const useStore = create((set) => ({
     set({
       worldScope: 'campus',
       campusTour: true,
+      activeHotspot: null,
       cameraMode: 'fps',
       activeView: 'aerial',
       activePOI: null,

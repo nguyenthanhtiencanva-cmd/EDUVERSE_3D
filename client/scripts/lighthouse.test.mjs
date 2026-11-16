@@ -2,6 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {LIGHTHOUSE_WORLD,STAIRS,TOWER,groundAt,canWalk,getSpiralPose} from '../src/world/lighthouse/layout.js';
+import {LIGHTHOUSE_STOPS, nearbyLighthouseStop} from '../src/world/lighthouse/tour.js';
+
+test('tour stops are reachable and only open while walking nearby on their floor', () => {
+ const state = {worldScope:'lighthouse', cameraMode:'fps', playerTeleport:null};
+ for (const stop of LIGHTHOUSE_STOPS) {
+  const [x,y,z] = stop.position;
+  assert.ok(canWalk(x,z,stop.level), stop.title);
+  assert.equal(groundAt(x,z,stop.level),y);
+  const standing = {...state, lighthouseLevel:stop.level, playerPosition:[x,y+1.4,z]};
+  assert.equal(nearbyLighthouseStop(standing), stop);
+  assert.equal(nearbyLighthouseStop({...standing, cameraMode:'orbit'}), null);
+  assert.equal(nearbyLighthouseStop({...standing, worldScope:'campus'}), null);
+  assert.equal(nearbyLighthouseStop({...standing, lighthouseLevel:'spiral'}), null);
+  assert.equal(nearbyLighthouseStop({...standing, playerTeleport:{position:stop.position}}), null);
+  assert.equal(nearbyLighthouseStop({...standing, playerPosition:[x+20,y,z]}), null);
+ }
+ assert.equal(nearbyLighthouseStop({
+  ...state, lighthouseLevel:'ground', playerPosition:LIGHTHOUSE_STOPS.at(-1).position,
+ }), null);
+});
 test('spawn, hill stair route and balcony remain walkable on the new model',()=>{
  const [x,y,z]=LIGHTHOUSE_WORLD.spawn.position;
  assert.ok(canWalk(x,z));assert.equal(groundAt(x,z),y);

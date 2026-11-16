@@ -28,6 +28,7 @@ export function CharacterController({ tourist = true }) {
   const { scene, animations } = useGLTF(tourist ? MODEL_URLS.tourist : MODEL_URLS.student);
   const { actions } = useAnimations(animations, group);
   const walking = useStore((state) => state.cameraMode === 'fps');
+  const paused = useStore((state) => Boolean(state.activeHotspot));
   const playerTeleport = useStore((state) => state.playerTeleport);
 
   const initSpawn =
@@ -96,7 +97,7 @@ export function CharacterController({ tourist = true }) {
   );
 
   useEffect(() => {
-    if (!walking) return;
+    if (!walking || paused) return;
     const canvas = gl.domElement;
     player.snap = true;
     const previousTouchAction = canvas.style.touchAction;
@@ -113,7 +114,9 @@ export function CharacterController({ tourist = true }) {
       if (!MOVE_KEYS.has(event.code) || event.ctrlKey || event.metaKey || event.altKey) return;
       if (
         event.target instanceof HTMLElement &&
-        event.target.closest('button, input, select, textarea, [contenteditable]')
+        (event.target.closest('input, select, textarea, [contenteditable]') ||
+          (event.target.closest('button') &&
+            (event.code === 'Space' || useStore.getState().worldScope !== 'lighthouse')))
       )
         return;
       if (event.code.startsWith('Arrow') || event.code === 'Space') event.preventDefault();
@@ -166,7 +169,7 @@ export function CharacterController({ tourist = true }) {
       canvas.style.touchAction = previousTouchAction;
       reset();
     };
-  }, [walking, gl, player]);
+  }, [walking, paused, gl, player]);
 
   useFrame((_, elapsed) => {
     if (!group.current) return;
@@ -184,7 +187,7 @@ export function CharacterController({ tourist = true }) {
         ? LIGHTHOUSE_WORLD.groundAt(x, z, level, state.spiralProgress)
         : campusGroundAt(x, position.y, z) ?? position.y;
 
-    if (walking) {
+    if (walking && !paused) {
       const { joystickInput, setPlayerPosition } = state;
       const axis = (positive, alternate, negative, other) =>
         Number(keys.has(positive) || keys.has(alternate)) -
@@ -197,7 +200,7 @@ export function CharacterController({ tourist = true }) {
         keys.has('ShiftRight') ||
         Math.hypot(joystickInput.moveX, joystickInput.moveY) > 0.92;
 
-      // TRƯỜNG HỢP 1: Đang ở trên Cầu thang xoắn ốc 72 bậc bên trong lòng Tháp đèn (Chặng 2)
+      // Cầu thang xoắn trong tháp.
       if (isLighthouse && level === 'spiral') {
         let dir = 0;
         if (state.autoClimb === 'up') dir = 1;
@@ -206,7 +209,8 @@ export function CharacterController({ tourist = true }) {
 
         if (dir !== 0) {
           const climbSpeed = state.autoClimb || running ? 0.21 : 0.14;
-          const nextT = state.spiralProgress + dir * climbSpeed * dt;
+          const climbDelta = state.autoClimb ? Math.min(elapsed, 0.25) : dt;
+          const nextT = state.spiralProgress + dir * climbSpeed * climbDelta;
           clip = running || state.autoClimb ? 'Run' : 'Walk';
 
           if (nextT >= 1.0) {
@@ -226,7 +230,7 @@ export function CharacterController({ tourist = true }) {
           }
         }
       } else {
-        // TRƯỜNG HỢP 2: Đi bộ tự do trên Sảnh đón, 36 bậc Cầu thang sườn đồi (Chặng 1), Sân gạch đỏ hoặc Ban công
+        // Đi bộ tự do trên chiếu nghỉ, sườn đồi, sân hoặc ban công.
         if (magnitude > 0.12) {
           // Nếu người dùng bắt đầu tự điều khiển phím khi đang autoClimb thì hủy autoClimb
           if (state.autoClimb) state.setSpiralState({ autoClimb: null });

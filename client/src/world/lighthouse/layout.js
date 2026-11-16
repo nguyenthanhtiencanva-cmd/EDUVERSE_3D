@@ -30,5 +30,4 @@ export function canWalk(x,z,level='ground'){
 }
 export function cameraDistance(target,direction,maxDistance,level='ground'){return level==='ground'?Math.max(2.6,maxDistance):Math.min(maxDistance,3.2);}
 export const LIGHTHOUSE_WORLD={id:'lighthouse',spawn:{position:[4,VIEWPOINT.y,45.8],yaw:Math.PI,level:'ground'},groundAt,canWalk,cameraDistance};
-export const HOTSPOTS=[];export const TOUR_SPOTS=[];
 export function teleportFor(){return LIGHTHOUSE_WORLD.spawn;}
