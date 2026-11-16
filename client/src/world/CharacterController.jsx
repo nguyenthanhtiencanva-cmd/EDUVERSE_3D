@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { useStore } from '../store/useStore';
-import { LIGHTHOUSE_WORLD, TOWER, getSpiralPose } from './lighthouse/layout';
+import { LIGHTHOUSE_WORLD, advanceLighthousePlayer, getSpiralPose } from './lighthouse/layout';
 import { MODEL_URLS } from './models';
 import { campusCameraDistance, campusCanWalk, campusGroundAt } from './campusCollision';
 
@@ -28,7 +28,6 @@ export function CharacterController({ tourist = true }) {
   const { scene, animations } = useGLTF(tourist ? MODEL_URLS.tourist : MODEL_URLS.student);
   const { actions } = useAnimations(animations, group);
   const walking = useStore((state) => state.cameraMode === 'fps');
-  const paused = useStore((state) => Boolean(state.activeHotspot));
   const playerTeleport = useStore((state) => state.playerTeleport);
 
   const initSpawn =
@@ -47,6 +46,8 @@ export function CharacterController({ tourist = true }) {
     jumpPressed: false,
     jumpHeld: false,
     lift: 0,
+    jumpHeight: 0,
+    cameraRadius: 4.0,
     clip: '',
     snap: true,
     positionTimer: 0,
@@ -71,13 +72,13 @@ export function CharacterController({ tourist = true }) {
       player.facing = tourist ? playerTeleport.yaw : playerTeleport.yaw + Math.PI;
     }
     player.lift = 0;
+    player.jumpHeight = 0;
     player.snap = true;
     if (group.current) {
       group.current.position.copy(player.position);
       group.current.rotation.y = player.facing;
     }
-    useStore.getState().setPlayerPosition([tx, ty + 1.4, tz]);
-    useStore.getState().clearPlayerTeleport();
+    useStore.getState().setPlayerPosition([tx, ty + 1.4, tz], true);
   }, [playerTeleport, player, tourist]);
 
   useEffect(() => {
@@ -97,7 +98,7 @@ export function CharacterController({ tourist = true }) {
   );
 
   useEffect(() => {
-    if (!walking || paused) return;
+    if (!walking) return;
     const canvas = gl.domElement;
     player.snap = true;
     const previousTouchAction = canvas.style.touchAction;
@@ -169,7 +170,7 @@ export function CharacterController({ tourist = true }) {
       canvas.style.touchAction = previousTouchAction;
       reset();
     };
-  }, [walking, paused, gl, player]);
+  }, [walking, gl, player]);
 
   useFrame((_, elapsed) => {
     if (!group.current) return;
@@ -180,14 +181,13 @@ export function CharacterController({ tourist = true }) {
     const state = useStore.getState();
     const isLighthouse = state.worldScope === 'lighthouse';
     const level = state.lighthouseLevel || 'ground';
-    const checkWalk = (x, z) =>
-      isLighthouse ? LIGHTHOUSE_WORLD.canWalk(x, z, level) : campusCanWalk(position, x, z);
+    const checkWalk = (x, z) => campusCanWalk(position, x, z);
     const getGroundY = (x, z) =>
       isLighthouse
         ? LIGHTHOUSE_WORLD.groundAt(x, z, level, state.spiralProgress)
         : campusGroundAt(x, position.y, z) ?? position.y;
 
-    if (walking && !paused) {
+    if (walking) {
       const { joystickInput, setPlayerPosition } = state;
       const axis = (positive, alternate, negative, other) =>
         Number(keys.has(positive) || keys.has(alternate)) -
@@ -198,7 +198,9 @@ export function CharacterController({ tourist = true }) {
       const running =
         keys.has('ShiftLeft') ||
         keys.has('ShiftRight') ||
-        Math.hypot(joystickInput.moveX, joystickInput.moveY) > 0.92;
+        (isLighthouse
+          ? joystickInput.isRunning
+          : Math.hypot(joystickInput.moveX, joystickInput.moveY) > 0.92);
 
       // Cầu thang xoắn trong tháp.
       if (isLighthouse && level === 'spiral') {
@@ -229,8 +231,39 @@ export function CharacterController({ tourist = true }) {
             }
           }
         }
+      } else if (isLighthouse) {
+        const walkDelta = Math.min(elapsed, 0.12);
+        if (magnitude > 0.12) {
+          const yaw = player.yaw + Math.atan2(-right, forward);
+          const speed = level === 'balcony' ? 1.85 : running ? 4.8 : 2.8;
+          const strength = (Math.min(magnitude, 1) - 0.12) / 0.88;
+          const distance = speed * strength * walkDelta;
+          const previousX = position.x;
+          const previousZ = position.z;
+          advanceLighthousePlayer(position, Math.sin(yaw) * distance, Math.cos(yaw) * distance, level);
+          const movedX = position.x - previousX;
+          const movedZ = position.z - previousZ;
+          if (Math.hypot(movedX, movedZ) > 0.001) {
+            clip = running && level !== 'balcony' ? 'Run' : 'Walk';
+            const heading = Math.atan2(movedX, movedZ) + (tourist ? 0 : Math.PI) - player.facing;
+            player.facing += Math.atan2(Math.sin(heading), Math.cos(heading)) * (1 - Math.exp(-16 * walkDelta));
+          }
+        }
+
+        const groundY = getGroundY(position.x, position.z);
+        const previousBase = position.y - player.jumpHeight;
+        if ((player.jumpPressed || (joystickInput.isJumping && !player.jumpHeld)) && player.jumpHeight === 0) {
+          player.lift = 5.5;
+        }
+        player.jumpHeld = joystickInput.isJumping;
+        player.jumpPressed = false;
+        if (player.lift !== 0 || player.jumpHeight > 0) {
+          player.jumpHeight = Math.max(0, player.jumpHeight + player.lift * dt);
+          player.lift = player.jumpHeight > 0 ? player.lift - 18 * dt : 0;
+        }
+        const base = THREE.MathUtils.lerp(previousBase, groundY, 1 - Math.exp(-23 * walkDelta));
+        position.y = (Math.abs(base - groundY) < 0.002 ? groundY : base) + player.jumpHeight;
       } else {
-        // Đi bộ tự do trên chiếu nghỉ, sườn đồi, sân hoặc ban công.
         if (magnitude > 0.12) {
           // Nếu người dùng bắt đầu tự điều khiển phím khi đang autoClimb thì hủy autoClimb
           if (state.autoClimb) state.setSpiralState({ autoClimb: null });
@@ -255,22 +288,6 @@ export function CharacterController({ tourist = true }) {
             player.yaw -= right * 1.45 * dt;
           }
 
-          // Nếu nhân vật đi bộ tiến sát vào cửa chân tháp (bán kính < 2.25m từ tâm tháp), tự động bước vào Cầu thang xoắn ốc!
-          if (
-            isLighthouse &&
-            level === 'ground' &&
-            forward > 0.1 &&
-            Math.hypot(position.x - TOWER.x, position.z - TOWER.z) < 2.25
-          ) {
-            const startPose = getSpiralPose(0.03);
-            state.setSpiralState({
-              lighthouseLevel: 'spiral',
-              spiralProgress: 0.03,
-              autoClimb: null,
-            });
-            position.set(startPose.x, startPose.y, startPose.z);
-            player.facing = tourist ? startPose.yawUp : startPose.yawUp + Math.PI;
-          }
         }
 
         const groundY = getGroundY(position.x, position.z);
@@ -300,7 +317,10 @@ export function CharacterController({ tourist = true }) {
 
       let distance = player.distance;
       if (isLighthouse) {
-        distance = LIGHTHOUSE_WORLD.cameraDistance(target, direction, player.distance, level);
+        const clearDistance = LIGHTHOUSE_WORLD.cameraDistance(target, direction, player.distance, level);
+        if (player.snap || clearDistance < player.cameraRadius) player.cameraRadius = clearDistance;
+        else player.cameraRadius = THREE.MathUtils.lerp(player.cameraRadius, clearDistance, 1 - Math.exp(-8 * dt));
+        distance = player.cameraRadius;
       } else {
         distance = campusCameraDistance(target, direction, player.distance);
       }
@@ -310,7 +330,7 @@ export function CharacterController({ tourist = true }) {
       if (level !== 'spiral' && eye.y < eyeGroundY + 0.6) {
         eye.y = eyeGroundY + 0.6;
       }
-      if (player.snap || distance < player.distance) camera.position.copy(eye);
+      if (player.snap || distance < player.distance - 0.01) camera.position.copy(eye);
       else camera.position.lerp(eye, 1 - Math.exp(-10 * dt));
       player.snap = false;
       camera.lookAt(target);

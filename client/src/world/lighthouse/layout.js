@@ -28,6 +28,35 @@ export function canWalk(x,z,level='ground'){
  if(x>HOUSE.x0-.3&&x<HOUSE.x1+.3&&z>HOUSE.z0-.3&&z<HOUSE.z1+.3)return false;
  return true;
 }
-export function cameraDistance(target,direction,maxDistance,level='ground'){return level==='ground'?Math.max(2.6,maxDistance):Math.min(maxDistance,3.2);}
+export function advanceLighthousePlayer(position, dx, dz, level) {
+ const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / 0.2));
+ for (let i = 0; i < steps; i++) {
+  const x = position.x + dx / steps;
+  const z = position.z + dz / steps;
+  if (canWalk(x, z, level)) {
+   position.x = x;
+   position.z = z;
+  } else {
+   if (canWalk(x, position.z, level)) position.x = x;
+   if (canWalk(position.x, z, level)) position.z = z;
+  }
+ }
+}
+
+export function cameraDistance(target, direction, maxDistance, level = 'ground') {
+ const limit = level === 'ground' ? maxDistance : Math.min(maxDistance, 3.2);
+ if (level === 'spiral') return limit;
+ for (let d = 0.2; d <= limit; d += 0.2) {
+  const x = target.x + direction.x * d;
+  const y = target.y + direction.y * d;
+  const z = target.z + direction.z * d;
+  const insideHouse = level === 'ground' && y < 8.1 &&
+   x > HOUSE.x0 - 0.2 && x < HOUSE.x1 + 0.2 && z > HOUSE.z0 - 0.2 && z < HOUSE.z1 + 0.2;
+  const towerRadius = level === 'balcony' ? TOWER.drumRadius : TOWER.coreBottom;
+  const insideTower = y < TOWER.lanternTop && Math.hypot(x - TOWER.x, z - TOWER.z) < towerRadius + 0.14;
+  if (insideHouse || insideTower) return Math.max(0.2, d - 0.2);
+ }
+ return limit;
+}
 export const LIGHTHOUSE_WORLD={id:'lighthouse',spawn:{position:[4,VIEWPOINT.y,45.8],yaw:Math.PI,level:'ground'},groundAt,canWalk,cameraDistance};
 export function teleportFor(){return LIGHTHOUSE_WORLD.spawn;}

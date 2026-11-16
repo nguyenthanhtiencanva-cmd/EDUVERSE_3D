@@ -9,7 +9,7 @@ import { POIModal } from './POIModal';
 import { GeoPlacesPanel } from './GeoPlacesPanel';
 import { GEO_MAP_ENABLED } from '../world/geo';
 import { VirtualJoystick } from './VirtualJoystick';
-import { LighthouseTour } from './LighthouseTour';
+import { LIGHTHOUSE_STOPS } from '../world/lighthouse/tour';
 import {
   Sun,
   Sunset,
@@ -44,6 +44,8 @@ export function HUDOverlay() {
   const lighthouseLevel = useStore((state) => state.lighthouseLevel);
   const spiralProgress = useStore((state) => state.spiralProgress);
   const climbLighthouse = useStore((state) => state.climbLighthouse);
+  const visited = useStore((state) => state.visitedHotspots);
+  const nextStop = LIGHTHOUSE_STOPS.find((stop) => !visited.includes(stop.id));
 
   const isIsland = worldScope === 'island';
   const isLighthouse = worldScope === 'lighthouse';
@@ -236,7 +238,14 @@ export function HUDOverlay() {
             <span>{QUALITY_LABELS[quality]}</span>
           </button>
         </div>
-        {isLighthouse && <LighthouseTour />}
+        {isLighthouse && cameraMode === 'fps' && (
+          <p className="glass-panel max-w-full rounded-xl px-3 py-2 text-xs text-slate-100">
+            <span aria-live="polite" className="font-bold text-amber-200">
+              Đã đến {visited.length}/{LIGHTHOUSE_STOPS.length} điểm.
+            </span>{' '}
+            {lighthouseLevel === 'spiral' ? 'Đang di chuyển trong tháp.' : nextStop?.directions}
+          </p>
+        )}
       </header>
 
       {/* BOTTOM SECTION */}

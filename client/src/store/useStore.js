@@ -4,6 +4,7 @@ import { nearbyLighthouseStop, readTourProgress, saveTourProgress } from '../wor
 
 const QUALITY_LEVELS = ['low', 'medium', 'high'];
 const QUALITY_KEY = 'eduverse-quality';
+const NEUTRAL_JOYSTICK = { moveX: 0, moveY: 0, isJumping: false, isRunning: false };
 
 function readSavedQuality() {
   try {
@@ -48,25 +49,8 @@ export const useStore = create((set) => ({
   lighthouseLevel: 'ground', // 'ground' | 'spiral' | 'balcony'
   spiralProgress: 0, // 0.0 (chân tháp) -> 1.0 (ban công đỉnh tháp 15m)
   autoClimb: null, // null | 'up' | 'down'
-  activeHotspot: null,
   visitedHotspots: readTourProgress(),
   playerTeleport: null,
-
-  openLighthouseStop: () =>
-    set((state) => {
-      const stop = nearbyLighthouseStop(state);
-      if (!stop || state.activeHotspot) return state;
-      const visitedHotspots = state.visitedHotspots.includes(stop.id)
-        ? state.visitedHotspots
-        : [...state.visitedHotspots, stop.id];
-      if (visitedHotspots !== state.visitedHotspots) saveTourProgress(visitedHotspots);
-      return {
-        activeHotspot: stop,
-        visitedHotspots,
-        joystickInput: { moveX: 0, moveY: 0, isJumping: false },
-      };
-    }),
-  closeLighthouseStop: () => set({ activeHotspot: null }),
 
   setWorldScope: (scope) =>
     set({
@@ -75,7 +59,6 @@ export const useStore = create((set) => ({
       lighthouseLevel: 'ground',
       spiralProgress: 0,
       autoClimb: null,
-      activeHotspot: null,
       cameraMode: scope === 'island' ? 'orbit' : 'fps',
       activeView:
         scope === 'island'
@@ -90,20 +73,19 @@ export const useStore = create((set) => ({
           : scope === 'campus'
           ? { position: [1.5, 0, 6], yaw: Math.PI, level: 'ground', nonce: Date.now() }
           : null,
-      joystickInput: { moveX: 0, moveY: 0, isJumping: false },
+      joystickInput: NEUTRAL_JOYSTICK,
     }),
 
   startCampusTour: () =>
     set({
       worldScope: 'campus',
       campusTour: true,
-      activeHotspot: null,
       cameraMode: 'fps',
       activeView: 'aerial',
       activePOI: null,
       playerPosition: [1.5, 1.4, 6],
       playerTeleport: { position: [1.5, 0, 6], yaw: Math.PI, level: 'ground', nonce: Date.now() },
-      joystickInput: { moveX: 0, moveY: 0, isJumping: false },
+      joystickInput: NEUTRAL_JOYSTICK,
     }),
 
   setSpiralState: (patch) => set((state) => ({ ...state, ...patch })),
@@ -160,8 +142,6 @@ export const useStore = create((set) => ({
       };
     }),
 
-  clearPlayerTeleport: () => set({ playerTeleport: null }),
-
   // The existing "fps" mode is controlled by the third-person character.
   cameraMode: 'orbit',
   setCameraMode: (mode) => set({ cameraMode: mode }),
@@ -187,12 +167,23 @@ export const useStore = create((set) => ({
 
   // Player Position in World Space
   playerPosition: [4.0, -10.0, 1.7],
-  setPlayerPosition: (pos) => set({ playerPosition: pos }),
+  setPlayerPosition: (playerPosition, landedFromTeleport = false) =>
+    set((state) => {
+      const patch = landedFromTeleport ? { playerPosition, playerTeleport: null } : { playerPosition };
+      if (state.worldScope !== 'lighthouse') return patch;
+      const stop = nearbyLighthouseStop({ ...state, ...patch });
+      if (!stop || state.visitedHotspots.includes(stop.id)) return patch;
+      const visitedHotspots = [...state.visitedHotspots, stop.id];
+      saveTourProgress(visitedHotspots);
+      return { ...patch, visitedHotspots };
+    }),
 
   // Mobile Virtual Joystick Input
-  joystickInput: { moveX: 0, moveY: 0, isJumping: false },
+  joystickInput: NEUTRAL_JOYSTICK,
   setJoystickMove: (moveX, moveY) =>
     set((state) => ({ joystickInput: { ...state.joystickInput, moveX, moveY } })),
   setJoystickJump: (isJumping) =>
     set((state) => ({ joystickInput: { ...state.joystickInput, isJumping } })),
+  setJoystickRun: (isRunning) =>
+    set((state) => ({ joystickInput: { ...state.joystickInput, isRunning } })),
 }));

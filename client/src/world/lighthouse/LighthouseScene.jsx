@@ -11,8 +11,7 @@ function TourMarkers() {
  const visited = useStore(state => state.visitedHotspots);
  const level = useStore(state => state.lighthouseLevel);
  const walking = useStore(state => state.cameraMode === 'fps');
- const activeStop = useStore(state => state.activeHotspot);
- if (!walking || activeStop) return null;
+ if (!walking) return null;
  return LIGHTHOUSE_STOPS.filter(stop => stop.level === level).map(stop => {
   const discovered = visited.includes(stop.id);
   const color = discovered ? '#8aebba' : '#ffd063';
@@ -60,7 +59,22 @@ export function LighthouseScene() {
  const level=useStore(s=>s.lighthouseLevel), time=useStore(s=>s.timeOfDay), quality=useStore(s=>s.quality);
  const beacon=useRef();
  const model=useMemo(()=>{const c=scene.clone(true);c.traverse(o=>{if(o.isMesh){o.receiveShadow=true;o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();}});return c;},[scene]);
- useEffect(()=>{model.traverse(o=>{if(!o.isMesh)return;o.castShadow=quality!=='low';for(const m of Array.isArray(o.material)?o.material:[o.material]){const fade=level==='spiral'&&/plaster|trim|plinth/i.test(m.name);m.transparent=fade;m.opacity=fade?.22:1;m.depthWrite=!fade;m.needsUpdate=true;}});},[model,level,quality]);
+ useEffect(() => {
+  model.traverse(mesh => {
+   if (!mesh.isMesh) return;
+   const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+   const landscape = materials.every(mat => /coastal foliage|tree bark|hill grass/i.test(mat.name));
+   mesh.castShadow = quality !== 'low' && (quality === 'high' || !landscape);
+   for (const material of materials) {
+    const fade = level === 'spiral' && /plaster|trim|plinth/i.test(material.name);
+    if (material.transparent === fade) continue;
+    material.transparent = fade;
+    material.opacity = fade ? 0.22 : 1;
+    material.depthWrite = !fade;
+    material.needsUpdate = true;
+   }
+  });
+ }, [model, level, quality]);
  useFrame((_,dt)=>{if(beacon.current)beacon.current.rotation.y+=dt*.5;});
  return <group name="Lighthouse_Video_Reconstruction">
   {/* Blender exports metres and Y-up: no legacy Meshy scale or offset. */}

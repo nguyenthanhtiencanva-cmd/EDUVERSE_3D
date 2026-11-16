@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Footprints } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 export function VirtualJoystick() {
   const cameraMode = useStore((state) => state.cameraMode);
-  const paused = useStore((state) => Boolean(state.activeHotspot));
+  const lighthouse = useStore((state) => state.worldScope === 'lighthouse');
+  const running = useStore((state) => state.joystickInput.isRunning);
   const base = useRef(null);
   const activePointer = useRef(null);
   const [knob, setKnob] = useState([0, 0]);
@@ -16,17 +17,18 @@ export function VirtualJoystick() {
   }
 
   useEffect(() => {
-    if (cameraMode !== 'fps' || paused) return;
+    if (cameraMode !== 'fps') return;
     function resetInput() {
       resetMove();
       useStore.getState().setJoystickJump(false);
+      useStore.getState().setJoystickRun(false);
     }
     window.addEventListener('blur', resetInput);
     return () => {
       window.removeEventListener('blur', resetInput);
       resetInput();
     };
-  }, [cameraMode, paused]);
+  }, [cameraMode, lighthouse]);
 
   function move(event) {
     if (event.pointerId !== activePointer.current) return;
@@ -43,7 +45,7 @@ export function VirtualJoystick() {
     if (event.pointerId === activePointer.current) resetMove();
   }
 
-  if (cameraMode !== 'fps' || paused) return null;
+  if (cameraMode !== 'fps') return null;
   return <div className="tour-touch-controls pointer-events-none fixed inset-0 z-30 select-none">
     <div ref={base} aria-label="Joystick di chuyển"
       className="pointer-events-auto absolute bottom-6 left-5 grid h-28 w-28 touch-none place-items-center rounded-full border-2 border-white/40 bg-slate-950/60 shadow-xl"
@@ -57,6 +59,13 @@ export function VirtualJoystick() {
       <div className="pointer-events-none h-11 w-11 rounded-full border-2 border-white bg-amber-400 shadow-lg"
         style={{ transform: `translate(${knob[0]}px, ${knob[1]}px)` }} />
     </div>
+    {lighthouse && (
+      <button type="button" aria-label="Chạy" aria-pressed={running}
+        className={`pointer-events-auto absolute bottom-24 right-5 grid h-12 w-12 touch-manipulation place-items-center rounded-full border border-white shadow-xl ${running ? 'bg-amber-300 text-slate-950' : 'bg-slate-950/75 text-white'}`}
+        onClick={() => useStore.getState().setJoystickRun(!running)}>
+        <Footprints size={20} aria-hidden="true" />
+      </button>
+    )}
     <button aria-label="Nhảy"
       className="pointer-events-auto absolute bottom-7 right-5 grid h-14 w-14 touch-none place-items-center rounded-full border border-white bg-amber-400 text-slate-950 shadow-xl"
       onPointerDown={(event) => {
