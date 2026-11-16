@@ -24,8 +24,6 @@ const MODELS = [
   { source: 'vinh_thuc_island_v3.glb', output: 'vinh_thuc_island.glb' },
   // Địa hình thật, sinh bởi `npm run terrain:build`.
   { source: 'vinh_thuc_terrain.glb', output: 'vinh_thuc_terrain.glb' },
-  // Xe máy và người lái tạo bằng Meshy (text-to-3D), chỉ nhìn từ xa nên texture 512 là đủ.
-  { source: 'xe_may_du_khach.glb', output: 'xe_may.glb', texture: 512 },
   { source: 'hai_dang_vinh_thuc_v2.glb', output: 'hai_dang.glb', texture: 1024 },
   { source: 'tourist_meshy.glb', output: 'tourist.glb', texture: 1024 },
   { source: 'student_character.glb', output: 'student.glb' },
