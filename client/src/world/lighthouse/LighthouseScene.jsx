@@ -33,32 +33,152 @@ function TourMarkers() {
 }
 
 function SpiralSteps({ visible }) {
- const steps = useRef(null);
- useLayoutEffect(() => {
-  const transform = new THREE.Object3D();
-  for (let i = 0; i < TOWER.spiralSteps; i++) {
-   const pose = getSpiralPose((i + 0.5) / TOWER.spiralSteps);
-   transform.position.set(pose.x, pose.y - 0.06, pose.z);
-   transform.rotation.y = -pose.angle;
-   transform.updateMatrix();
-   steps.current.setMatrixAt(i, transform.matrix);
+  const steps = useRef(null);
+  const posts = useRef(null);
+  const railSegments = useRef(null);
+
+  useLayoutEffect(() => {
+    const transform = new THREE.Object3D();
+    const count = TOWER.spiralSteps;
+    for (let i = 0; i < count; i++) {
+      const pose = getSpiralPose((i + 0.5) / count);
+      // Bậc thang gỗ xoắn ốc
+      transform.position.set(pose.x, pose.y - 0.06, pose.z);
+      transform.rotation.set(0, -pose.angle, 0);
+      transform.scale.set(1, 1, 1);
+      transform.updateMatrix();
+      steps.current.setMatrixAt(i, transform.matrix);
+
+      // Trụ đứng lan can mép ngoài cao ngang người nhân vật (1.05m)
+      if (posts.current) {
+        const outerX = TOWER.x + Math.cos(pose.angle) * 1.62;
+        const outerZ = TOWER.z + Math.sin(pose.angle) * 1.62;
+        transform.position.set(outerX, pose.y + 0.48, outerZ);
+        transform.rotation.set(0, 0, 0);
+        transform.updateMatrix();
+        posts.current.setMatrixAt(i, transform.matrix);
+      }
+
+      // Thanh tay vịn nối các trụ ở độ cao ngang người (~1.05m)
+      if (railSegments.current) {
+        const nextPose = getSpiralPose(Math.min(1, (i + 1.5) / count));
+        const currX = TOWER.x + Math.cos(pose.angle) * 1.62;
+        const currZ = TOWER.z + Math.sin(pose.angle) * 1.62;
+        const nextX = TOWER.x + Math.cos(nextPose.angle) * 1.62;
+        const nextZ = TOWER.z + Math.sin(nextPose.angle) * 1.62;
+        const midX = (currX + nextX) / 2;
+        const midY = (pose.y + nextPose.y) / 2 + 1.02;
+        const midZ = (currZ + nextZ) / 2;
+        const yaw = Math.atan2(nextX - currX, nextZ - currZ);
+        const pitch = -Math.atan2(nextPose.y - pose.y, Math.hypot(nextX - currX, nextZ - currZ));
+        transform.position.set(midX, midY, midZ);
+        transform.rotation.set(pitch, yaw, 0, 'YXZ');
+        transform.updateMatrix();
+        railSegments.current.setMatrixAt(i, transform.matrix);
+      }
+    }
+    steps.current.instanceMatrix.needsUpdate = true;
+    steps.current.computeBoundingSphere();
+    if (posts.current) {
+      posts.current.instanceMatrix.needsUpdate = true;
+      posts.current.computeBoundingSphere();
+    }
+    if (railSegments.current) {
+      railSegments.current.instanceMatrix.needsUpdate = true;
+      railSegments.current.computeBoundingSphere();
+    }
+  }, []);
+
+  return (
+    <group visible={visible}>
+      {/* 112 Bậc thang xoắn ốc */}
+      <instancedMesh ref={steps} args={[null, null, TOWER.spiralSteps]}>
+        <boxGeometry args={[0.8, 0.12, 0.3]} />
+        <meshStandardMaterial color="#bc8542" roughness={0.6} />
+      </instancedMesh>
+      {/* Trụ lan can inox trắng cao ngang người (1.05m) */}
+      <instancedMesh ref={posts} args={[null, null, TOWER.spiralSteps]}>
+        <cylinderGeometry args={[0.02, 0.02, 1.05, 8]} />
+        <meshStandardMaterial color="#e2e8f0" metalness={0.6} roughness={0.3} />
+      </instancedMesh>
+      {/* Tay vịn liên tục ở đỉnh trụ cao ngang người (1.05m) */}
+      <instancedMesh ref={railSegments} args={[null, null, TOWER.spiralSteps]}>
+        <boxGeometry args={[0.07, 0.05, 0.38]} />
+        <meshStandardMaterial color="#cbd5e1" metalness={0.5} roughness={0.35} />
+      </instancedMesh>
+    </group>
+  );
+}
+
+// Điều chỉnh chiều cao tay vịn và lan can cầu thang sườn đồi cao ngang người nhân vật (~1.08m)
+function adjustStairRailing(mesh) {
+  if (!mesh.isMesh || !mesh.geometry) return;
+  const geometry = mesh.geometry.clone();
+  const pos = geometry.attributes.position;
+  if (!pos) return;
+
+  const count = pos.count;
+  let modified = false;
+
+  for (let i = 0; i < count; i++) {
+    const x = pos.getX(i);
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+
+    // Dọc tuyến cầu thang sườn đồi từ chân (Z~44.6) lên cổng sân (Z~7.5)
+    if (z < 6.8 || z > 45.2) continue;
+
+    // Hai dải tay vịn và con tiện lan can hai bên mép cầu thang:
+    // Mép trái: X ~ 2.55 (phạm vi 2.25 đến 2.80)
+    // Mép phải: X ~ 5.45 (phạm vi 5.20 đến 5.75)
+    const isLeft = x >= 2.25 && x <= 2.80;
+    const isRight = x >= 5.20 && x <= 5.75;
+    if (!isLeft && !isRight) continue;
+
+    // Mặt dốc chuẩn của từng bậc thang tại tọa độ Z:
+    // Z=7.5 (đỉnh) -> Y=0; Z=44.63 (chân cầu thang) -> Y=-17.472
+    const t = Math.max(0, Math.min(1, (z - 7.5) / (44.63 - 7.5)));
+    const stepBaseY = t * -17.472;
+
+    // Độ cao của điểm đỉnh/thân lan can so với mặt bậc:
+    // Bản gốc bị nhân hệ số 2.8x nên cao tới ~2.35m (vượt quá đầu nhân vật).
+    // Ta đưa về chiều cao chuẩn ngang người nhân vật (~1.08m).
+    const h = y - stepBaseY;
+    if (h >= -0.2 && h <= 2.6) {
+      const scaleFactor = 1.08 / 2.352;
+      pos.setY(i, stepBaseY + h * scaleFactor);
+      modified = true;
+    }
   }
-  steps.current.instanceMatrix.needsUpdate = true;
-  steps.current.computeBoundingSphere();
- }, []);
- return (
-  <instancedMesh ref={steps} args={[null, null, TOWER.spiralSteps]} visible={visible}>
-   <boxGeometry args={[0.8, 0.12, 0.3]} />
-   <meshStandardMaterial color="#bc8542" />
-  </instancedMesh>
- );
+
+  if (modified) {
+    pos.needsUpdate = true;
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
+    mesh.geometry = geometry;
+  }
 }
 
 export function LighthouseScene() {
- const { scene } = useGLTF(MODEL_URLS.lighthouseLandscape);
- const level=useStore(s=>s.lighthouseLevel), time=useStore(s=>s.timeOfDay), quality=useStore(s=>s.quality);
- const beacon=useRef();
- const model=useMemo(()=>{const c=scene.clone(true);c.traverse(o=>{if(o.isMesh){o.receiveShadow=true;o.material=Array.isArray(o.material)?o.material.map(m=>m.clone()):o.material.clone();}});return c;},[scene]);
+  const { scene } = useGLTF(MODEL_URLS.lighthouseLandscape);
+  const level = useStore((s) => s.lighthouseLevel);
+  const time = useStore((s) => s.timeOfDay);
+  const quality = useStore((s) => s.quality);
+  const beacon = useRef();
+  const model = useMemo(() => {
+    const c = scene.clone(true);
+    c.traverse((o) => {
+      if (o.isMesh) {
+        o.receiveShadow = true;
+        o.material = Array.isArray(o.material)
+          ? o.material.map((m) => m.clone())
+          : o.material.clone();
+        adjustStairRailing(o);
+      }
+    });
+    return c;
+  }, [scene]);
  useEffect(() => {
   model.traverse(mesh => {
    if (!mesh.isMesh) return;
