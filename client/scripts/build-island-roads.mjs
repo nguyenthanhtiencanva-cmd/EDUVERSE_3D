@@ -13,6 +13,8 @@ import { fileURLToPath } from 'node:url';
 const STEP = 2; // Phải khớp STEP trong build-island-terrain.mjs
 const SPACING_METERS = 30; // Chèn điểm để đường uốn theo địa hình
 const MAIN_ROADS = new Set(['primary', 'secondary', 'tertiary', 'unclassified']);
+// Đường phụ: trong khu dân cư, đường nội bộ và đường mòn. Chỉ vẽ khi camera tới gần.
+const MINOR_ROADS = new Set(['residential', 'service', 'living_street', 'track', 'path']);
 const QUERY = `[out:json][timeout:40];
 (way["highway"](21.33,107.82,21.42,108.02);way["route"="ferry"](21.33,107.82,21.50,108.02););
 out geom tags;`;
@@ -63,17 +65,31 @@ function toLine(geometry, onSea) {
   return line;
 }
 
-const response = await fetch('https://overpass-api.de/api/interpreter', {
-  method: 'POST',
-  headers: { 'User-Agent': 'eduverse-map-build/1.0' },
-  body: new URLSearchParams({ data: QUERY }),
-});
-if (!response.ok) throw new Error(`Overpass trả về ${response.status}`);
-const { elements } = await response.json();
+// Máy chủ Overpass công cộng đôi khi quá tải (504), nên thử lần lượt vài máy chủ, mỗi máy hai lần.
+const ENDPOINTS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+let elements;
+for (let attempt = 0; attempt < ENDPOINTS.length * 2 && !elements; attempt++) {
+  const endpoint = ENDPOINTS[attempt % ENDPOINTS.length];
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'User-Agent': 'eduverse-map-build/1.0' },
+      body: new URLSearchParams({ data: QUERY }),
+    });
+    if (!response.ok) throw new Error(`trả về ${response.status}`);
+    ({ elements } = await response.json());
+  } catch (error) {
+    console.warn(`${endpoint}: ${error.message}, thử lại...`);
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+  }
+}
+if (!elements) throw new Error('Không lấy được dữ liệu từ OpenStreetMap, hãy chạy lại sau.');
 
 const roads = [];
+const minorRoads = [];
 const ferries = [];
 let roadKm = 0;
+let minorKm = 0;
 let ferryKm = 0;
 for (const element of elements) {
   const tags = element.tags || {};
@@ -84,6 +100,9 @@ for (const element of elements) {
   } else if (MAIN_ROADS.has(tags.highway)) {
     roads.push(toLine(element.geometry, false));
     roadKm += length;
+  } else if (MINOR_ROADS.has(tags.highway)) {
+    minorRoads.push(toLine(element.geometry, false));
+    minorKm += length;
   }
 }
 
@@ -95,8 +114,9 @@ fs.writeFileSync(
     fetched: new Date().toISOString().slice(0, 10),
     note: 'Mỗi điểm là [kinh độ, vĩ độ, cao độ mét]. Sinh bởi npm run roads:build, không sửa tay.',
     roads,
+    minorRoads,
     ferries,
   })}\n`,
 );
-console.log(`${roads.length} đoạn đường chính (${roadKm.toFixed(1)} km), ${ferries.length} tuyến phà (${ferryKm.toFixed(1)} km) -> ${output}`);
+console.log(`${roads.length} đoạn đường chính (${roadKm.toFixed(1)} km), ${minorRoads.length} đoạn đường phụ (${minorKm.toFixed(1)} km), ${ferries.length} tuyến phà (${ferryKm.toFixed(1)} km) -> ${output}`);
 console.log('Đầu tuyến phà:', ferries.map((line) => `${line[0].slice(0, 2)} -> ${line[line.length - 1].slice(0, 2)}`).join(' | '));
