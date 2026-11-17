@@ -2,10 +2,15 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useAnimations, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { useStore } from '../store/useStore';
-import { LIGHTHOUSE_WORLD, advanceLighthousePlayer, getSpiralPose } from './lighthouse/layout';
+import { LIGHTHOUSE_WORLD, STAIRS, advanceLighthousePlayer, footGroundAt, getSpiralPose } from './lighthouse/layout';
 import { MODEL_URLS } from './models';
 import { campusCameraDistance, campusCanWalk, campusGroundAt } from './campusCollision';
+import { createAvatarMotion } from '../player/avatarMotion';
+
+const BASE_CAMERA_FOV = 52;
+const WALK_CAMERA_FOV = 66;
 
 const MOVE_KEYS = new Set([
   'KeyW',
@@ -25,7 +30,11 @@ const MOVE_KEYS = new Set([
 export function CharacterController({ tourist = true }) {
   const group = useRef(null);
   const { camera, gl } = useThree();
-  const { scene, animations } = useGLTF(tourist ? MODEL_URLS.tourist : MODEL_URLS.student);
+  const { scene: sourceScene, animations } = useGLTF(tourist ? MODEL_URLS.tourist : MODEL_URLS.student);
+  const scene = useMemo(() => clone(sourceScene), [sourceScene]);
+  const motion = useMemo(() => tourist ? createAvatarMotion(scene) : null, [scene, tourist]);
+  // Undo last frame's procedural pose before Drei advances the animation mixer.
+  useFrame(() => motion?.restore(), -1);
   const { actions } = useAnimations(animations, group);
   const walking = useStore((state) => state.cameraMode === 'fps');
   const playerTeleport = useStore((state) => state.playerTeleport);
@@ -39,15 +48,15 @@ export function CharacterController({ tourist = true }) {
     position: new THREE.Vector3(...initSpawn),
     facing: Math.PI,
     yaw: tourist ? Math.PI : 0,
-    pitch: 0.24,
-    distance: 4.0,
+    pitch: 0.22,
+    distance: 5.5,
     keys: new Set(),
     pointer: null,
     jumpPressed: false,
     jumpHeld: false,
     lift: 0,
     jumpHeight: 0,
-    cameraRadius: 4.0,
+    cameraRadius: 5.5,
     clip: '',
     snap: true,
     positionTimer: 0,
@@ -74,12 +83,13 @@ export function CharacterController({ tourist = true }) {
     player.lift = 0;
     player.jumpHeight = 0;
     player.snap = true;
+    motion?.reset();
     if (group.current) {
       group.current.position.copy(player.position);
       group.current.rotation.y = player.facing;
     }
     useStore.getState().setPlayerPosition([tx, ty + 1.4, tz], true);
-  }, [playerTeleport, player, tourist]);
+  }, [playerTeleport, player, tourist, motion]);
 
   useEffect(() => {
     scene.traverse((child) => {
@@ -99,8 +109,9 @@ export function CharacterController({ tourist = true }) {
     () => () => {
       Object.values(actions).forEach((action) => action?.stop());
       player.clip = '';
+      motion?.reset();
     },
-    [actions, player],
+    [actions, player, motion],
   );
 
   useEffect(() => {
@@ -157,7 +168,7 @@ export function CharacterController({ tourist = true }) {
       if (player.pointer?.id === event.pointerId) player.pointer = null;
     };
     const zoom = (event) => {
-      player.distance = THREE.MathUtils.clamp(player.distance + event.deltaY * 0.005, 1.8, 8);
+      player.distance = THREE.MathUtils.clamp(player.distance + event.deltaY * 0.006, 1.8, 11.5);
     };
     const events = [
       [window, 'keydown', keyDown],
@@ -178,15 +189,30 @@ export function CharacterController({ tourist = true }) {
     };
   }, [walking, gl, player]);
 
+  useEffect(() => () => {
+    if (camera.fov !== BASE_CAMERA_FOV) {
+      camera.fov = BASE_CAMERA_FOV;
+      camera.updateProjectionMatrix();
+    }
+  }, [camera]);
+
   useFrame((_, elapsed) => {
     if (!group.current) return;
     const dt = Math.min(elapsed, 0.05);
     const { position, keys } = player;
+    const startX = position.x;
+    const startZ = position.z;
     let clip = 'Idle';
 
     const state = useStore.getState();
     const isLighthouse = state.worldScope === 'lighthouse';
     const level = state.lighthouseLevel || 'ground';
+    const hillStairs = isLighthouse && level === 'ground' &&
+      position.x >= STAIRS.x0 - 0.15 && position.x <= STAIRS.x1 + 0.15 &&
+      position.z >= STAIRS.z0 - 0.3 && position.z <= STAIRS.z1 + 0.3;
+    const entryStairs = isLighthouse && level === 'ground' &&
+      position.x > 2.5 && position.x < 6 && position.z > 4.1 && position.z < 5.7;
+    const onStairs = hillStairs || entryStairs || (isLighthouse && level === 'spiral');
     const checkWalk = (x, z) => campusCanWalk(position, x, z);
     const getGroundY = (x, z) =>
       isLighthouse
@@ -216,10 +242,10 @@ export function CharacterController({ tourist = true }) {
         else if (Math.abs(forward) > 0.12) dir = forward > 0 ? 1 : -1;
 
         if (dir !== 0) {
-          const climbSpeed = state.autoClimb || running ? 0.21 : 0.14;
-          const climbDelta = state.autoClimb ? Math.min(elapsed, 0.25) : dt;
+          const climbSpeed = running ? 0.04 : 0.03;
+          const climbDelta = dt;
           const nextT = state.spiralProgress + dir * climbSpeed * climbDelta;
-          clip = running || state.autoClimb ? 'Run' : 'Walk';
+          clip = 'Walk';
 
           if (nextT >= 1.0) {
             state.finishSpiralClimb('balcony');
@@ -238,10 +264,10 @@ export function CharacterController({ tourist = true }) {
           }
         }
       } else if (isLighthouse) {
-        const walkDelta = Math.min(elapsed, 0.12);
+        const walkDelta = onStairs ? dt : Math.min(elapsed, 0.12);
         if (magnitude > 0.12) {
           const yaw = player.yaw + Math.atan2(-right, forward);
-          const speed = level === 'balcony' ? 1.85 : running ? 4.8 : 2.8;
+          const speed = onStairs ? (hillStairs ? STAIRS.speed : 0.95) : level === 'balcony' ? 1.85 : running ? 4.8 : 2.8;
           const strength = (Math.min(magnitude, 1) - 0.12) / 0.88;
           const distance = speed * strength * walkDelta;
           const previousX = position.x;
@@ -250,7 +276,7 @@ export function CharacterController({ tourist = true }) {
           const movedX = position.x - previousX;
           const movedZ = position.z - previousZ;
           if (Math.hypot(movedX, movedZ) > 0.001) {
-            clip = running && level !== 'balcony' ? 'Run' : 'Walk';
+            clip = running && level !== 'balcony' && !onStairs ? 'Run' : 'Walk';
             const heading = Math.atan2(movedX, movedZ) + (tourist ? 0 : Math.PI) - player.facing;
             player.facing += Math.atan2(Math.sin(heading), Math.cos(heading)) * (1 - Math.exp(-16 * walkDelta));
           }
@@ -314,22 +340,25 @@ export function CharacterController({ tourist = true }) {
 
       const { target, eye, direction } = scratch;
       target.copy(position);
-      target.y += 1.25;
+      target.y += 1.38;
       direction.set(
         -Math.sin(player.yaw) * Math.cos(player.pitch),
         Math.sin(player.pitch),
         -Math.cos(player.yaw) * Math.cos(player.pitch),
       );
 
-      let distance = player.distance;
-      if (isLighthouse) {
-        const clearDistance = LIGHTHOUSE_WORLD.cameraDistance(target, direction, player.distance, level);
-        if (player.snap || clearDistance < player.cameraRadius) player.cameraRadius = clearDistance;
-        else player.cameraRadius = THREE.MathUtils.lerp(player.cameraRadius, clearDistance, 1 - Math.exp(-8 * dt));
-        distance = player.cameraRadius;
-      } else {
-        distance = campusCameraDistance(target, direction, player.distance);
+      const desiredFov = WALK_CAMERA_FOV;
+      if (Math.abs(camera.fov - desiredFov) > 0.05) {
+        camera.fov = THREE.MathUtils.lerp(camera.fov, desiredFov, 1 - Math.exp(-10 * dt));
+        camera.updateProjectionMatrix();
       }
+
+      const clearDistance = isLighthouse
+        ? LIGHTHOUSE_WORLD.cameraDistance(target, direction, player.distance, level)
+        : campusCameraDistance(target, direction, player.distance);
+      if (player.snap || clearDistance < player.cameraRadius) player.cameraRadius = clearDistance;
+      else player.cameraRadius = THREE.MathUtils.lerp(player.cameraRadius, clearDistance, 1 - Math.exp(-8 * dt));
+      const distance = player.cameraRadius;
 
       eye.copy(target).addScaledVector(direction, distance);
       const eyeGroundY = getGroundY(eye.x, eye.z);
@@ -353,6 +382,9 @@ export function CharacterController({ tourist = true }) {
           setPlayerPosition([position.x, position.y + 1.4, position.z]);
         }
       }
+    } else if (Math.abs(camera.fov - BASE_CAMERA_FOV) > 0.05) {
+      camera.fov = THREE.MathUtils.lerp(camera.fov, BASE_CAMERA_FOV, 1 - Math.exp(-8 * dt));
+      camera.updateProjectionMatrix();
     }
 
     if (clip !== player.clip && actions[clip]) {
@@ -362,6 +394,27 @@ export function CharacterController({ tourist = true }) {
     }
     group.current.position.copy(position);
     group.current.rotation.y = player.facing;
+    const movementDelta = isLighthouse && !onStairs ? Math.min(elapsed, 0.12) : dt;
+    const speed = Math.hypot(position.x - startX, position.z - startZ) / Math.max(movementDelta, 0.001);
+    if (actions[clip] && clip !== 'Idle') {
+      actions[clip].setEffectiveTimeScale(THREE.MathUtils.clamp(speed / (clip === 'Run' ? 4.8 : onStairs ? 1.4 : 2.6), 0.45, 1.5));
+    }
+    group.current.updateWorldMatrix(true, true);
+    const current = useStore.getState();
+    const currentLevel = current.lighthouseLevel || 'ground';
+    const airborne = isLighthouse
+      ? player.jumpHeight > 0.005 || player.lift > 0
+      : player.lift !== 0;
+    motion?.update({
+      dt,
+      airborne,
+      moving: walking && speed > 0.05,
+      stairStride: onStairs && currentLevel === level ? (hillStairs ? STAIRS.stride : 0.32) : null,
+      runWeight: actions.Run?.isRunning() ? actions.Run.getEffectiveWeight() : 0,
+      groundAt: (x, z) => isLighthouse
+        ? footGroundAt(x, z, currentLevel, current.spiralProgress)
+        : campusGroundAt(x, position.y, z),
+    });
   });
 
   return (

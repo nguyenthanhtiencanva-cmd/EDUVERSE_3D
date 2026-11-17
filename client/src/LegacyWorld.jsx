@@ -70,7 +70,7 @@ export default function LegacyWorld() {
       <Canvas
         shadows={quality !== 'low'}
         dpr={[1, MAX_DPR[quality]]}
-        camera={{ position: [0, 52, 88], fov: 46, ...(geoIsland ? GEO_CAMERA_RANGE : { near: 0.2, far: 900 }) }}
+        camera={{ position: [0, 52, 88], fov: 52, ...(geoIsland ? GEO_CAMERA_RANGE : { near: 0.2, far: 900 }) }}
         gl={{ antialias, powerPreference: 'high-performance' }}
       >
         <SceneLighting />

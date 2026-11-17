@@ -217,7 +217,7 @@ export function CameraController() {
           ref={orbitRef}
           enableDamping
           dampingFactor={0.06}
-          minDistance={worldScope === 'island' ? 12 : 4}
+          minDistance={worldScope === 'island' ? 12 : 2.5}
           maxDistance={worldScope === 'island' ? (GEO_MAP_ENABLED ? 600 : 180) : worldScope === 'lighthouse' || worldScope === 'vangia' ? 260 : 120}
           maxPolarAngle={Math.PI / 2 - 0.05}
         />
