@@ -3,7 +3,7 @@ import { MeshBVH } from 'three-mesh-bvh';
 
 // Va chạm dò thẳng trên lưới của mô hình, nên tự khớp khi mô hình thay đổi.
 // Dùng chung cho các cảnh 1:1 đi bộ (trường, Cảng Vạn Gia); mỗi cảnh truyền ranh giới riêng.
-const CAMPUS_BOUNDS = { minX: -28, maxX: 28, minZ: -28, maxZ: 28 }; // Khu vực đi bộ quanh sân trường (m)
+const CAMPUS_BOUNDS = { minX: -32.5, maxX: 28, minZ: -33.8, maxZ: 31.5 }; // Khu vực đi bộ quanh sân trường & trong tất cả các dãy lớp học (m)
 const PLAYER_RADIUS = 0.4;
 const STEP_HEIGHT = 0.4; // Bậc cao nhất nhân vật tự bước lên được (bậc thềm, bồn cỏ; ghế và bàn thì không)
 const BODY_HEIGHTS = [0.45, 0.9, 1.4]; // Độ cao dò tường, tính từ bàn chân

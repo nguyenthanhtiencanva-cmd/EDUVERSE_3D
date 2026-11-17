@@ -34,6 +34,10 @@ import bpy
 import bmesh
 import math
 import os
+import shutil
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 
 
 # ------------------------------------------------------------------------------
@@ -131,7 +135,7 @@ def sub_col(name, parent):
 # ------------------------------------------------------------------------------
 # 2. COLOR PALETTE & PBR TEXTURED MATERIAL LIBRARY (NHÓM 1 HYPER-DETAIL)
 # ------------------------------------------------------------------------------
-TEX_DIR = "d:/ANTIGRAVITY/EDUVERSE_3D/assets/school/textures"
+TEX_DIR = os.path.join(SCRIPT_DIR, "textures")
 
 
 def create_mat(name, color_rgba, roughness=0.6, metallic=0.0, emission=None, alpha=1.0):
@@ -238,7 +242,7 @@ def build_materials():
 
         # Openings & Hardware (Semi-transparent architectural glass)
         "Window_Dark": create_mat("MAT_Window_Dark", (0.14, 0.16, 0.18, 1.0), roughness=0.25),
-        "Glass_Blue": create_mat("MAT_Glass_Blue", (0.20, 0.36, 0.52, 1.0), roughness=0.06, metallic=0.35, alpha=0.62),
+        "Glass_Blue": create_mat("MAT_Glass_Blue", (0.36, 0.58, 0.78, 1.0), roughness=0.06, metallic=0.15, alpha=0.28),
         "Door_Wood": create_mat("MAT_Door_Wood", (0.40, 0.26, 0.16, 1.0), roughness=0.65),
         "Railing_Silver": create_mat("MAT_Railing_Silver", (0.85, 0.85, 0.88, 1.0), roughness=0.20, metallic=0.90),
         "Gate_Iron_Blue": create_mat("MAT_Gate_Iron_Blue", (0.20, 0.40, 0.65, 1.0), roughness=0.35, metallic=0.60),
@@ -252,8 +256,10 @@ def build_materials():
         "Speaker_Black": create_mat("MAT_Speaker_Black", (0.08, 0.08, 0.09, 1.0), roughness=0.35),
 
         # Classroom Interiors & Props
-        "Blackboard_Green": create_mat("MAT_Blackboard_Green", (0.10, 0.24, 0.14, 1.0), roughness=0.80),
-        "Desk_Wood": create_mat("MAT_Desk_Wood", (0.82, 0.62, 0.38, 1.0), roughness=0.60),
+        "Blackboard_Green": create_mat("MAT_Blackboard_Green", (0.09, 0.25, 0.14, 1.0), roughness=0.78),
+        "Desk_Wood": create_mat("MAT_Desk_Wood", (0.82, 0.62, 0.38, 1.0), roughness=0.55),
+        "Podium_Wood": create_mat("MAT_Podium_Wood", (0.48, 0.27, 0.14, 1.0), roughness=0.45),
+        "Desk_Metal": create_mat("MAT_Desk_Metal", (0.24, 0.28, 0.34, 1.0), roughness=0.42, metallic=0.65),
         "Chair_Blue": create_mat("MAT_Chair_Blue", (0.16, 0.44, 0.78, 1.0), roughness=0.55),
         "Light_Glow": create_mat("MAT_Light_Glow", (1.0, 1.0, 0.94, 1.0), roughness=0.30, emission=((1.0, 1.0, 0.95, 1.0), 3.0)),
         "AC_White": create_mat("MAT_AC_White", (0.90, 0.90, 0.92, 1.0), roughness=0.40),
@@ -526,8 +532,8 @@ def create_gabled_roof_east_west(name, width_x, length_y, roof_h, overhang, loc,
 def build_google_maps_blueprint(scene):
     """Lót trực tiếp ảnh vệ tinh Google Maps tỉ lệ 1:1 dưới chân công trình trong Blender"""
     sat_paths = [
-        "d:/ANTIGRAVITY/EDUVERSE_3D/assets/school/reference_google_maps_satellite.jpg",
-        "d:/ANTIGRAVITY/EDUVERSE_3D/docs/reference_google_maps_satellite.jpg",
+        os.path.join(SCRIPT_DIR, "reference_google_maps_satellite.jpg"),
+        os.path.join(REPO_ROOT, "docs", "reference_google_maps_satellite.jpg"),
     ]
     img_path = next((p for p in sat_paths if os.path.exists(p)), None)
     if not img_path:
@@ -580,43 +586,289 @@ def build_google_maps_blueprint(scene):
 # 5. ARCHITECTURAL & COURTYARD HIGH-DETAIL PROPS
 # ------------------------------------------------------------------------------
 def create_detailed_window_ew(name, loc, mats, col):
-    """Cửa sổ 4 cánh trên tường chạy dọc Bắc-Nam (nhìn sang Đông/Tây)"""
-    create_box(f"{name}_Sill", (0.36, 2.25, 0.12), (loc[0], loc[1], loc[2] - 0.80), mats["Trim_White"], col)
-    create_box(f"{name}_Frame", (0.28, 2.15, 1.55), loc, mats["Trim_White"], col)
-    create_box(f"{name}_Glass", (0.30, 1.95, 1.35), loc, mats["Glass_Blue"], col)
+    """Cửa sổ 4 cánh khung rỗng kính trong suốt trên tường chạy dọc Bắc-Nam (nhìn xuyên vào lớp học)"""
+    create_box(f"{name}_Sill", (0.36, 2.25, 0.10), (loc[0], loc[1], loc[2] - 0.77), mats["Trim_White"], col)
+    create_box(f"{name}_Frame_T", (0.28, 2.15, 0.08), (loc[0], loc[1], loc[2] + 0.73), mats["Trim_White"], col)
+    create_box(f"{name}_Frame_B", (0.28, 2.15, 0.08), (loc[0], loc[1], loc[2] - 0.71), mats["Trim_White"], col)
+    create_box(f"{name}_Frame_L", (0.28, 0.08, 1.48), (loc[0], loc[1] - 1.03, loc[2]), mats["Trim_White"], col)
+    create_box(f"{name}_Frame_R", (0.28, 0.08, 1.48), (loc[0], loc[1] + 1.03, loc[2]), mats["Trim_White"], col)
+    create_box(f"{name}_Glass", (0.04, 1.98, 1.38), loc, mats["Glass_Blue"], col)
     for m_off in [-0.48, 0.0, 0.48]:
-        create_box(f"{name}_Muntin_{m_off}", (0.32, 0.05, 1.35), (loc[0], loc[1] + m_off, loc[2]), mats["Trim_White"], col)
-    create_box(f"{name}_Transom", (0.32, 1.95, 0.05), (loc[0], loc[1], loc[2] + 0.34), mats["Trim_White"], col)
+        create_box(f"{name}_Muntin_{m_off}", (0.10, 0.045, 1.38), (loc[0], loc[1] + m_off, loc[2]), mats["Trim_White"], col)
+    create_box(f"{name}_Transom", (0.10, 1.98, 0.045), (loc[0], loc[1], loc[2] + 0.34), mats["Trim_White"], col)
 
 
 def create_detailed_window_ns(name, loc, mats, col):
-    """Cửa sổ 4 cánh khung trắng trên tường chạy ngang Đông-Tây (nhìn sang Nam/Bắc chuẩn Ảnh 2)"""
-    create_box(f"{name}_Sill", (2.25, 0.36, 0.12), (loc[0], loc[1], loc[2] - 0.80), mats["Trim_White"], col)
-    create_box(f"{name}_Frame", (2.15, 0.28, 1.55), loc, mats["Trim_White"], col)
-    create_box(f"{name}_Glass", (1.95, 0.30, 1.35), loc, mats["Glass_Blue"], col)
+    """Cửa sổ 4 cánh khung rỗng kính trong suốt trên tường chạy ngang Đông-Tây (nhìn xuyên vào lớp học)"""
+    create_box(f"{name}_Sill", (2.25, 0.36, 0.10), (loc[0], loc[1], loc[2] - 0.77), mats["Trim_White"], col)
+    create_box(f"{name}_Frame_T", (2.15, 0.28, 0.08), (loc[0], loc[1], loc[2] + 0.73), mats["Trim_White"], col)
+    create_box(f"{name}_Frame_B", (2.15, 0.28, 0.08), (loc[0], loc[1], loc[2] - 0.71), mats["Trim_White"], col)
+    create_box(f"{name}_Frame_L", (0.08, 0.28, 1.48), (loc[0] - 1.03, loc[1], loc[2]), mats["Trim_White"], col)
+    create_box(f"{name}_Frame_R", (0.08, 0.28, 1.48), (loc[0] + 1.03, loc[1], loc[2]), mats["Trim_White"], col)
+    create_box(f"{name}_Glass", (1.98, 0.04, 1.38), loc, mats["Glass_Blue"], col)
     for m_off in [-0.48, 0.0, 0.48]:
-        create_box(f"{name}_Muntin_{m_off}", (0.05, 0.32, 1.35), (loc[0] + m_off, loc[1], loc[2]), mats["Trim_White"], col)
-    create_box(f"{name}_Transom", (1.95, 0.32, 0.05), (loc[0], loc[1], loc[2] + 0.34), mats["Trim_White"], col)
+        create_box(f"{name}_Muntin_{m_off}", (0.045, 0.10, 1.38), (loc[0] + m_off, loc[1], loc[2]), mats["Trim_White"], col)
+    create_box(f"{name}_Transom", (1.98, 0.10, 0.045), (loc[0], loc[1], loc[2] + 0.34), mats["Trim_White"], col)
 
 
-def create_detailed_door(name, loc, mats, col):
-    """Cửa đi 2 cánh gỗ kính + biển tên lớp học"""
-    create_box(f"{name}_Frame", (0.28, 1.15, 2.35), loc, mats["Window_Dark"], col)
-    create_box(f"{name}_Leaf_L", (0.26, 0.52, 2.25), (loc[0], loc[1] - 0.27, loc[2]), mats["Door_Wood"], col)
-    create_box(f"{name}_Leaf_R", (0.26, 0.52, 2.25), (loc[0], loc[1] + 0.27, loc[2]), mats["Door_Wood"], col)
-    create_box(f"{name}_Glass_L", (0.28, 0.34, 0.80), (loc[0], loc[1] - 0.27, loc[2] + 0.35), mats["Glass_Blue"], col)
-    create_box(f"{name}_Glass_R", (0.28, 0.34, 0.80), (loc[0], loc[1] + 0.27, loc[2] + 0.35), mats["Glass_Blue"], col)
-    create_box(f"{name}_Signboard", (0.08, 0.48, 0.20), (loc[0] - 0.15, loc[1], loc[2] + 1.35), mats["Banner_Blue"], col)
+def create_detailed_door(name, loc, mats, col, axis='ew', width=1.55, is_open=False, swing_dir=1, has_signboard=True, sign_side=-1, frame_mat_key="Door_Wood"):
+    """Cửa đi 2 cánh gỗ kính (đóng hoặc mở vào trong phòng học cho phép đi bộ vào bên trong)"""
+    h = 2.35
+    post_t = 0.07
+    leaf_w = (width - post_t * 2.0) / 2.0 - 0.015
+    z_bot = loc[2] - h / 2.0
+    leaf_h = h - 0.08
+
+    if axis == 'ew':
+        # Tường chạy dọc Bắc-Nam (Y), cửa đi qua theo hướng Đông-Tây (X)
+        create_box(f"{name}_Jamb_S", (0.28, post_t, h), (loc[0], loc[1] - width / 2.0 + post_t / 2.0, loc[2]), mats["Window_Dark"], col)
+        create_box(f"{name}_Jamb_N", (0.28, post_t, h), (loc[0], loc[1] + width / 2.0 - post_t / 2.0, loc[2]), mats["Window_Dark"], col)
+        create_box(f"{name}_Header", (0.28, width, 0.08), (loc[0], loc[1], z_bot + h - 0.04), mats["Window_Dark"], col)
+        if has_signboard:
+            create_box(f"{name}_Signboard", (0.06, 0.58, 0.22), (loc[0] + sign_side * 0.16, loc[1], z_bot + h + 0.16), mats["Banner_Blue"], col)
+
+        for side_s, y_sign in [("L", -1), ("R", 1)]:
+            if is_open:
+                ang = -y_sign * swing_dir * math.radians(8)
+                leaf_cx = loc[0] + swing_dir * (leaf_w * 0.48 + 0.08)
+                leaf_cy = loc[1] + y_sign * (width / 2.0 - post_t - 0.05)
+                create_box(f"{name}_Leaf_{side_s}", (leaf_w, 0.045, leaf_h), (leaf_cx, leaf_cy, z_bot + leaf_h / 2.0), mats[frame_mat_key], col, rot_z=ang)
+                create_box(f"{name}_Glass_{side_s}", (leaf_w * 0.72, 0.055, 0.85), (leaf_cx, leaf_cy, z_bot + 1.48), mats["Glass_Blue"], col, rot_z=ang)
+            else:
+                cy = loc[1] + y_sign * (leaf_w / 2.0 + 0.01)
+                create_box(f"{name}_Leaf_{side_s}", (0.06, leaf_w, leaf_h), (loc[0], cy, z_bot + leaf_h / 2.0), mats[frame_mat_key], col)
+                create_box(f"{name}_Glass_{side_s}", (0.08, leaf_w * 0.70, 0.85), (loc[0], cy, z_bot + 1.48), mats["Glass_Blue"], col)
+    else:
+        # Tường chạy ngang Đông-Tây (X), cửa đi qua theo hướng Nam-Bắc (Y)
+        create_box(f"{name}_Jamb_W", (post_t, 0.28, h), (loc[0] - width / 2.0 + post_t / 2.0, loc[1], loc[2]), mats["Window_Dark"], col)
+        create_box(f"{name}_Jamb_E", (post_t, 0.28, h), (loc[0] + width / 2.0 - post_t / 2.0, loc[1], loc[2]), mats["Window_Dark"], col)
+        create_box(f"{name}_Header", (width, 0.28, 0.08), (loc[0], loc[1], z_bot + h - 0.04), mats["Window_Dark"], col)
+        if has_signboard:
+            create_box(f"{name}_Signboard", (0.58, 0.06, 0.22), (loc[0], loc[1] + sign_side * 0.16, z_bot + h + 0.16), mats["Banner_Blue"], col)
+
+        for side_s, x_sign in [("L", -1), ("R", 1)]:
+            if is_open:
+                leaf_cx = loc[0] + x_sign * (width / 2.0 - post_t - 0.05)
+                leaf_cy = loc[1] + swing_dir * (leaf_w * 0.48 + 0.08)
+                create_box(f"{name}_Leaf_{side_s}", (0.045, leaf_w, leaf_h), (leaf_cx, leaf_cy, z_bot + leaf_h / 2.0), mats[frame_mat_key], col)
+                create_box(f"{name}_Glass_{side_s}", (0.055, leaf_w * 0.72, 0.85), (leaf_cx, leaf_cy, z_bot + 1.48), mats["Glass_Blue"], col)
+            else:
+                cx = loc[0] + x_sign * (leaf_w / 2.0 + 0.01)
+                create_box(f"{name}_Leaf_{side_s}", (leaf_w, 0.06, leaf_h), (cx, loc[1], z_bot + leaf_h / 2.0), mats[frame_mat_key], col)
+                create_box(f"{name}_Glass_{side_s}", (leaf_w * 0.70, 0.08, 0.85), (cx, loc[1], z_bot + 1.48), mats["Glass_Blue"], col)
+
+
+def build_wall_with_openings(name, axis, fixed_coord, span_start, span_end, z_floor, z_ceil, openings, mats, col, wall_mat_key="Wall_Inner", thickness=0.24, door_swing_dir=1, sign_side=-1, frame_mat_key="Door_Wood"):
+    """Dựng tường có chừa ô cửa sổ kính và ô cửa đi thực tế (không bị hộp đặc che kín)"""
+    sorted_ops = sorted(openings, key=lambda o: o[0])
+    cursor = span_start
+    seg_idx = 0
+    wall_h = z_ceil - z_floor
+
+    def add_wall_strip(strip_tag, a, b, zb, zt):
+        if b - a <= 0.02 or zt - zb <= 0.02:
+            return
+        mid = (a + b) / 2.0
+        zc = (zb + zt) / 2.0
+        if axis == 'ew':
+            create_box(f"{name}_{strip_tag}", (thickness, b - a, zt - zb), (fixed_coord, mid, zc), mats[wall_mat_key], col)
+        else:
+            create_box(f"{name}_{strip_tag}", (b - a, thickness, zt - zb), (mid, fixed_coord, zc), mats[wall_mat_key], col)
+
+    for op_idx, op in enumerate(sorted_ops):
+        op_s, op_e, kind = op[0], op[1], op[2]
+        if op_s > cursor + 0.02:
+            add_wall_strip(f"Pier_{seg_idx}", cursor, op_s, z_floor, z_ceil)
+            seg_idx += 1
+
+        op_mid = (op_s + op_e) / 2.0
+        if kind == 'window':
+            win_zb = z_floor + 0.82
+            win_zt = min(z_ceil - 0.05, z_floor + 2.34)
+            add_wall_strip(f"SillWall_{op_idx}", op_s, op_e, z_floor, win_zb)
+            add_wall_strip(f"Lintel_{op_idx}", op_s, op_e, win_zt, z_ceil)
+            win_loc = (fixed_coord, op_mid, (win_zb + win_zt) / 2.0) if axis == 'ew' else (op_mid, fixed_coord, (win_zb + win_zt) / 2.0)
+            if axis == 'ew':
+                create_detailed_window_ew(f"{name}_Win_{op_idx}", win_loc, mats, col)
+            else:
+                create_detailed_window_ns(f"{name}_Win_{op_idx}", win_loc, mats, col)
+        elif kind in ('door_open', 'door_closed', 'main_door_open'):
+            door_zt = min(z_ceil - 0.05, z_floor + 2.35)
+            add_wall_strip(f"DoorLintel_{op_idx}", op_s, op_e, door_zt, z_ceil)
+            door_loc = (fixed_coord, op_mid, (z_floor + door_zt) / 2.0) if axis == 'ew' else (op_mid, fixed_coord, (z_floor + door_zt) / 2.0)
+            create_detailed_door(
+                f"{name}_Door_{op_idx}",
+                door_loc,
+                mats,
+                col,
+                axis=axis,
+                width=op_e - op_s,
+                is_open=(kind in ('door_open', 'main_door_open')),
+                swing_dir=door_swing_dir,
+                has_signboard=(kind != 'main_door_open'),
+                sign_side=sign_side,
+                frame_mat_key="Trim_White" if kind == 'main_door_open' else frame_mat_key,
+            )
+        elif kind == 'stair_open':
+            door_zt = min(z_ceil - 0.05, z_floor + 2.55)
+            add_wall_strip(f"StairLintel_{op_idx}", op_s, op_e, door_zt, z_ceil)
+        cursor = max(cursor, op_e)
+
+    if span_end > cursor + 0.02:
+        add_wall_strip("Pier_End", cursor, span_end, z_floor, z_ceil)
+
+
+def create_ceiling_fan(name, loc, mats, col):
+    """Quạt trần 3 cánh treo trần lớp học"""
+    create_cylinder(f"{name}_Rod", radius=0.018, depth=0.38, loc=(loc[0], loc[1], loc[2] + 0.19), mat=mats["Railing_Silver"], col=col, segs=8)
+    create_cylinder(f"{name}_Motor", radius=0.11, depth=0.09, loc=loc, mat=mats["Trim_White"], col=col, segs=12)
+    for b_i in range(3):
+        ang = b_i * (2.0 * math.pi / 3.0) + 0.35
+        bx = loc[0] + math.cos(ang) * 0.36
+        by = loc[1] + math.sin(ang) * 0.36
+        create_box(f"{name}_Blade_{b_i}", (0.58, 0.11, 0.014), (bx, by, loc[2] - 0.01), mats["Trim_White"], col, rot_z=ang)
+
+
+def build_classroom_interior(name, center_xy, z_floor, room_w, room_l, yaw, door_side_x, mats, col, z_ceil=None, detailed=True):
+    """
+    Nội thất phòng học chuẩn Việt Nam:
+    - Bảng chống lóa xanh khung nhôm + máng phấn + khẩu hiệu & đồng hồ phía trên
+    - Bục giảng 2 cấp (cao 0.20m bước lên được) + Bàn ghế giáo viên đặt trên bục
+    - Các dãy bàn ghế học sinh khung thép mặt gỗ có tựa lưng, lối đi rộng rãi đi bộ lọt được
+    - Đèn tuýp trần & quạt trần 3 cánh
+    """
+    cx, cy = center_xy
+    c_yaw = math.cos(yaw)
+    s_yaw = math.sin(yaw)
+    room_h = (z_ceil - z_floor) if z_ceil is not None else 3.45
+
+    def to_world(lx, ly, lz_rel):
+        wx = cx + lx * c_yaw - ly * s_yaw
+        wy = cy + lx * s_yaw + ly * c_yaw
+        return (wx, wy, z_floor + lz_rel)
+
+    def add_local_box(tag, size, lx, ly, lz_rel, mat_key, extra_rot=0.0):
+        return create_box(f"{name}_{tag}", size, to_world(lx, ly, lz_rel), mats[mat_key], col, rot_z=yaw + extra_rot)
+
+    # 1. BẢNG CHỐNG LÓA XANH + KHUNG NHÔM + MÁNG PHẤN + KHẨU HIỆU (trên tường trước +room_l/2)
+    front_y = room_l / 2.0 - 0.05
+    board_w = min(3.40, max(2.20, room_w * 0.58))
+    board_z = 1.66
+    add_local_box("Blackboard", (board_w, 0.04, 1.18), 0.0, front_y, board_z, "Blackboard_Green")
+    add_local_box("BB_Frame_Top", (board_w + 0.08, 0.055, 0.045), 0.0, front_y - 0.005, board_z + 0.60, "Railing_Silver")
+    add_local_box("BB_Frame_Bot", (board_w + 0.08, 0.095, 0.045), 0.0, front_y - 0.030, board_z - 0.60, "Railing_Silver")
+    for s_tag, sx_sign in [("L", -1), ("R", 1)]:
+        add_local_box(f"BB_Frame_{s_tag}", (0.045, 0.055, 1.24), sx_sign * (board_w / 2.0 + 0.02), front_y - 0.005, board_z, "Railing_Silver")
+    if detailed:
+        add_local_box("BB_ChalkBox", (0.16, 0.06, 0.04), -0.35, front_y - 0.045, board_z - 0.555, "Trim_White")
+        add_local_box("BB_Eraser", (0.14, 0.05, 0.035), 0.30, front_y - 0.045, board_z - 0.558, "Podium_Wood")
+
+    slogan_w = min(2.90, board_w * 0.85)
+    add_local_box("Motto_Banner", (slogan_w, 0.035, 0.30), 0.0, front_y, board_z + 0.92, "Banner_Red")
+    add_local_box("Portrait_Frame", (0.36, 0.045, 0.42), 0.0, front_y - 0.01, board_z + 0.92, "Pano_Yellow")
+    if room_w >= 4.5:
+        clock_x = -door_side_x * min(2.25, room_w / 2.0 - 0.45)
+        clock_rot = (math.radians(90), 0.0, yaw)
+        create_cylinder(f"{name}_Wall_Clock_Bezel", radius=0.18, depth=0.04, loc=to_world(clock_x, front_y, board_z + 0.82), mat=mats["Window_Dark"], col=col, segs=16, rot_euler=clock_rot)
+        create_cylinder(f"{name}_Wall_Clock_Dial", radius=0.15, depth=0.046, loc=to_world(clock_x, front_y - 0.005, board_z + 0.82), mat=mats["Trim_White"], col=col, segs=16, rot_euler=clock_rot)
+
+    # 2. BỤC GIẢNG 2 BẬC (cao 0.20m <= STEP_HEIGHT 0.40m để nhân vật bước lên đứng giảng bài)
+    pod_w = min(4.10, max(2.80, room_w - 1.65))
+    pod_d = 1.28
+    pod_x = -door_side_x * min(0.40, max(0.0, (room_w - pod_w) / 2.0 - 0.42))
+    pod_y = room_l / 2.0 - pod_d / 2.0
+    add_local_box("Podium_Base", (pod_w, pod_d, 0.155), pod_x, pod_y, 0.0775, "Trim_White")
+    add_local_box("Podium_Deck", (pod_w + 0.05, pod_d + 0.05, 0.048), pod_x, pod_y - 0.01, 0.179, "Podium_Wood")
+    # Bậc phụ mặt trước bục giảng
+    add_local_box("Podium_Step_Base", (min(1.50, pod_w * 0.42), 0.26, 0.075), pod_x, pod_y - pod_d / 2.0 - 0.13, 0.0375, "Trim_White")
+    add_local_box("Podium_Step_Top", (min(1.54, pod_w * 0.44), 0.28, 0.03), pod_x, pod_y - pod_d / 2.0 - 0.13, 0.088, "Podium_Wood")
+
+    # 3. BÀN GIÁO VIÊN & GHẾ GIÁO VIÊN ĐẶT TRÊN BỤC GIẢNG (phía tránh cửa vào)
+    z_pod = 0.203
+    td_x = pod_x - door_side_x * (pod_w * 0.24)
+    td_y = room_l / 2.0 - 0.72
+    add_local_box("TeacherDesk_Top", (1.24, 0.58, 0.04), td_x, td_y, z_pod + 0.72, "Desk_Wood")
+    add_local_box("TeacherDesk_Front", (1.16, 0.03, 0.45), td_x, td_y - 0.26, z_pod + 0.475, "Desk_Wood")
+    for s_tag, sx_s in [("L", -1), ("R", 1)]:
+        add_local_box(f"TeacherDesk_Side_{s_tag}", (0.03, 0.52, 0.45), td_x + sx_s * 0.58, td_y, z_pod + 0.475, "Desk_Wood")
+        for y_tag, sy_s in [("F", -1), ("B", 1)]:
+            add_local_box(f"TeacherDesk_Leg_{s_tag}{y_tag}", (0.042, 0.042, 0.70), td_x + sx_s * 0.57, td_y + sy_s * 0.24, z_pod + 0.35, "Desk_Metal")
+    if detailed:
+        add_local_box("TeacherDesk_Book", (0.28, 0.34, 0.035), td_x - 0.22, td_y - 0.04, z_pod + 0.758, "Banner_Blue")
+        add_local_box("TeacherDesk_Folder", (0.24, 0.30, 0.025), td_x + 0.20, td_y + 0.02, z_pod + 0.752, "Trim_White")
+
+    # Ghế giáo viên đặt phía sau bàn giáo viên, tựa sát bảng
+    tc_y = td_y + 0.39
+    add_local_box("TeacherChair_Seat", (0.44, 0.42, 0.035), td_x, tc_y, z_pod + 0.43, "Podium_Wood")
+    add_local_box("TeacherChair_Back", (0.44, 0.032, 0.32), td_x, tc_y + 0.19, z_pod + 0.72, "Podium_Wood")
+    for sx_s in [-1, 1]:
+        add_local_box(f"TeacherChair_Post_{sx_s}", (0.032, 0.032, 0.88), td_x + sx_s * 0.19, tc_y + 0.19, z_pod + 0.44, "Desk_Metal")
+        add_local_box(f"TeacherChair_FLeg_{sx_s}", (0.032, 0.032, 0.42), td_x + sx_s * 0.19, tc_y - 0.18, z_pod + 0.21, "Desk_Metal")
+
+    # 4. DÃY BÀN GHẾ HỌC SINH (2 cột song song, lối đi giữa >= 1.1m & hai bên >= 1.0m)
+    usable_depth = room_l - 2.45
+    if usable_depth >= 1.1:
+        row_pitch = 1.38
+        num_rows = min(5, max(2, int((usable_depth - 0.45) // row_pitch) + 1)) if room_l >= 5.2 else 2
+        if room_l < 7.2:
+            row_pitch = 1.26
+            num_rows = min(3, max(2, int((usable_depth - 0.25) // row_pitch) + 1))
+        first_row_y = room_l / 2.0 - 2.28
+        col_xs = [-1.18, 1.18] if room_w >= 5.2 else [-0.88, 0.88]
+        desk_w = 1.20 if room_w >= 5.2 else 1.02
+        desk_d = 0.46
+
+        for r_idx in range(num_rows):
+            dy = first_row_y - r_idx * row_pitch
+            if dy - 0.65 < -room_l / 2.0 + 0.35:
+                continue
+            for c_idx, dx in enumerate(col_xs):
+                tag = f"R{r_idx+1}C{c_idx+1}"
+                # Mặt bàn học sinh + ngăn bàn + yếm trước
+                add_local_box(f"Desk_{tag}_Top", (desk_w, desk_d, 0.032), dx, dy, 0.705, "Desk_Wood")
+                add_local_box(f"Desk_{tag}_Shelf", (desk_w - 0.08, 0.34, 0.024), dx, dy + 0.02, 0.56, "Desk_Wood")
+                add_local_box(f"Desk_{tag}_Modesty", (desk_w - 0.08, 0.024, 0.22), dx, dy + desk_d / 2.0 - 0.03, 0.58, "Desk_Wood")
+
+                if detailed:
+                    for lx_s in [-1, 1]:
+                        leg_x = dx + lx_s * (desk_w / 2.0 - 0.06)
+                        add_local_box(f"Desk_{tag}_Foot_{lx_s}", (0.04, desk_d - 0.04, 0.03), leg_x, dy, 0.015, "Desk_Metal")
+                        for ly_s in [-1, 1]:
+                            add_local_box(f"Desk_{tag}_Leg_{lx_s}_{ly_s}", (0.035, 0.035, 0.68), leg_x, dy + ly_s * (desk_d / 2.0 - 0.04), 0.345, "Desk_Metal")
+                    # 2 ghế học sinh rời kèm tựa lưng
+                    chair_y = dy - 0.44
+                    for ch_idx, ch_off in enumerate([-desk_w * 0.25, desk_w * 0.25]):
+                        chx = dx + ch_off
+                        add_local_box(f"Chair_{tag}_{ch_idx}_Seat", (0.38, 0.34, 0.028), chx, chair_y, 0.42, "Desk_Wood")
+                        add_local_box(f"Chair_{tag}_{ch_idx}_Back", (0.38, 0.028, 0.21), chx, chair_y - 0.16, 0.665, "Desk_Wood")
+                        for clx in [-0.16, 0.16]:
+                            add_local_box(f"Chair_{tag}_{ch_idx}_FL_{clx:.2f}", (0.028, 0.028, 0.41), chx + clx, chair_y + 0.14, 0.205, "Desk_Metal")
+                            add_local_box(f"Chair_{tag}_{ch_idx}_RL_{clx:.2f}", (0.028, 0.028, 0.76), chx + clx, chair_y - 0.16, 0.38, "Desk_Metal")
+                else:
+                    for lx_s in [-1, 1]:
+                        add_local_box(f"Desk_{tag}_Frame_{lx_s}", (0.04, desk_d - 0.05, 0.69), dx + lx_s * (desk_w / 2.0 - 0.06), dy, 0.345, "Desk_Metal")
+                    chair_y = dy - 0.44
+                    add_local_box(f"Bench_{tag}_Seat", (desk_w - 0.10, 0.33, 0.032), dx, chair_y, 0.42, "Desk_Wood")
+                    add_local_box(f"Bench_{tag}_Back", (desk_w - 0.10, 0.032, 0.20), dx, chair_y - 0.15, 0.66, "Desk_Wood")
+                    for lx_s in [-1, 1]:
+                        add_local_box(f"Bench_{tag}_Leg_{lx_s}", (0.038, 0.34, 0.42), dx + lx_s * (desk_w / 2.0 - 0.12), chair_y, 0.21, "Desk_Metal")
+
+    # 5. ĐÈN TUÝP CHIẾU SÁNG & QUẠT TRẦN PHÒNG HỌC
+    if room_h >= 2.8:
+        light_z = room_h - 0.06
+        for lx_l in ([-1.35, 1.35] if room_w >= 4.8 else [0.0]):
+            for ly_l in ([-1.6, 1.4] if room_l >= 6.8 else [0.0]):
+                add_local_box(f"Light_{lx_l}_{ly_l}", (0.14, 1.25, 0.05), lx_l, ly_l, light_z, "Light_Glow")
+        if detailed and room_l >= 5.5:
+            fan_z = z_floor + room_h - 0.46
+            for f_idx, fan_y in enumerate([-1.5, 1.3] if room_l >= 7.5 else [0.0]):
+                fwx, fwy, _ = to_world(0.0, fan_y, 0.0)
+                create_ceiling_fan(f"{name}_Fan_{f_idx}", (fwx, fwy, fan_z), mats, col)
 
 
 def create_classroom_interior(name, room_center, mats, col):
-    """Nội thất phòng học chuẩn: Bảng chống lóa xanh, bàn giáo viên, 6 bộ bàn ghế học sinh"""
-    create_box(f"{name}_Blackboard", (0.05, 3.2, 1.2), (room_center[0] + 2.6, room_center[1] - 1.7, room_center[2] + 1.5), mats["Blackboard_Green"], col)
-    create_box(f"{name}_TeacherDesk", (0.75, 1.3, 0.75), (room_center[0] + 1.7, room_center[1] - 1.1, room_center[2] + 0.375), mats["Desk_Wood"], col)
-    for row_x in [0.4, -0.9, -2.1]:
-        for col_y in [-0.75, 0.85]:
-            create_box(f"{name}_Desk_{row_x}_{col_y}", (0.50, 1.15, 0.70), (room_center[0] + row_x, room_center[1] + col_y, room_center[2] + 0.35), mats["Desk_Wood"], col)
-            create_box(f"{name}_Bench_{row_x}_{col_y}", (0.30, 1.15, 0.42), (room_center[0] + row_x - 0.42, room_center[1] + col_y, room_center[2] + 0.21), mats["Desk_Wood"], col)
+    """Wrapper tương thích cho các phòng đơn lẻ cần nội thất nhanh"""
+    build_classroom_interior(name, (room_center[0], room_center[1]), room_center[2], 5.6, 4.4, 0.0, -1, mats, col, detailed=True)
 
 
 def create_stone_bench(name, loc, mats, col, rot_z=0.0):
@@ -711,13 +963,14 @@ def build_east_wing_3f(mats, parent_col):
 
     create_box("BLD_A_Roof_Eave_Slab", (bld_depth + 0.8, total_len + 0.6, 0.35), (pos_x - 0.2, pos_y, total_h + 0.175), mats["Trim_White"], col)
 
-    # Exterior Walls
+    # Exterior Walls (tầng 1 phần hành lang đầu Bắc mở thông sang hành lang nối Tòa B)
     create_box("BLD_A_RearWall", (0.30, total_len, total_h), (rear_wall_x - 0.15, pos_y, total_h / 2.0), mats["Wall_Yellow"], col)
-    create_box("BLD_A_EndWall_North", (bld_depth, 0.30, total_h), (pos_x, pos_y + total_len / 2.0 - 0.15, total_h / 2.0), mats["Wall_Yellow"], col)
+    create_box("BLD_A_EndWall_North_Rooms", (bld_depth - corridor_w, 0.30, total_h), (inner_wall_x + (bld_depth - corridor_w) / 2.0, pos_y + total_len / 2.0 - 0.15, total_h / 2.0), mats["Wall_Yellow"], col)
+    create_box("BLD_A_EndWall_North_UpperCorr", (corridor_w, 0.30, total_h - f1_h), (front_col_x + corridor_w / 2.0, pos_y + total_len / 2.0 - 0.15, f1_h + (total_h - f1_h) / 2.0), mats["Wall_Yellow"], col)
     create_box("BLD_A_EndWall_South", (bld_depth, 0.30, total_h), (pos_x, pos_y - total_len / 2.0 + 0.15, total_h / 2.0), mats["Wall_Yellow"], col)
 
     # Small stairwell windows on North Gable wall (matching Frame 005 top-right!)
-    for fl_z in [2.2, 5.7, 9.2]:
+    for fl_z in [5.7, 9.2]:
         for wx in [15.5, 17.5]:
             create_box(f"BLD_A_NorthGableWin_{wx}_{fl_z}", (0.85, 0.35, 0.85), (wx, pos_y + total_len / 2.0 - 0.12, fl_z), mats["Window_Dark"], col)
 
@@ -729,18 +982,69 @@ def build_east_wing_3f(mats, parent_col):
     create_downspout("BLD_A_Downspout_SW", (front_col_x - 0.10, pos_y - total_len / 2.0 + 0.25, 0.0), total_h, mats, col)
     create_downspout("BLD_A_Downspout_NW", (front_col_x - 0.10, pos_y + total_len / 2.0 - 0.25, 0.0), total_h, mats, col)
 
-    # 10 Classroom Bays + Corridor Columns & Inox Railings
-    bay_y_centers = [-27.5, -23.0, -18.5, -14.0, -9.8, -1.2, 3.3, 7.8, 12.3, 16.8]
+    # Phòng học 3 tầng Tòa A: vách ngăn từng lớp, tường hành lang trổ cửa sổ kính + cửa đi mở tầng 1, nội thất bàn ghế & bục giảng
     col_y_coords = [-32.0, -29.75, -25.25, -20.75, -16.25, -11.75, -8.25, -2.75, 1.0, 5.55, 10.05, 14.55, 19.6]
+    room_x_in_min = inner_wall_x + 0.12
+    room_x_in_max = rear_wall_x - 0.30
+    room_w_clear = room_x_in_max - room_x_in_min
+    room_cx = (room_x_in_min + room_x_in_max) / 2.0
+    part_ys = [-29.75, -20.75, -11.75, -8.25, -2.75, 5.55, 14.55]
 
     for fl_idx, el_z in enumerate(floor_elevations):
         fl_h = floor_heights[fl_idx]
-        for by in bay_y_centers:
-            create_box(f"BLD_A_Wall_F{fl_idx+1}_Y{int(by)}", (0.25, 4.25, fl_h - 0.30), (inner_wall_x, by, el_z + 0.30 + (fl_h - 0.30) / 2.0), mats["Wall_Inner"], col)
-            create_detailed_window_ew(f"BLD_A_Win_F{fl_idx+1}_Y{int(by)}", (inner_wall_x, by - 0.45, el_z + 1.95), mats, col)
-            create_detailed_door(f"BLD_A_Door_F{fl_idx+1}_Y{int(by)}", (inner_wall_x, by + 1.30, el_z + 1.45), mats, col)
-            if fl_idx == 0:
-                create_classroom_interior(f"ROOM_A_F1_Y{int(by)}", (inner_wall_x + 3.0, by, el_z + 0.30), mats, col)
+        z_floor = el_z + 0.30
+        z_ceil = el_z + fl_h
+        door_kind = 'door_open' if fl_idx == 0 else 'door_closed'
+        is_detail = (fl_idx == 0)
+
+        # Vách ngăn giữa các phòng học
+        for p_idx, py in enumerate(part_ys):
+            create_box(f"BLD_A_Part_F{fl_idx+1}_{p_idx}", (room_w_clear, 0.18, z_ceil - z_floor), (room_cx, py, (z_floor + z_ceil) / 2.0), mats["Wall_Inner"], col)
+
+        # Dãy tường hành lang có trổ ô cửa đi & cửa sổ kính trong suốt (không chặn tầm nhìn hay chặn cửa!)
+        # Đoạn Nam (-31.90 .. -8.25): Kho/cầu thang + Lớp A1 + Lớp A2 + Phòng giáo viên
+        wall_ops_south = [
+            (-31.60, -30.05, 'door_closed'),
+            (-28.40, -26.80, door_kind), (-26.20, -24.05, 'window'), (-23.25, -21.10, 'window'),
+            (-19.40, -17.80, door_kind), (-17.20, -15.05, 'window'), (-14.25, -12.10, 'window'),
+            (-11.30, -9.75, door_kind),
+        ]
+        build_wall_with_openings(
+            f"BLD_A_CorrWallS_F{fl_idx+1}", 'ew', inner_wall_x, -31.90, -8.25, z_floor, z_ceil,
+            wall_ops_south, mats, col, wall_mat_key="Wall_Inner", thickness=0.24, door_swing_dir=1, sign_side=-1,
+        )
+
+        # Sảnh chính ở giữa (-8.25 .. -2.75) để thông thoáng ở tầng 1, tầng 2-3 có tường hành lang + cửa sổ
+        if fl_idx > 0:
+            build_wall_with_openings(
+                f"BLD_A_CorrWallMid_F{fl_idx+1}", 'ew', inner_wall_x, -8.25, -2.75, z_floor, z_ceil,
+                [(-6.60, -4.45, 'window')], mats, col, wall_mat_key="Wall_Inner", thickness=0.24,
+            )
+
+        # Đoạn Bắc (-2.75 .. 19.50): Lớp A3 + Lớp A4 + Lớp A5
+        wall_ops_north = [
+            (-1.40, 0.20, door_kind), (0.65, 2.80, 'window'), (3.25, 5.40, 'window'),
+            (6.90, 8.50, door_kind), (9.10, 11.25, 'window'), (12.05, 14.20, 'window'),
+            (17.25, 18.80, door_kind), (14.80, 16.95, 'window'),
+        ]
+        build_wall_with_openings(
+            f"BLD_A_CorrWallN_F{fl_idx+1}", 'ew', inner_wall_x, -2.75, 19.50, z_floor, z_ceil,
+            wall_ops_north, mats, col, wall_mat_key="Wall_Inner", thickness=0.24, door_swing_dir=1, sign_side=-1,
+        )
+
+        # Nội thất lớp học đầy đủ bàn ghế, bảng xanh & bục giảng (Tầng 1 siêu chi tiết; Tầng 2-3 nhìn rõ qua kính)
+        a_rooms = [
+            ("A1", -25.25, 8.80, math.pi, 1),
+            ("A2", -16.25, 8.80, math.pi, 1),
+            ("A3", 1.40, 8.10, math.pi, 1),
+            ("A4", 10.05, 8.80, math.pi, 1),
+            ("A5", 17.02, 4.75, 0.0, -1),
+        ]
+        for r_code, r_cy, r_len, r_yaw, d_side in a_rooms:
+            build_classroom_interior(
+                f"ROOM_{r_code}_F{fl_idx+1}", (room_cx, r_cy), z_floor, room_w_clear, r_len, r_yaw, d_side,
+                mats, col, z_ceil=z_ceil, detailed=is_detail,
+            )
 
         for cy in col_y_coords:
             create_box(f"BLD_A_Col_F{fl_idx+1}_Y{int(cy)}", (0.45, 0.45, fl_h - 0.30), (front_col_x + 0.225, cy, el_z + 0.30 + (fl_h - 0.30) / 2.0), mats["Wall_Yellow"], col)
@@ -761,10 +1065,11 @@ def build_east_wing_3f(mats, parent_col):
                 sp_y = (seg_mid - seg_len / 2.0) + (sp + 0.5) * (seg_len / num_sp)
                 create_cylinder(f"BLD_A_Spindle_F{fl_idx+1}_{i}_{sp}", radius=0.015, depth=0.85, loc=(front_col_x + 0.12, sp_y, el_z + 0.88), mat=mats["Railing_Silver"], col=col, segs=6)
 
-    # Central Entrance Canopy & Slogan Banners (Matching Frame 020)
+    # Central Entrance Canopy, Sảnh Đón & Slogan Banners (Matching Frame 020)
     portal_w = 9.2
     portal_ext = 2.2
     canopy_front_x = front_col_x - portal_ext
+    create_box("BLD_A_EntrancePorch_Slab", (portal_ext + 0.35, portal_w + 0.6, 0.30), (front_col_x - portal_ext / 2.0 + 0.05, portal_y, 0.15), mats["Trim_White"], col)
     for py_off in [-portal_w / 2.0 + 0.4, portal_w / 2.0 - 0.4]:
         create_box(f"BLD_A_EntranceCol_{py_off}", (0.55, 0.55, f1_h), (canopy_front_x + 0.3, portal_y + py_off, f1_h / 2.0), mats["Accent_Apricot"], col)
         create_box(f"BLD_A_VertBanner_{py_off}", (0.06, 0.58, 2.8), (canopy_front_x - 0.02, portal_y + py_off, 2.1), mats["Banner_Red"], col)
@@ -773,19 +1078,22 @@ def build_east_wing_3f(mats, parent_col):
     create_box("BLD_A_Entrance_Slogan", (0.10, portal_w + 0.5, 0.72), (canopy_front_x - 0.32, portal_y, f1_h + 0.38), mats["Sign_Bld_A_Main"], col, uv_fit=True)
     create_box("BLD_A_Upper_Slogan", (0.10, 14.5, 0.68), (front_col_x - 0.06, portal_y, f1_h + f2_h + 0.25), mats["Sign_Bld_A_Sub"], col, uv_fit=True)
 
-    for s in range(5):
-        st_w = portal_w + 0.8 + s * 0.25
-        st_d = (5 - s) * 0.34
-        create_box(f"BLD_A_Step_{s+1}", (st_d, st_w, 0.15), (canopy_front_x - st_d / 2.0, portal_y, s * 0.15 + 0.075), mats["Trim_White"], col)
+    # 3 bậc tam cấp nối êm đúng cao độ 0.30m của sàn hành lang tầng 1 (đi bộ lên thẳng sảnh vào lớp học)
+    for s in range(3):
+        st_w = portal_w + 0.6 + (2 - s) * 0.28
+        st_d = (3 - s) * 0.38
+        create_box(f"BLD_A_Step_{s+1}", (st_d, st_w, 0.10), (canopy_front_x - st_d / 2.0, portal_y, s * 0.10 + 0.05), mats["Trim_White"], col)
 
-    # North-East Corner Connector linking Bld A North End (Y=19.8) to Bld B (Y=25.25) (Frame 005 top-right)
+    # North-East Corner Connector linking Bld A North End (Y=19.8) to Bld B (Y=25.25) (thông hành lang Tầng 1 sang Tòa B!)
     conn_y_mid = (19.8 + 25.25) / 2.0
     conn_len = 25.25 - 19.8
-    create_box("BLD_AB_Corner_Body", (4.4, conn_len, 7.3), (16.45, conn_y_mid, 3.65), mats["Wall_Yellow"], col)
+    create_box("BLD_AB_Corner_Slab1", (4.6, conn_len + 0.3, 0.30), (16.45, conn_y_mid, 0.15), mats["Trim_White"], col)
+    create_box("BLD_AB_Corner_EastWall", (0.30, conn_len + 0.2, 7.3), (18.50, conn_y_mid, 3.65), mats["Wall_Yellow"], col)
+    create_box("BLD_AB_Corner_Body_F2", (4.4, conn_len, 3.5), (16.45, conn_y_mid, 3.80 + 1.75), mats["Wall_Yellow"], col)
     create_box("BLD_AB_Corner_Slab2", (4.6, conn_len + 0.2, 0.28), (16.45, conn_y_mid, 3.85), mats["Trim_White"], col)
     create_box("BLD_AB_Corner_Roof", (4.8, conn_len + 0.4, 0.35), (16.45, conn_y_mid, 7.35), mats["Roof_RedTile"], col)
-    for s in range(4):
-        st_d = (4 - s) * 0.32
+    for s in range(2):
+        st_d = (2 - s) * 0.38
         create_box(f"BLD_AB_CornerStep_{s}", (st_d, 3.4, 0.15), (14.25 - st_d / 2.0, 21.8, s * 0.15 + 0.075), mats["Trim_White"], col)
 
     # Hipped Roof
@@ -843,14 +1151,50 @@ def build_north_wing_2f(mats, parent_col):
 
     create_box("BLD_B_RearWall", (total_len, 0.30, total_h), (pos_x, rear_wall_y - 0.15, total_h / 2.0), mats["Wall_Yellow"], col)
     create_box("BLD_B_Gable_West", (0.30, bld_depth, total_h), (pos_x - total_len / 2.0 + 0.15, pos_y, total_h / 2.0), mats["Wall_Yellow"], col)
-    create_box("BLD_B_Gable_East", (0.30, bld_depth, total_h), (pos_x + total_len / 2.0 - 0.15, pos_y, total_h / 2.0), mats["Wall_Yellow"], col)
+    # Tường hồi Đông chừa thông hành lang tầng 1 sang cầu nối góc Tòa A
+    create_box("BLD_B_Gable_East_Rooms", (0.30, bld_depth - corridor_w, total_h), (pos_x + total_len / 2.0 - 0.15, inner_wall_y + (bld_depth - corridor_w) / 2.0, total_h / 2.0), mats["Wall_Yellow"], col)
+    create_box("BLD_B_Gable_East_UpperCorr", (0.30, corridor_w, total_h - f1_h), (pos_x + total_len / 2.0 - 0.15, front_col_y + corridor_w / 2.0, f1_h + (total_h - f1_h) / 2.0), mats["Wall_Yellow"], col)
+
+    b_room_y_min = inner_wall_x = inner_wall_y + 0.12
+    b_room_y_max = rear_wall_y - 0.30
+    b_room_w = b_room_y_max - b_room_y_min
+    b_room_cy = (b_room_y_min + b_room_y_max) / 2.0
 
     col_x_coords = [-13.2, -9.0, -4.8, 7.6, 11.8, 16.0]
     for fl_idx, el_z in enumerate(floor_elevations):
         fl_h = floor_heights[fl_idx]
-        for cx in [-11.1, -6.9, 9.7, 13.9]:
-            create_box(f"BLD_B_Wall_F{fl_idx+1}_X{int(cx)}", (4.0, 0.25, fl_h - 0.30), (cx, inner_wall_y, el_z + 0.30 + (fl_h - 0.30) / 2.0), mats["Wall_Inner"], col)
-            create_detailed_window_ns(f"BLD_B_Win_F{fl_idx+1}_X{int(cx)}", (cx, inner_wall_y, el_z + 1.95), mats, col)
+        z_floor = el_z + 0.30
+        z_ceil = el_z + fl_h
+        door_kind = 'door_open' if fl_idx == 0 else 'door_closed'
+        is_detail = (fl_idx == 0)
+
+        # Vách ngăn 2 phòng học hai bên khối cầu thang/lễ đài
+        for px in [-4.80, 7.60]:
+            create_box(f"BLD_B_Part_F{fl_idx+1}_{int(px)}", (0.18, b_room_w, z_ceil - z_floor), (px, b_room_cy, (z_floor + z_ceil) / 2.0), mats["Wall_Inner"], col)
+
+        # Tường hành lang có trổ ô cửa sổ kính trong suốt & cửa mở tầng 1
+        build_wall_with_openings(
+            f"BLD_B_CorrW_F{fl_idx+1}", 'ns', inner_wall_y, -13.10, -4.80, z_floor, z_ceil,
+            [(-11.65, -10.05, door_kind), (-9.60, -7.45, 'window'), (-7.15, -5.00, 'window')],
+            mats, col, wall_mat_key="Wall_Inner", thickness=0.24, door_swing_dir=1, sign_side=-1,
+        )
+        build_wall_with_openings(
+            f"BLD_B_CorrE_F{fl_idx+1}", 'ns', inner_wall_y, 7.60, 17.90, z_floor, z_ceil,
+            [(8.45, 10.60, 'window'), (11.45, 13.60, 'window'), (14.65, 16.25, door_kind)],
+            mats, col, wall_mat_key="Wall_Inner", thickness=0.24, door_swing_dir=1, sign_side=-1,
+        )
+        if fl_idx > 0:
+            create_box(f"BLD_B_CenterWall_F{fl_idx+1}", (12.40, 0.24, z_ceil - z_floor), (1.40, inner_wall_y, (z_floor + z_ceil) / 2.0), mats["Wall_Inner"], col)
+
+        # Nội thất Lớp B1 (Cánh Tây) & Lớp B2 (Cánh Đông): Bục giảng + Bàn ghế học sinh + Bảng xanh
+        build_classroom_interior(
+            f"ROOM_B1_F{fl_idx+1}", (-8.95, b_room_cy), z_floor, b_room_w, 8.10, math.pi / 2.0, -1,
+            mats, col, z_ceil=z_ceil, detailed=is_detail,
+        )
+        build_classroom_interior(
+            f"ROOM_B2_F{fl_idx+1}", (12.75, b_room_cy), z_floor, b_room_w, 10.10, -math.pi / 2.0, 1,
+            mats, col, z_ceil=z_ceil, detailed=is_detail,
+        )
 
         for cx in col_x_coords:
             create_box(f"BLD_B_Col_F{fl_idx+1}_X{int(cx)}", (0.45, 0.45, fl_h - 0.30), (cx, front_col_y + 0.225, el_z + 0.30 + (fl_h - 0.30) / 2.0), mats["Wall_Yellow"], col)
@@ -954,7 +1298,7 @@ def build_north_wing_2f(mats, parent_col):
         create_cone(f"PROP_HornSpeaker_{spk_s}", radius=0.22, depth=0.32, loc=(stage_x + sx_off, front_col_y - 0.15, f1_h + 2.55), mat=mats["Trim_White"], col=col, segs=12)
 
     # Tầng 1 phía sau sân khấu: Cầu thang có cửa xếp sắt xanh (Trái) & Cửa phòng 2 cánh trắng (Phải) (Ảnh 2)
-    create_box("BLD_B_CenterRearWall_F1", (stage_w + 2.0, 0.25, f1_h - 0.30), (stage_x, inner_wall_y, 0.30 + (f1_h - 0.30) / 2.0), mats["Wall_Inner"], col)
+    create_box("BLD_B_CenterRearWall_F1", (12.40, 0.25, f1_h - 0.30), (stage_x, inner_wall_y, 0.30 + (f1_h - 0.30) / 2.0), mats["Wall_Inner"], col)
     # Ô cầu thang bên trái + cửa xếp sắt xanh
     create_box("BLD_B_StairOpening_Dark", (2.6, 0.28, 2.7), (stage_x - 1.6, inner_wall_y - 0.02, 1.65), mats["Window_Dark"], col)
     create_box("BLD_B_FoldingGate_Green", (1.25, 0.30, 2.55), (stage_x - 2.25, inner_wall_y - 0.04, 1.58), mats["Gate_GreenFold"], col)
@@ -997,11 +1341,48 @@ def build_west_wing_gym_and_annex(mats, parent_col):
     create_box("BLD_C2_Slab_F2", (annex_w + 0.35, annex_l + 0.35, 0.32), (annex_x, annex_y, f1_h), mats["Wall_Yellow"], col)
     create_box("BLD_C2_RoofEave_Slab", (annex_w + 1.1, annex_l + 0.8, 0.32), (annex_x + 0.2, annex_y, annex_h + 0.12), mats["Trim_White"], col)
 
-    # Tường hậu, tường hồi & tường trong hành lang
+    # Tường hậu, tường hồi & hệ tường trong có trổ cửa sổ kính + cửa đi mở vào phòng học
     create_box("BLD_C2_RearWall", (0.28, annex_l, annex_h), (rear_x + 0.14, annex_y, annex_h / 2.0), mats["Wall_Yellow"], col)
     create_box("BLD_C2_EndWall_N", (annex_w, 0.28, annex_h), (annex_x, annex_y + annex_l / 2.0 - 0.14, annex_h / 2.0), mats["Wall_Yellow"], col)
     create_box("BLD_C2_EndWall_S", (annex_w, 0.28, annex_h), (annex_x, annex_y - annex_l / 2.0 + 0.14, annex_h / 2.0), mats["Wall_Yellow"], col)
-    create_box("BLD_C2_InnerWall", (0.25, annex_l - 0.4, annex_h), (inner_x, annex_y, annex_h / 2.0), mats["Wall_Yellow"], col)
+
+    c2_room_x_min = rear_x + 0.28
+    c2_room_x_max = inner_x - 0.12
+    c2_room_w = c2_room_x_max - c2_room_x_min
+    c2_room_cx = (c2_room_x_min + c2_room_x_max) / 2.0
+
+    c2_floors = [
+        (0, 0.28, f1_h - 0.16, True),
+        (1, f1_h + 0.16, annex_h - 0.04, False),
+    ]
+    for f_idx, z_f, z_c, is_det in c2_floors:
+        for py in [12.00, 15.20, 21.60, 24.80]:
+            create_box(f"BLD_C2_Part_F{f_idx+1}_{int(py)}", (c2_room_w, 0.18, z_c - z_f), (c2_room_cx, py, (z_f + z_c) / 2.0), mats["Wall_Inner"], col)
+
+        c2_ops = [
+            (2.925, 5.075, 'window'),
+            (6.125, 8.275, 'window'),
+            (9.20, 10.80, 'door_open' if f_idx == 0 else 'door_closed'),
+            (12.50, 14.70, 'main_door_open' if f_idx == 0 else 'window'),
+            (16.05, 17.65, 'door_open' if f_idx == 0 else 'window'),
+            (18.925, 21.075, 'window'),
+            (22.10, 24.30, 'stair_open'),
+            (25.325, 27.475, 'window'),
+        ]
+        build_wall_with_openings(
+            f"BLD_C2_InnerWall_F{f_idx+1}", 'ew', inner_x, 2.28, 28.12, z_f, z_c,
+            c2_ops, mats, col, wall_mat_key="Wall_Yellow", thickness=0.24, door_swing_dir=-1, sign_side=1,
+        )
+
+        # Phòng học C2-1 (Nam, 9.5m) & C2-2 (Trung tâm Bắc, 6.2m) đầy đủ bàn ghế, bảng xanh & bục giảng
+        build_classroom_interior(
+            f"ROOM_C2_1_F{f_idx+1}", (c2_room_cx, 7.14), z_f, c2_room_w, 9.50, 0.0, 1,
+            mats, col, z_ceil=z_c, detailed=is_det,
+        )
+        build_classroom_interior(
+            f"ROOM_C2_2_F{f_idx+1}", (c2_room_cx, 18.40), z_f, c2_room_w, 6.20, math.pi, -1,
+            mats, col, z_ceil=z_c, detailed=is_det,
+        )
 
     # 9 Cột vuông thông 2 tầng chia 8 nhịp chuẩn Ảnh 1
     bay_len = 3.20
@@ -1009,38 +1390,12 @@ def build_west_wing_gym_and_annex(mats, parent_col):
     for idx, cy in enumerate(col_y_list):
         create_box(f"BLD_C2_Col_{idx}", (0.42, 0.42, annex_h), (front_x - 0.21, cy, annex_h / 2.0), mats["Wall_Yellow"], col)
 
-    # Cửa chính 4 cánh khung trắng ở nhịp giữa & các ô cửa sổ 4 cánh khung trắng (Ảnh 1)
+    # Lan can hành lang Tòa C2
     for b_idx in range(8):
         by = (col_y_list[b_idx] + col_y_list[b_idx + 1]) / 2.0
         # Lan can hành lang tầng 2 (tường lửng vàng + ống inox trên)
         create_box(f"BLD_C2_Parapet_F2_{b_idx}", (0.18, bay_len - 0.42, 0.72), (front_x - 0.15, by, f1_h + 0.48), mats["Wall_Yellow"], col)
         create_box(f"BLD_C2_RailInox_F2_{b_idx}", (0.05, bay_len - 0.42, 0.05), (front_x - 0.15, by, f1_h + 1.02), mats["Railing_Silver"], col)
-
-        # Cửa sổ tầng 2 khung trắng 4 cánh
-        if b_idx not in [6]:  # Nhịp 6 là ô cầu thang lên tầng 2
-            create_box(f"BLD_C2_WinF2_Frame_{b_idx}", (0.28, 2.05, 1.45), (inner_x + 0.02, by, f1_h + 1.85), mats["Trim_White"], col)
-            create_box(f"BLD_C2_WinF2_Glass_{b_idx}", (0.30, 1.85, 1.25), (inner_x + 0.02, by, f1_h + 1.85), mats["Glass_Blue"], col)
-            for m_off in [-0.46, 0.0, 0.46]:
-                create_box(f"BLD_C2_WinF2_Muntin_{b_idx}_{m_off}", (0.32, 0.05, 1.25), (inner_x + 0.02, by + m_off, f1_h + 1.85), mats["Trim_White"], col)
-            create_box(f"BLD_C2_WinF2_Transom_{b_idx}", (0.32, 1.85, 0.05), (inner_x + 0.02, by, f1_h + 2.18), mats["Trim_White"], col)
-
-        # Tầng 1: Nhịp giữa (b_idx == 3, 4) mở sảnh tam cấp, nhịp 3 là cửa chính 4 cánh khung trắng
-        if b_idx == 3:
-            create_box("BLD_C2_MainDoor_Frame", (0.28, 2.15, 2.45), (inner_x + 0.02, by, 1.50), mats["Trim_White"], col)
-            create_box("BLD_C2_MainDoor_Glass", (0.30, 1.90, 2.20), (inner_x + 0.02, by, 1.50), mats["Glass_Blue"], col)
-            create_box("BLD_C2_MainDoor_LowerPanel", (0.32, 1.90, 0.75), (inner_x + 0.02, by, 0.72), mats["Trim_White"], col)
-            for m_off in [-0.48, 0.0, 0.48]:
-                create_box(f"BLD_C2_MainDoor_Mullion_{m_off}", (0.33, 0.06, 2.20), (inner_x + 0.02, by + m_off, 1.50), mats["Trim_White"], col)
-        elif b_idx == 6:
-            # Cầu thang bộ ở nhịp thứ 2 từ phải sang (Ảnh 1)
-            create_box("BLD_C2_StairWell_Dark", (0.30, 2.2, 2.6), (inner_x + 0.02, by, 1.55), mats["Window_Dark"], col)
-        else:
-            create_box(f"BLD_C2_WinF1_Frame_{b_idx}", (0.28, 2.05, 1.55), (inner_x + 0.02, by, 1.80), mats["Trim_White"], col)
-            create_box(f"BLD_C2_WinF1_Glass_{b_idx}", (0.30, 1.85, 1.35), (inner_x + 0.02, by, 1.80), mats["Glass_Blue"], col)
-            for m_off in [-0.46, 0.0, 0.46]:
-                create_box(f"BLD_C2_WinF1_Muntin_{b_idx}_{m_off}", (0.32, 0.05, 1.35), (inner_x + 0.02, by + m_off, 1.80), mats["Trim_White"], col)
-            create_box(f"BLD_C2_WinF1_Transom_{b_idx}", (0.32, 1.85, 0.05), (inner_x + 0.02, by, 2.15), mats["Trim_White"], col)
-            create_classroom_interior(f"ROOM_C2_F1_{b_idx}", (inner_x - 3.0, by, 0.30), mats, col)
 
         # Lan can inox thấp tầng 1 (trừ 2 nhịp giữa mở bậc tam cấp)
         if b_idx not in [3, 4]:
@@ -1049,11 +1404,11 @@ def build_west_wing_gym_and_annex(mats, parent_col):
     # Băng rôn đỏ chữ vàng thật giữa tầng 2 (Ảnh 1): "DÙ KHÓ KHĂN ĐẾN ĐÂU CŨNG PHẢI THI ĐUA DẠY TỐT, HỌC TỐT"
     create_box("BLD_C2_SloganBanner_Red", (0.12, 9.8, 0.58), (front_x + 0.06, annex_y - 0.8, f1_h + 0.25), mats["Sign_Bld_C2"], col, uv_fit=True)
 
-    # Bậc tam cấp 5 bậc lát đá hoa cương đỏ hồng chính giữa Tòa C2 (Ảnh 1)
-    for s in range(5):
-        st_d = (5 - s) * 0.34
-        st_w = 6.6 + s * 0.28
-        create_box(f"BLD_C2_GraniteStep_{s+1}", (st_d, st_w, 0.14), (front_x + st_d / 2.0, annex_y - 0.8, s * 0.14 + 0.07), mats["Granite_PinkRed"], col)
+    # Bậc tam cấp lát đá hoa cương đỏ hồng nối êm đúng cao độ 0.28m của sàn hành lang tầng 1 (Ảnh 1)
+    for s in range(3):
+        st_d = (3 - s) * 0.40
+        st_w = 6.6 + (2 - s) * 0.30
+        create_box(f"BLD_C2_GraniteStep_{s+1}", (st_d, st_w, 0.094), (front_x + st_d / 2.0, annex_y - 0.8, s * 0.094 + 0.047), mats["Granite_PinkRed"], col)
 
     # Bồn hoa xây gạch thấp trồng cây cảnh chạy dọc hai bên tam cấp Tòa C2 (Ảnh 1)
     for seg_y, seg_l in [(annex_y - 8.4, 7.6), (annex_y + 6.8, 7.6)]:
@@ -1634,8 +1989,9 @@ def run():
     build_terrain_and_mast(mats, root_col)
     setup_lighting_and_cameras(root_col)
 
-    blend_path = "d:/ANTIGRAVITY/EDUVERSE_3D/assets/school/school_campus_blockout.blend"
-    glb_path = "d:/ANTIGRAVITY/EDUVERSE_3D/assets/school/school_campus_blockout.glb"
+    blend_path = os.path.join(SCRIPT_DIR, "school_campus_blockout.blend")
+    glb_path = os.path.join(SCRIPT_DIR, "school_campus_blockout.glb")
+    web_glb_path = os.path.join(REPO_ROOT, "assets", "web-models", "school_campus.glb")
 
     bpy.ops.wm.save_as_mainfile(filepath=blend_path)
     print(f"[OK] Saved Calibrated Blender Project: {blend_path}")
@@ -1650,7 +2006,9 @@ def run():
         export_apply=True,
         export_yup=True,
     )
-    print(f"[OK] Exported WebGL GLB: {glb_path}")
+    os.makedirs(os.path.dirname(web_glb_path), exist_ok=True)
+    shutil.copy2(glb_path, web_glb_path)
+    print(f"[OK] Exported WebGL GLB: {glb_path} -> {web_glb_path}")
 
 
 if __name__ == "__main__":
