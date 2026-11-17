@@ -75,13 +75,16 @@ export function createAvatarMotion(scene) {
   const rootQ = scene.getWorldQuaternion(new Quaternion());
   const point = new Vector3();
   // Pick sole vertices from the real, skinned model (including quantized GLBs).
-  for (const [index, leg] of legs.entries()) {
+  for (const leg of legs) {
     const candidates = [];
     leg.foot.getWorldQuaternion(leg.restRotation).premultiply(rootQ.clone().invert());
     leg.restToe.copy(leg.toe.quaternion);
     leg.foot.getWorldPosition(point);
     leg.offset.copy(scene.worldToLocal(point.clone()));
-    leg.offset.x = clamp(leg.offset.x, index === 0 ? 0.07 : -0.18, index === 0 ? 0.18 : -0.07);
+    // The GLB's relaxed bind pose spreads its feet well beyond the hips.
+    // Plant stair steps under each hip instead of reusing that wide stance.
+    leg.thigh.getWorldPosition(point);
+    leg.offset.x = scene.worldToLocal(point).x;
     leg.offset.y = 0;
     scene.traverse((mesh) => {
       if (!mesh.isSkinnedMesh) return;

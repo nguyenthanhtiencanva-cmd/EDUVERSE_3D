@@ -110,6 +110,40 @@ test('both feet alternate on human-scale hill stairs in both directions', () => 
   }
 });
 
+test('stair feet stay beneath the hips without a wide or crossed stance', () => {
+  for (const route of ['hill', 'spiral']) for (const direction of [-1, 1]) {
+    const f = fixture();
+    f.root.position.set(4, groundAt(4, 25), 25);
+    let minimumWidth = Infinity, maximumWidth = 0, maximumKneeWidth = 0, worstSole = 0;
+    for (let i = 0; i < 360; i++) {
+      let sample = footGroundAt;
+      if (route === 'hill') {
+        f.root.rotation.y = direction < 0 ? Math.PI : 0;
+        f.root.position.z += direction * STAIRS.speed / 60;
+        f.root.position.y += (groundAt(4, f.root.position.z) - f.root.position.y) * (1 - Math.exp(-23 / 60));
+      } else {
+        const t = 0.45 + direction * i * 0.03 / 60;
+        const p = getSpiralPose(t);
+        f.root.position.set(p.x, p.y, p.z);
+        f.root.rotation.y = p.yawUp + (direction < 0 ? Math.PI : 0);
+        sample = (x, z) => footGroundAt(x, z, 'spiral', t);
+      }
+      frame(f, { groundAt: sample, stairStride: route === 'hill' ? STAIRS.stride : 0.32, moving: true });
+      const localX = bone => f.root.worldToLocal(bone.getWorldPosition(new Vector3())).x;
+      const [left, right] = f.motion.legs;
+      const width = localX(left.foot) - localX(right.foot);
+      minimumWidth = Math.min(minimumWidth, width);
+      maximumWidth = Math.max(maximumWidth, width);
+      maximumKneeWidth = Math.max(maximumKneeWidth, Math.abs(localX(left.knee) - localX(right.knee)));
+      for (const leg of f.motion.legs) worstSole = Math.min(worstSole, soleHeight(leg, sample));
+    }
+    const context = `${route} ${direction}: feet ${minimumWidth.toFixed(3)}–${maximumWidth.toFixed(3)} m, knees ${maximumKneeWidth.toFixed(3)} m`;
+    assert.ok(minimumWidth > 0.06 && maximumWidth < 0.24, context);
+    assert.ok(maximumKneeWidth < 0.25, context);
+    assert.ok(worstSole > -0.035, `${context}, sole ${worstSole.toFixed(3)} m`);
+  }
+});
+
 test('running brings elbows inward while preserving head and glasses animation', () => {
   const f = fixture('Run'); let before = 0; let after = 0;
   const elbowWidth = () => ['Left','Right'].reduce((sum,side) => {

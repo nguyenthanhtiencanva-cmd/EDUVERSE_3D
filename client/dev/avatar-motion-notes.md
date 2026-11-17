@@ -21,7 +21,7 @@ tra khi phát triển, không nằm trong bản build ứng dụng chính.
 
 ## Xác minh
 
-- `npm run test:avatar`: 7 bài kiểm tra trên đúng hình học và bộ xương của GLB
+- `npm run test:avatar`: 8 bài kiểm tra trên đúng hình học và bộ xương của GLB
   dành cho web. Bao gồm bước mô phỏng tương ứng 20/30/60 FPS, lên và xuống bậc
   cao khoảng 16,1 cm, chiều dài xương, khôi phục tư thế, nhảy và chuyển vị trí.
 - `node scripts/lighthouse.test.mjs`: 5 bài kiểm tra cảnh hải đăng.
@@ -49,3 +49,11 @@ kích thước ngay trong nguồn. `verify_stair_scale.py` kiểm tra 330 tia tr
 Khi triển khai, phải đưa đồng thời cấu hình bậc, lớp chỉnh chuyển động và GLB
 đã nén lên cùng một phiên bản. Cấu hình nằm trong `client` để bản dựng Vercel
 không phụ thuộc vào tệp ngoài thư mục ứng dụng.
+
+## Thu khoảng cách hai chân khi leo bậc
+
+Điểm đặt bàn chân trên cầu thang dùng vị trí dưới khớp hông của mô hình,
+thay cho vị trí chân dang rộng trong tư thế nghỉ. Khoảng cách tâm hai bàn chân
+khi đi thẳng giảm từ khoảng 29,3 cm xuống 17,5 cm. Kiểm tra cả hai chiều trên
+bậc đồi và cầu thang xoắn: chân không bắt chéo, gối không xoè rộng và giày
+vẫn bám mặt bậc. Chuyển động gốc trên nền phẳng được giữ nguyên.
