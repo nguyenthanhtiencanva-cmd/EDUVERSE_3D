@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kiểm tra chuyển động nhân vật</title>
+<style>
+  body{margin:0;background:#e5edf2;color:#183344;font:15px system-ui}header{padding:16px 24px;background:white;display:flex;gap:16px;align-items:center;flex-wrap:wrap}h1{font-size:18px;margin:0 16px 0 0}button,select{font:inherit;padding:9px;border:1px solid #b1c2cc;border-radius:6px;background:white}main{position:relative}canvas{display:block;width:100%;height:calc(100vh - 120px)}#status{padding:10px 24px;background:#fff}label{display:flex;gap:6px;align-items:center}
+</style>
+<header><h1>Kiểm tra chuyển động nhân vật</h1>
+<select id="mode" aria-label="Chuyển động"><option value="idle">Đứng</option><option value="walk">Đi bộ</option><option value="run">Chạy</option><option value="up">Lên bậc đồi</option><option value="down">Xuống bậc đồi</option><option value="spiral">Cầu thang xoắn</option></select>
+<label><input type="checkbox" id="correction" checked>Áp dụng chỉnh sửa</label><button id="play">Tạm dừng</button><button id="step">Một khung hình</button><button id="reset">Bắt đầu lại</button><button id="capture">Ảnh khung hình</button>
+</header><main></main><div id="status" role="status">Đang tải nhân vật…</div><img id="capture-image" alt="Ảnh kiểm tra tư thế" hidden style="width:900px;max-width:100%">
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { createAvatarMotion } from '/src/player/avatarMotion.js';
+import { groundAt, footGroundAt, getSpiralPose, getHillStep, STAIRS, TOWER } from '/src/world/lighthouse/layout.js';
+import tourist from '/src/assets/models/tourist.glb?url';
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(1);
+document.querySelector('main').append(renderer.domElement);
+const scene=new THREE.Scene(); scene.background=new THREE.Color('#dfe9ef');
+scene.add(new THREE.HemisphereLight(0xffffff,0x647485,2.4));
+const light=new THREE.DirectionalLight(0xfff5e6,2.6);light.position.set(3,5,4);scene.add(light);
+const camera=new THREE.PerspectiveCamera(38,1,.05,200);
+const root=new THREE.Group();scene.add(root);
+const flat=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshStandardMaterial({color:'#b1bfc8',roughness:1}));flat.rotation.x=-Math.PI/2;scene.add(flat);
+const stairs=new THREE.Group();scene.add(stairs);
+for(let i=0;i<STAIRS.steps;i++){
+ const p=getHillStep(i);
+ const step=new THREE.Mesh(new THREE.BoxGeometry(p.width,p.height,p.depth),new THREE.MeshStandardMaterial({color:i%2?'#8495a1':'#9babb5',roughness:1}));
+ step.position.set(p.x,p.y-p.height/2,p.z);stairs.add(step);
+}
+const spiral=new THREE.Group();scene.add(spiral);
+for(let i=0;i<TOWER.spiralSteps;i++){
+ const p=getSpiralPose((i+.5)/TOWER.spiralSteps);
+ const step=new THREE.Mesh(new THREE.BoxGeometry(.8,.12,.3),new THREE.MeshStandardMaterial({color:'#bd8d5c',roughness:.8}));
+ step.position.set(p.x,p.y-.06,p.z);step.rotation.y=-p.angle;spiral.add(step);
+}
+const gltf=await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(tourist);
+root.add(gltf.scene);
+const motion=createAvatarMotion(gltf.scene),mixer=new THREE.AnimationMixer(gltf.scene);
+if(!motion)throw Error('Không tìm thấy xương chân');
+gltf.scene.traverse(o=>{if(o.isMesh&&o.material.name==='MAT_Glasses_Lens')o.material.depthWrite=false;});
+let playing=true,mode='idle',time=0,frames=0;
+const sample=(x,z)=>mode==='spiral'?footGroundAt(x,z,'spiral',.4+time*.03):mode==='up'||mode==='down'?footGroundAt(x,z):0;
+function reset(){
+ motion.reset();time=0;frames=0;root.position.set(0,0,0);root.rotation.y=0;document.querySelector('#capture-image').hidden=true;
+ stairs.visible=mode==='up'||mode==='down';spiral.visible=mode==='spiral';flat.visible=!stairs.visible&&!spiral.visible;
+ if(stairs.visible){root.position.set(4,groundAt(4,25),25);root.rotation.y=mode==='up'?Math.PI:0;}
+ if(spiral.visible){const p=getSpiralPose(.4);root.position.set(p.x,p.y,p.z);root.rotation.y=p.yawUp;}
+ mixer.stopAllAction();mixer.clipAction(gltf.animations.find(a=>a.name===(mode==='idle'?'Idle':mode==='run'?'Run':'Walk'))).reset().play();
+}
+function tick(dt){
+ motion.restore();mixer.update(dt);time+=dt;frames++;
+ if(stairs.visible){root.position.z+=(mode==='up'?-1:1)*STAIRS.speed*dt;root.position.y+=(groundAt(4,root.position.z)-root.position.y)*(1-Math.exp(-23*dt));}
+ if(spiral.visible){const p=getSpiralPose(.4+time*.03);root.position.set(p.x,p.y,p.z);root.rotation.y=p.yawUp;}
+ root.updateMatrixWorld(true);
+ if(document.querySelector('#correction').checked)motion.update({dt,groundAt:sample,stairStride:stairs.visible?STAIRS.stride:spiral.visible?.32:null,moving:mode!=='idle',runWeight:mode==='run'?1:0});
+ if(time>8)reset();
+}
+function draw(){
+ const w=innerWidth,h=Math.max(300,innerHeight-120);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+ const target=root.position.clone().add(new THREE.Vector3(0,.75,0));
+ camera.position.copy(target).add(new THREE.Vector3(3.2,1.1,mode==='up'?-2.6:2.6));camera.lookAt(target);renderer.render(scene,camera);
+ document.querySelector('#status').textContent=`Đã tải nhân vật · ${document.querySelector('#mode').selectedOptions[0].text} · ${playing?'Đang phát':'Đã dừng'} · Khung ${frames} · ${document.querySelector('#correction').checked?'Có chỉnh sửa':'Chuyển động gốc'}`;
+}
+document.querySelector('#mode').onchange=e=>{mode=e.target.value;reset();draw();};
+document.querySelector('#play').onclick=()=>{playing=!playing;document.querySelector('#play').textContent=playing?'Tạm dừng':'Phát';draw();};
+document.querySelector('#step').onclick=()=>{playing=false;document.querySelector('#play').textContent='Phát';tick(1/60);draw();};
+document.querySelector('#reset').onclick=()=>{reset();draw();};
+document.querySelector('#correction').onchange=()=>{reset();draw();};
+document.querySelector('#capture').onclick=()=>{playing=false;document.querySelector('#play').textContent='Phát';draw();const img=document.querySelector('#capture-image');img.src=renderer.domElement.toDataURL('image/png');img.hidden=false;};
+reset();const clock=new THREE.Clock();
+renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),1/30);if(playing)tick(dt);draw();});
+</script></html>

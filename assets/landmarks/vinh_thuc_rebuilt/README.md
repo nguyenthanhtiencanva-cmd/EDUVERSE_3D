@@ -19,4 +19,14 @@ Hệ trục Blender: Z hướng lên; mặt tiền nhìn về -Y. GLB được x
 - `video_reference/`: 8 khung hình được trích từ video người dùng cung cấp bằng Blender; khung 00, 05, 06, 07 dùng để đối chiếu cụm hải đăng.
 - Script: `../add_lighthouse_landscape.py`.
 
-Bố cục quan sát được: cầu thang thẳng dài qua khoảng cỏ trống, cây tán rộng và cây bụi phủ dày hai bên, đường bên phải chạy sát vạt đất đá lộ, sườn đồi đổ xuống biển. Độ cao, khoảng cách, đường bờ và vị trí từng cây là ước lượng thị giác, không phải dữ liệu khảo sát/GIS hay tái dựng quang trắc. Mô hình theo phong cách giản lược. Bản này chưa thay mô hình trên website và chưa thêm cơ chế va chạm.
+Bố cục quan sát được: cầu thang thẳng dài qua khoảng cỏ trống, cây tán rộng và cây bụi phủ dày hai bên, đường bên phải chạy sát vạt đất đá lộ, sườn đồi đổ xuống biển. Độ cao, khoảng cách, đường bờ và vị trí từng cây là ước lượng thị giác, không phải dữ liệu khảo sát/GIS hay tái dựng quang trắc. Mô hình theo phong cách giản lược.
+
+## Chỉnh tỷ lệ cầu thang — 17/11/2026
+
+- Cảnh quan trong thư mục này đã được tích hợp vào bản mã nguồn web qua `export_lighthouse_web.py`.
+- 40 bậc cũ (cao 44,8 cm) được thay bằng 110 bậc cao khoảng 16,1 cm, sâu 33,7 cm, rộng 2,6 m. Điểm nối đầu thang bám mép sân; chân dốc và địa hình giữ nguyên.
+- Cấu hình chung: `../../../client/src/world/lighthouse/hill-stairs.json`; dựng bậc và lan can: `../hill_stairs.py`.
+- Áp dụng lên nguồn Blender hiện có: `../resize_hill_stairs.py`. Script này không tạo lại cây/địa hình.
+- Kiểm tra 330 điểm trên GLB đã nén và render đối chiếu với nhân vật: `../verify_stair_scale.py`.
+- `stairs_human_scale.png` là ảnh đối chiếu tỷ lệ trong Blender, không phải ảnh chụp chuyển động trong trình duyệt.
+- `stair_scale_verification.json` ghi số đo và sai số sau nén. Chưa công bố thay đổi tỷ lệ này lên website công khai.

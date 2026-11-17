@@ -110,60 +110,6 @@ function SpiralSteps({ visible }) {
   );
 }
 
-// Điều chỉnh chiều cao tay vịn cầu thang cao ngang bằng với chiều cao của lan can (0.84m)
-function adjustStairRailing(mesh) {
-  if (!mesh.isMesh || !mesh.geometry) return;
-  const geometry = mesh.geometry.clone();
-  const pos = geometry.attributes.position;
-  if (!pos) return;
-
-  const count = pos.count;
-  let modified = false;
-
-  for (let i = 0; i < count; i++) {
-    const x = pos.getX(i);
-    const y = pos.getY(i);
-    const z = pos.getZ(i);
-
-    // Dọc tuyến cầu thang sườn đồi từ chân (Z~44.6) lên cổng sân (Z~7.5)
-    if (z < 7.20 || z > 45.2) continue;
-
-    // Hai dải tay vịn và con tiện lan can hai bên mép cầu thang:
-    // Mép trái: X ~ 2.55 (phạm vi 2.20 đến 2.85)
-    // Mép phải: X ~ 5.45 (phạm vi 5.15 đến 5.80)
-    const isLeft = x >= 2.20 && x <= 2.85;
-    const isRight = x >= 5.15 && x <= 5.80;
-    if (!isLeft && !isRight) continue;
-
-    // Mặt dốc chuẩn của từng bậc thang tại tọa độ Z:
-    // Z=7.5 (đỉnh) -> Y=0; Z=44.63 (chân cầu thang) -> Y=-17.472
-    const t = Math.max(0, Math.min(1, (z - 7.5) / (44.63 - 7.5)));
-    const stepBaseY = t * -17.472;
-
-    const h = y - stepBaseY;
-    // Với đoạn tiếp giáp sân (z < 7.45), chỉ scale các đỉnh tay vịn cầu thang (h > 1.1)
-    // để không làm biến dạng lan can ngang của sân (vốn đã ở độ cao chuẩn 0.94m)
-    if (z < 7.45 && h < 1.1) continue;
-
-    // Độ cao của điểm đỉnh/thân lan can so với mặt bậc:
-    // Bản gốc bị nhân hệ số 2.8x nên cao tới ~2.35m.
-    // Đưa về chiều cao chuẩn ngang bằng với chiều cao của lan can (0.84m).
-    if (h >= -0.2 && h <= 3.0) {
-      const scaleFactor = 1.0 / 2.8; // 0.84m / 2.352m = 1/2.8, khôi phục tay vịn và con tiện khớp chuẩn với lan can
-      pos.setY(i, stepBaseY + h * scaleFactor);
-      modified = true;
-    }
-  }
-
-  if (modified) {
-    pos.needsUpdate = true;
-    geometry.computeVertexNormals();
-    geometry.computeBoundingBox();
-    geometry.computeBoundingSphere();
-    mesh.geometry = geometry;
-  }
-}
-
 export function LighthouseScene() {
   const { scene } = useGLTF(MODEL_URLS.lighthouseLandscape);
   const level = useStore((s) => s.lighthouseLevel);
@@ -178,7 +124,7 @@ export function LighthouseScene() {
         o.material = Array.isArray(o.material)
           ? o.material.map((m) => m.clone())
           : o.material.clone();
-        adjustStairRailing(o);
+        // Stairs and rails now have their final dimensions in the Blender source.
       }
     });
     return c;

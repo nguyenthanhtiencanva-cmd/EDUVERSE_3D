@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {LIGHTHOUSE_WORLD,STAIRS,TOWER,groundAt,canWalk,getSpiralPose,advanceLighthousePlayer,cameraDistance} from '../src/world/lighthouse/layout.js';
+import {LIGHTHOUSE_WORLD,STAIRS,TOWER,groundAt,canWalk,getHillStep,getSpiralPose,advanceLighthousePlayer,cameraDistance} from '../src/world/lighthouse/layout.js';
 import {LIGHTHOUSE_STOPS, nearbyLighthouseStop} from '../src/world/lighthouse/tour.js';
 
 test('tour stops are reachable and only count while walking nearby on their floor', () => {
@@ -47,9 +47,14 @@ test('walking camera retracts at the house and the balcony core', () => {
 test('spawn, hill stair route and balcony remain walkable on the new model',()=>{
  const [x,y,z]=LIGHTHOUSE_WORLD.spawn.position;
  assert.ok(canWalk(x,z));assert.equal(groundAt(x,z),y);
- for(let i=0;i<40;i++){
-  const z=7.5+i*.952;assert.ok(canWalk(4,z));assert.ok(Math.abs(groundAt(4,z)+i*.448)<.0001);
+ assert.equal(STAIRS.steps,110);
+ assert.ok(STAIRS.rise>=.14 && STAIRS.rise<=.18,'Human-scale risers');
+ assert.ok(STAIRS.going>=.30 && STAIRS.going<=.36,'Human-scale treads');
+ for(let i=0;i<STAIRS.steps;i++){
+  const p=getHillStep(i);assert.ok(canWalk(p.x,p.z));assert.ok(Math.abs(groundAt(p.x,p.z)-p.y)<.0001);
  }
+ assert.ok(Math.abs(getHillStep(109).y+17.472)<.0001,'Preserve the bottom elevation');
+ assert.ok(Math.abs(getHillStep(109).z-44.628)<.0001,'Preserve the approach route');
  assert.ok(canWalk(TOWER.x,TOWER.z+1.55,'balcony'));
  assert.equal(getSpiralPose(1).y,TOWER.balconyY);
  assert.ok(!canWalk(30,20));assert.ok(!canWalk(4,0));

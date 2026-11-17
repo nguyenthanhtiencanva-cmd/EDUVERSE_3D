@@ -12,6 +12,7 @@
     "roads:build": "node scripts/build-island-roads.mjs",
     "trees:build": "node scripts/build-island-trees.mjs",
     "test:geography": "node --test scripts/geography.test.mjs",
+    "test:avatar": "node --test scripts/avatar-motion.test.mjs",
     "models:compress": "node scripts/compress-models.mjs",
     "meshy": "node scripts/meshy-api.mjs",
     "sf3d": "node scripts/sf3d-local.mjs"
