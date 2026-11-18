@@ -7,15 +7,16 @@ import tourist from '../assets/models/tourist.glb?url';
 import student from '../assets/models/student.glb?url';
 import terrain from '../assets/models/vinh_thuc_terrain.glb?url';
 import vanGia from '../assets/models/cang_van_gia.glb?url';
+import vanGiaDong from '../assets/models/cang_van_gia_dong.glb?url';
 
 // Bản nén sinh từ assets/web-models/ bằng `npm run models:compress`.
-export const MODEL_URLS = { campus, island, lighthouse, lighthouseLandscape, tourist, student, terrain, vanGia };
+export const MODEL_URLS = { campus, island, lighthouse, lighthouseLandscape, tourist, student, terrain, vanGia, vanGiaDong };
 
 const SCENE_MODELS = {
   island: [island, lighthouse],
   campus: [campus, tourist],
   lighthouse: [lighthouseLandscape, tourist],
-  vangia: [vanGia, tourist],
+  vangia: [vanGia, vanGiaDong, tourist, student],
 };
 
 // Tải trước mô hình của một cảnh, gọi khi người dùng sắp chuyển sang cảnh đó.

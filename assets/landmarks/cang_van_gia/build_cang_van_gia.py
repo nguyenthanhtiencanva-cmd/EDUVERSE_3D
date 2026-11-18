@@ -72,6 +72,9 @@ LAMP_GLOW = M("Den_sang", "#FFF1B8", roughness=0.4, emission=1.5)
 ROAD_LINE = M("Vach_son", "#F4F1E6", roughness=0.8)
 POT = M("Chau_cay", "#A8553A", roughness=0.9)
 WOOD = M("Go", "#8A5A35", roughness=0.85)
+SHUTTER = M("Cua_chop", "#3E7D5A", roughness=0.7)
+FLAG_RED = M("Co_do", "#DA251D", roughness=0.8)
+FLAG_STAR = M("Sao_vang", "#FFDE00", roughness=0.8)
 BOAT_BLUE = M("Thuyen_xanh", "#2443B8", roughness=0.5)
 BOAT_RED = M("Thuyen_do", "#C5322A", roughness=0.5)
 BOAT_YELLOW = M("Thuyen_vang", "#F0B81E", roughness=0.5)
@@ -156,23 +159,85 @@ def hill_height(x, y):
     wave = 1 + 0.18 * math.sin(x * 0.07) + 0.12 * math.sin(x * 0.19 + y * 0.11)
     return QUAY + min(42, (y - 14) * slope * wave)
 
-def building(name, x0, x1, y0, y1, floors, wall, roof, base=None, floor_height=3.3, roof_height=2.2, band=None, flat=False):
+def window(x0, x1, y, z0, z1, facing, shutters=None):
+    """Cửa sổ có khung trắng, kính lùi vào, bậu cửa và (tùy chọn) hai cánh chớp.
+    facing: 'front' (mặt -Y), 'left' (mặt -X), 'right' (mặt +X). (x0, x1) là khoảng theo chiều ngang của mặt tường."""
+    parts = []
+    def rect(a0, a1, d0, d1, b0, b1, material):
+        # a: theo chiều ngang của mặt tường, d: chiều sâu ra khỏi tường (dương = ra ngoài), b: cao độ
+        if facing == "front":
+            return box("w", a0, a1, y - d1, y - d0, b0, b1, material)
+        if facing == "left":
+            return box("w", y - d1, y - d0, a0, a1, b0, b1, material)
+        return box("w", y + d0, y + d1, a0, a1, b0, b1, material)
+    parts.append(rect(x0 - 0.12, x1 + 0.12, -0.02, 0.06, z0 - 0.12, z1 + 0.12, WHITE))  # khung
+    parts.append(rect(x0, x1, 0.06, 0.08, z0, z1, GLASS))  # kính (nhô nhẹ khỏi khung để thấy rõ)
+    parts.append(rect(x0 - 0.2, x1 + 0.2, -0.02, 0.18, z0 - 0.22, z0 - 0.1, WHITE))  # bậu cửa
+    parts.append(rect(x0 - 0.15, x1 + 0.15, -0.02, 0.22, z1 + 0.12, z1 + 0.26, WHITE))  # gờ chắn mưa
+    if shutters:
+        leaf = (x1 - x0) / 2
+        parts.append(rect(x0 - 0.12 - leaf, x0 - 0.14, 0.0, 0.07, z0, z1, shutters))
+        parts.append(rect(x1 + 0.14, x1 + 0.12 + leaf, 0.0, 0.07, z0, z1, shutters))
+    return parts
+
+def building(name, x0, x1, y0, y1, floors, wall, roof, base=None, floor_height=3.3, roof_height=2.2, band=None, flat=False,
+             shutters=None, balcony=False, tank=False, door=True, porch=False):
+    """Nhà phố ven biển: bệ móng, cửa sổ khung trắng ở mặt trước và hai hông, cửa ra vào có mái đón,
+    ban công lan can ở các tầng trên (balcony), sảnh cột (porch), bồn nước inox trên mái bằng (tank)."""
     z0 = hill_height((x0 + x1) / 2, y0) if base is None else base
     z1 = z0 + floors * floor_height
-    parts = [box("wall", x0, x1, y0, y1, z0 - 1.5, z1, wall)]
-    width = x1 - x0
-    columns = max(2, int(width // 2.6))
+    parts = [box("wall", x0, x1, y0, y1, z0 - 1.5, z1, wall),
+             box("plinth", x0 - 0.12, x1 + 0.12, y0 - 0.12, y1 + 0.12, z0 - 1.5, z0 + 0.45, CONCRETE_DARK)]
+    width, depth = x1 - x0, y1 - y0
+    columns = max(2, int(width // 2.8))
+    side_columns = max(1, int(depth // 3.2))
+    door_column = columns // 2 if door else -1
     for floor in range(floors):
         zw = z0 + floor * floor_height + 1.0
         for c in range(columns):
             cx = x0 + width * (c + 0.5) / columns
-            parts.append(box("win", cx - 0.6, cx + 0.6, y0 - 0.06, y0 + 0.02, zw, zw + 1.5, GLASS))
+            if floor == 0 and c == door_column:
+                # Cửa ra vào: cánh cửa kính khung gỗ, bậc thềm và mái đón nhỏ
+                parts += [box("door_frame", cx - 0.85, cx + 0.85, y0 - 0.06, y0 + 0.02, z0, z0 + 2.55, WOOD),
+                          box("door_glass", cx - 0.7, cx + 0.7, y0 - 0.09, y0 - 0.05, z0 + 0.1, z0 + 2.4, GLASS),
+                          box("step", cx - 1.3, cx + 1.3, y0 - 0.9, y0, z0 - 0.3, z0 + 0.12, CONCRETE),
+                          box("canopy", cx - 1.4, cx + 1.4, y0 - 1.2, y0, z0 + 2.75, z0 + 2.9, roof if not flat else WHITE)]
+                continue
+            parts += window(cx - 0.6, cx + 0.6, y0, zw, zw + 1.45, "front", shutters)
+        for c in range(side_columns):
+            cy = y0 + depth * (c + 0.5) / side_columns
+            parts += window(cy - 0.5, cy + 0.5, x0, zw, zw + 1.45, "left", shutters)
+            parts += window(cy - 0.5, cy + 0.5, x1, zw, zw + 1.45, "right", shutters)
         if band and floor > 0:
             parts.append(box("band", x0 - 0.15, x1 + 0.15, y0 - 0.5, y0 + 0.1, z0 + floor * floor_height - 0.25, z0 + floor * floor_height + 0.1, band))
+        if balcony and floor > 0:
+            # Ban công giữa mặt tiền: sàn đua ra 1,2 m, lan can trắng
+            bx0, bx1 = x0 + width * 0.25, x1 - width * 0.25
+            zb = z0 + floor * floor_height
+            parts += [box("balcony", bx0, bx1, y0 - 1.25, y0, zb - 0.18, zb, WHITE)]
+            parts.append(railing("balcony_rail", bx0, bx1, y0 - 1.18, zb, post_gap=0.9, height=0.95))
+            parts.append(railing("balcony_rail_l", y0 - 1.18, y0, bx0 + 0.06, zb, post_gap=0.9, height=0.95, along="y"))
+            parts.append(railing("balcony_rail_r", y0 - 1.18, y0, bx1 - 0.06, zb, post_gap=0.9, height=0.95, along="y"))
+    if porch:
+        # Sảnh có 4 cột tròn và mái bằng đỡ phía trên lối vào
+        px0, px1 = x0 + width * 0.3, x1 - width * 0.3
+        parts.append(box("porch_roof", px0 - 0.4, px1 + 0.4, y0 - 2.6, y0, z0 + 3.0, z0 + 3.35, WHITE))
+        for px in (px0, px0 + (px1 - px0) / 3, px0 + 2 * (px1 - px0) / 3, px1):
+            parts.append(cyl("column", px, y0 - 2.2, z0, z0 + 3.0, 0.2, WHITE, vertices=10))
     if flat:
-        parts.append(box("parapet", x0 - 0.2, x1 + 0.2, y0 - 0.2, y1 + 0.2, z1, z1 + 0.5, wall))
+        parts.append(box("parapet", x0 - 0.2, x1 + 0.2, y0 - 0.2, y1 + 0.2, z1, z1 + 0.6, wall))
+        parts.append(box("parapet_cap", x0 - 0.25, x1 + 0.25, y0 - 0.25, y1 + 0.25, z1 + 0.6, z1 + 0.7, WHITE))
+        if tank:
+            # Bồn nước inox nằm ngang trên chân đỡ, rất quen thuộc ở nhà dân ven biển
+            tx, ty = x1 - 2.0, y1 - 2.0
+            parts.append(box("tank_stand", tx - 1.0, tx + 1.0, ty - 0.6, ty + 0.6, z1, z1 + 0.6, STEEL))
+            bpy.ops.mesh.primitive_cylinder_add(vertices=14, radius=0.55, depth=2.0, location=(tx, ty, z1 + 1.15), rotation=(0, math.pi / 2, 0))
+            bpy.context.object.data.materials.append(STEEL)
+            parts.append(bpy.context.object)
     else:
         parts.append(hip_roof("roof", x0, x1, y0, y1, z1, roof_height, roof))
+        # Diềm mái: viền mỏng dưới mép mái cho mái có độ dày
+        parts.append(box("eave", x0 - 0.5, x1 + 0.5, y0 - 0.5, y1 + 0.5, z1 - 0.12, z1 + 0.02, WHITE))
     return join(name, parts)
 
 def tree(x, y, size=1.0, pine=False):
@@ -231,7 +296,7 @@ def passenger_boat(name, x, y, heading, color, label, length=13.0):
     parts.append(box("windows", -length * 0.33, length * 0.19, -1.38, 1.38, 1.85, 2.45, GLASS))
     parts.append(box("roof", -length * 0.38, length * 0.25, -1.45, 1.45, 2.75, 2.93, color))
     parts.append(box("engine", -length * 0.5 - 0.6, -length * 0.5 + 0.1, -0.9, 0.9, 0.7, 1.6, ENGINE))
-    boat = join(name, parts)
+    texts = []
     for side in (-1, 1):
         bpy.ops.object.text_add(location=(-length * 0.2, side * 1.64, 0.98))
         text = bpy.context.object
@@ -244,7 +309,9 @@ def passenger_boat(name, x, y, heading, color, label, length=13.0):
             text.location.x = length * 0.12
         text.data.materials.append(BLACK)
         bpy.ops.object.convert(target="MESH")
-        text.parent = boat
+        texts.append(text)
+    # Chữ gộp vào thân tàu, để cả chiếc tàu dập dềnh cùng nhau trên web. Gốc tọa độ ở giữa thân tàu.
+    boat = join(name, parts + texts)
     return place(boat, x, y, 0.0, heading)
 
 FONT = bpy.data.fonts.load("/System/Library/Fonts/Supplemental/Arial Bold.ttf")
@@ -393,18 +460,62 @@ for i, x in enumerate(range(-6, 34, 10)):
                                 *[box("stool", sx - 0.22, sx + 0.22, sy - 0.22, sy + 0.22, QUAY, QUAY + 0.42, BOAT_BLUE if i % 2 else BOAT_RED)
                                   for sx in (x + 3.0, x + 4.3, x + 5.6) for sy in (2.55, 4.65)],
                                 box("counter", x + 6.6, x + 8.0, 4.4, 5.5, QUAY, QUAY + 1.0, CREAM)])
-building("Biet_thu_vang", -2, 14, 22, 33, 3, YELLOW_WALL, ROOF_RED, band=WHITE)
-building("Nha_mai_trang", -16, -6, 16, 24, 1, WHITE, ROOF_DARK, roof_height=2.6)
-building("Nha_trang_nho", 20, 27, 20, 27, 2, WHITE, ROOF_RED)
-building("Nha_trang_hien_dai", 36, 46, 22, 31, 3, WHITE, ROOF_DARK, flat=True)
+building("Biet_thu_vang", -2, 14, 22, 33, 3, YELLOW_WALL, ROOF_RED, band=WHITE, shutters=SHUTTER, balcony=True)
+building("Nha_mai_trang", -16, -6, 16, 24, 1, WHITE, ROOF_DARK, roof_height=2.6, shutters=SHUTTER)
+building("Nha_trang_nho", 20, 27, 20, 27, 2, WHITE, ROOF_RED, shutters=SHUTTER, balcony=True)
+building("Nha_trang_hien_dai", 36, 46, 22, 31, 3, WHITE, ROOF_DARK, flat=True, balcony=True, tank=True)
 
 # ---------- Trạm Vạn Gia và nhà hải quan (bên trái khi nhìn từ biển) ----------
-building("Nha_hai_quan", -30, -17, 14.5, 25, 3, YELLOW_WALL, ROOF_RED, base=QUAY, band=PINK_BAND, flat=True)
+building("Nha_hai_quan", -30, -17, 14.5, 25, 3, YELLOW_WALL, ROOF_RED, base=QUAY, band=PINK_BAND, flat=True, porch=True)
 box("Mai_hien_hai_quan", -31, -16, 12.8, 14.6, QUAY + 6.5, QUAY + 6.9, ROOF_RED)
 sign_text("Chu_hai_quan", "HẢI QUAN", -23.5, 14.38, QUAY + 3.55, 0.7, SIGN_BLUE)
-tram = building("Tram_Van_Gia_vang", -47, -35, 15, 24, 2, YELLOW_WALL, ROOF_RED, base=QUAY, roof_height=3.0)
+tram = building("Tram_Van_Gia_vang", -47, -35, 15, 24, 2, YELLOW_WALL, ROOF_RED, base=QUAY, roof_height=3.0, shutters=SHUTTER)
 box("Pin_mat_troi", -45, -38, 15.2, 18.6, QUAY + 8.15, QUAY + 8.25, SOLAR).rotation_euler = (math.radians(-24), 0, 0)
-building("Tram_Van_Gia_kem", -60, -49, 15, 23, 2, CREAM, ROOF_RED, base=QUAY)
+building("Tram_Van_Gia_kem", -60, -49, 15, 23, 2, CREAM, ROOF_RED, base=QUAY, shutters=SHUTTER)
+
+# Cột cờ trước nhà hải quan và trạm. Lá cờ là vật thể động (bay trong gió trên web), xem DYNAMIC bên dưới.
+def ball(x, y, z, radius, material):
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=8, ring_count=6, radius=radius, location=(x, y, z))
+    obj = bpy.context.object
+    obj.data.materials.append(material)
+    return obj
+
+def star_mesh(name, cx, y, cz, radius, material):
+    """Ngôi sao năm cánh phẳng trong mặt phẳng XZ (đối diện trục Y)."""
+    verts = [(cx, y, cz)]
+    for k in range(10):
+        r = radius if k % 2 == 0 else radius * 0.38
+        a = math.pi / 2 + k * math.pi / 5
+        verts.append((cx + r * math.cos(a), y, cz + r * math.sin(a)))
+    faces = [(0, 1 + k, 1 + (k + 1) % 10) for k in range(10)]
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    scene.collection.objects.link(obj)
+    obj.data.materials.append(material)
+    return obj
+
+FLAGS = []
+# Bãi bê tông giữa đường ven bờ (hết ở y = 12,5) và mặt nhà: cạnh nhà hải quan và giữa hai dãy nhà của trạm
+for i, (fx, fy) in enumerate(((-32.0, 13.6), (-48.0, 13.6))):
+    join(f"Cot_co_{i + 1}", [cyl("pole", fx, fy, QUAY, QUAY + 9.0, 0.07, STEEL, vertices=8),
+                             box("base", fx - 0.5, fx + 0.5, fy - 0.5, fy + 0.5, QUAY, QUAY + 0.3, CONCRETE),
+                             ball(fx, fy, QUAY + 9.05, 0.12, STEEL)])
+    # Lá cờ: lưới chia ô để web uốn sóng; gốc tọa độ ở mép cán cờ, lá cờ kéo theo +X
+    bpy.ops.mesh.primitive_grid_add(x_subdivisions=12, y_subdivisions=6, size=1, location=(0, 0, 0))
+    cloth = bpy.context.object
+    cloth.name = f"Co_{i + 1}"
+    cloth.scale = (2.4, 1.6, 1)
+    cloth.rotation_euler = (math.pi / 2, 0, 0)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    for v in cloth.data.vertices:
+        v.co.x += 1.2  # mép trái của lá cờ nằm ở gốc (cán cờ)
+    cloth.data.materials.append(FLAG_RED)
+    stars = [star_mesh("star", 1.2, side * 0.02, 0.0, 0.48, FLAG_STAR) for side in (-1, 1)]
+    cloth = join(f"Co_{i + 1}", [cloth] + stars)
+    cloth.location = (fx + 0.07, fy, QUAY + 8.7 - 0.8)
+    FLAGS.append(cloth)
 # Lán của ngư dân phía ngoài cùng
 for i, x in enumerate((-100, -90)):
     join(f"Lan_ngu_dan_{i + 1}", [box("wall", x, x + 8, 4, 10, QUAY, QUAY + 2.4, CONCRETE_DARK), box("roof", x - 0.4, x + 8.4, 3.5, 10.5, QUAY + 2.4, QUAY + 2.65, ROOF_GREEN)])
@@ -522,12 +633,15 @@ for x in (-10, 2, 15, 27, 36, 58, 66, 100, 108):
 join("Cay_coi", tree_parts)
 
 # ---------- Thuyền ----------
-passenger_boat("Tau_Vinh_Thuc_08", 22, -19, 4, BOAT_YELLOW, "VĨNH THỰC 08")
-passenger_boat("Tau_Vinh_Thuc_06", -8, -60, 172, BOAT_YELLOW, "VĨNH THỰC 06")
-passenger_boat("Tau_Khanh_Hai", 66, -9, 3, BOAT_RED, "KHÁNH HẢI", length=11)
+# Thuyền, phao và lá cờ là vật thể động: xuất riêng ra cang_van_gia_dong.glb để web cho dập dềnh, bay phấp phới.
+DYNAMIC = list(FLAGS)
+DYNAMIC.append(passenger_boat("Tau_Vinh_Thuc_08", 22, -19, 4, BOAT_YELLOW, "VĨNH THỰC 08"))
+# Tàu 06 là tàu khách ra vào: web cho chạy từ ngoài khơi vào cập cầu dẫn rồi rời bến.
+DYNAMIC.append(passenger_boat("Tau_Vinh_Thuc_06", -8, -60, 172, BOAT_YELLOW, "VĨNH THỰC 06"))
+DYNAMIC.append(passenger_boat("Tau_Khanh_Hai", 66, -9, 3, BOAT_RED, "KHÁNH HẢI", length=11))
 for i, (x, y, heading) in enumerate(((45.2, -12, 75), (45.0, -18, 80), (44.8, -24, 78), (44.9, -30, 82), (54.8, -14, 105), (55.0, -21, 100),
                                      (38, -8, 8), (30, -46, 30), (84, -30, 200))):
-    open_boat(f"Xuong_xanh_{i + 1:02d}", x, y, heading)
+    DYNAMIC.append(open_boat(f"Xuong_xanh_{i + 1:02d}", x, y, heading))
 # Tàu công tác vỏ xanh cập cầu cảng
 tug = [hull_mesh("hull", 16, 4.6, 2.0, BOAT_BLUE)]
 tug.append(box("deck", -7.2, 5.5, -2.1, 2.1, 1.9, 2.05, CONCRETE_DARK))
@@ -535,15 +649,15 @@ tug.append(box("cabin", -1.5, 4.0, -1.6, 1.6, 2.05, 4.6, BOAT_WHITE))
 tug.append(box("glass", -1.55, 4.05, -1.62, 1.62, 3.4, 4.1, GLASS))
 tug.append(box("mast", 1.1, 1.3, -0.1, 0.1, 4.6, 7.2, STEEL))
 tug.append(box("cargo", -6.5, -3, -1.2, 1.2, 2.05, 2.8, BOAT_BLUE))
-place(join("Tau_cong_tac", tug), -74, -37.4, -0.2, 180)
-# Phao neo
-buoys = []
-for x, y in ((8, -30), (10.2, -30.6), (35, -38), (-25, -48), (70, -40), (95, -22)):
+DYNAMIC.append(place(join("Tau_cong_tac", tug), -74, -37.4, -0.2, 180))
+# Phao neo: mỗi phao là một vật thể riêng, gốc ở tâm phao
+for i, (x, y) in enumerate(((8, -30), (10.2, -30.6), (35, -38), (-25, -48), (70, -40), (95, -22))):
     bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=0.75, location=(x, y, 0.15))
-    bpy.context.object.scale.x = 1.25
-    bpy.context.object.data.materials.append(BUOY)
-    buoys.append(bpy.context.object)
-join("Phao_neo", buoys)
+    buoy = bpy.context.object
+    buoy.name = f"Phao_neo_{i + 1}"
+    buoy.scale.x = 1.25
+    buoy.data.materials.append(BUOY)
+    DYNAMIC.append(buoy)
 
 # ---------- Ánh sáng, nền trời ----------
 world = bpy.data.worlds.new("Troi")
@@ -559,8 +673,47 @@ scene.collection.objects.link(sun)
 sun.rotation_euler = (math.radians(52), 0, math.radians(-150))
 
 # ---------- Lưu, xuất và dựng ảnh xem trước ----------
+# Vật thể động: đổ màu vật liệu vào màu đỉnh rồi dùng chung một vật liệu, để mỗi chiếc thuyền chỉ tốn
+# một lệnh vẽ trên web (bản động không được gộp mesh như bản tĩnh, vì web cần từng vật thể riêng để cử động).
+DYNAMIC_MAT = bpy.data.materials.new("MAT_Dong")
+DYNAMIC_MAT.use_nodes = True
+_nodes = DYNAMIC_MAT.node_tree.nodes
+_attr = _nodes.new("ShaderNodeVertexColor")
+_attr.layer_name = "Col"
+DYNAMIC_MAT.node_tree.links.new(_attr.outputs["Color"], _nodes["Principled BSDF"].inputs["Base Color"])
+_nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.6
+
+def bake_vertex_colors(obj):
+    mesh = obj.data
+    colors = mesh.color_attributes.new(name="Col", type="BYTE_COLOR", domain="CORNER")
+    for polygon in mesh.polygons:
+        source = mesh.materials[polygon.material_index]
+        color = source.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value
+        for loop in polygon.loop_indices:
+            colors.data[loop].color = color
+    mesh.color_attributes.active_color = colors
+    mesh.materials.clear()
+    mesh.materials.append(DYNAMIC_MAT)
+
+for obj in DYNAMIC:
+    bake_vertex_colors(obj)
+
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, "cang_van_gia.blend"))
-bpy.ops.export_scene.gltf(filepath=os.path.join(OUT, "cang_van_gia.glb"), export_format="GLB", export_apply=True, export_lights=False, export_cameras=False)
+
+def export(filename, objects):
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in objects:
+        obj.select_set(True)
+    options = dict(filepath=os.path.join(OUT, filename), export_format="GLB", export_apply=True, export_lights=False,
+                   export_cameras=False, use_selection=True)
+    try:
+        bpy.ops.export_scene.gltf(**options, export_vertex_color="ACTIVE")
+    except TypeError:
+        bpy.ops.export_scene.gltf(**options)
+
+dynamic_names = {obj.name for obj in DYNAMIC}
+export("cang_van_gia.glb", [o for o in scene.objects if o.type == "MESH" and o.name not in dynamic_names])
+export("cang_van_gia_dong.glb", DYNAMIC)
 
 camera_data = bpy.data.cameras.new("May_anh")
 camera = bpy.data.objects.new("May_anh", camera_data)
@@ -581,6 +734,9 @@ VIEWS = {
     # Tầm mắt người đi bộ (1,6 m) ở đầu bậc tàu khách, nhìn về nhà chờ và phòng vé
     "6_tam_mat_dau_bac": ((47, 2.5, QUAY + 1.6), (72, 9, QUAY + 1.5), 24),
     "7_tam_mat_hang_quan": ((-2, 3.4, QUAY + 1.6), (30, 4, QUAY + 1.4), 22),
+    # Kiến trúc: dãy nhà hải quan và trạm, biệt thự vàng có ban công
+    "8_hai_quan_va_tram": ((-30, -14, QUAY + 4), (-38, 18, QUAY + 5), 28),
+    "9_biet_thu_ban_cong": ((10, -6, QUAY + 5), (6, 26, QUAY + 9), 30),
 }
 for name, (position, target, lens) in VIEWS.items():
     camera.location = position

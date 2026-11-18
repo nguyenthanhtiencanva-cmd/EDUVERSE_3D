@@ -29,6 +29,8 @@ const MODELS = [
   { source: 'student_character.glb', output: 'student.glb' },
   // Cảng Vạn Gia 1:1, sinh bởi assets/landmarks/cang_van_gia/build_cang_van_gia.py. Không có texture.
   { source: 'cang_van_gia.glb', output: 'cang_van_gia.glb', merge: true },
+  // Thuyền, phao, cờ của cảng: không gộp, vì web cần từng vật thể (theo tên) để cho dập dềnh, bay trong gió.
+  { source: 'cang_van_gia_dong.glb', output: 'cang_van_gia_dong.glb' },
 ];
 
 const megabytes = (file) => `${(fs.statSync(file).size / 1048576).toFixed(2)} MB`;
