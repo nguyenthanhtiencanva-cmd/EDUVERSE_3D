@@ -2,7 +2,7 @@ import bpy, math, random, os, json, sys
 from mathutils import Vector
 from mathutils.noise import noise_vector
 sys.path.insert(0, os.path.dirname(__file__))
-from hill_stairs import replace_hill_stairs
+from redesign_lighthouse_courtyard import update_courtyard
 random.seed(1611)
 OUT=os.path.join(os.path.dirname(__file__),'vinh_thuc_rebuilt')
 bpy.ops.wm.open_mainfile(filepath=os.path.join(OUT,'vinh_thuc_lighthouse.blend'))
@@ -39,7 +39,6 @@ for poly in o.data.polygons:
  # centers computed after mesh update
  if (17<x<53 and -48<y<-20) or z<-28:poly.material_index=1
 # Extend the flight by adding human-scale treads, not by enlarging each tread.
-replace_hill_stairs()
 # Road on the right side of the hill, running across the approach landing.
 pts=[]
 for i in range(85):
@@ -85,6 +84,7 @@ for i in range(110):
 for i in range(12):
  d=protos[0].copy();d.materials.clear();d.materials.append(rock);s=random.uniform(1.2,3.2);instance('Offshore outcrop',d,(-56+random.uniform(-5,5),48+random.uniform(-3,3),-29),(s,s,s*1.5))
 mesh('Sea',[(-1400,-1400,-31),(1400,-1400,-31),(1400,1400,-31),(-1400,1400,-31)],[(0,1,2,3)],sea)
+update_courtyard()
 scene=bpy.context.scene;scene.cycles.samples=32;scene.cycles.use_denoising=True;scene.render.resolution_x=1600;scene.render.resolution_y=1100
 # Soft daylight and blue environment.
 scene.world.use_nodes=True;nt=scene.world.node_tree;nt.nodes.get('Background').inputs['Color'].default_value=(.55,.7,.9,1);nt.nodes.get('Background').inputs['Strength'].default_value=.45

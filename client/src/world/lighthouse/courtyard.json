@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "bounds": { "x0": -18, "x1": 20, "z0": -9.1, "z1": 11.9 },
+  "floorY": 0.075,
+  "edgeInset": 0.5,
+  "pathWidth": 2.4,
+  "path": [[4, 11.9], [4, 8.5], [-7.61, 8.5], [-7.61, 5.77]],
+  "rotundaEntry": { "angle": 1.1780972450961724, "outerRadius": 6.25, "innerRadius": 4.45, "width": 2.4, "steps": 7, "depth": 0.34 },
+  "towerDoor": { "angle": 0.8796459430051422, "width": 1.1, "height": 2.4 }
+}

@@ -12,6 +12,7 @@ import { GeoPlacesPanel } from './GeoPlacesPanel';
 import { GEO_MAP_ENABLED } from '../world/geo';
 import { VirtualJoystick } from './VirtualJoystick';
 import { LIGHTHOUSE_STOPS } from '../world/lighthouse/tour';
+import { stairEntryAt } from '../world/lighthouse/layout';
 import {
   Sun,
   Sunset,
@@ -46,7 +47,9 @@ export function HUDOverlay() {
 
   const lighthouseLevel = useStore((state) => state.lighthouseLevel);
   const spiralProgress = useStore((state) => state.spiralProgress);
-  const climbLighthouse = useStore((state) => state.climbLighthouse);
+  const enterLighthouseStairs = useStore((state) => state.enterLighthouseStairs);
+  const playerPosition = useStore((state) => state.playerPosition);
+  const stairEntry = stairEntryAt({x:playerPosition[0],y:playerPosition[1]-1.4,z:playerPosition[2]},lighthouseLevel);
   const visited = useStore((state) => state.visitedHotspots);
   const nextStop = LIGHTHOUSE_STOPS.find((stop) => !visited.includes(stop.id));
 
@@ -152,32 +155,22 @@ export function HUDOverlay() {
           </div>
         </div>
 
-        {/* Right Controls: Climb Tower, Mode, Time, Sound */}
+        {/* Contextual stair entrance, camera and lighting controls. */}
         <div className="flex flex-wrap items-center gap-2 pointer-events-auto">
-          {/* Quick button to climb up/down the 72-step Spiral Staircase of the 18m Lighthouse Tower */}
-          {isLighthouse && (
+          {isLighthouse && cameraMode === 'fps' && stairEntry && (
             <button
-              onClick={() =>
-                climbLighthouse(lighthouseLevel === 'balcony' ? 'ground' : 'balcony')
-              }
+              onClick={enterLighthouseStairs}
               className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-300 hover:to-teal-400 text-slate-950 text-xs font-extrabold shadow-xl border border-white/40 flex items-center gap-1.5 transition transform hover:scale-105 cursor-pointer"
             >
-              {lighthouseLevel === 'spiral' ? (
-                <>
-                  <ArrowUpCircle className="w-4 h-4 animate-spin" />
-                  <span>
-                    Đang leo tháp: {Math.round(spiralProgress * 100)}%
-                  </span>
-                </>
-              ) : lighthouseLevel === 'balcony' ? (
+              {lighthouseLevel === 'balcony' ? (
                 <>
                   <ArrowDownCircle className="w-4 h-4" />
-                  <span>Đi cầu thang xuống sân</span>
+                  <span>Vào cầu thang xuống sân · E</span>
                 </>
               ) : (
                 <>
                   <ArrowUpCircle className="w-4 h-4" />
-                  <span>Leo cầu thang lên đỉnh tháp</span>
+                  <span>Vào cầu thang lên tháp · E</span>
                 </>
               )}
             </button>
@@ -265,7 +258,10 @@ export function HUDOverlay() {
             <span aria-live="polite" className="font-bold text-amber-200">
               Đã đến {visited.length}/{LIGHTHOUSE_STOPS.length} điểm.
             </span>{' '}
-            {lighthouseLevel === 'spiral' ? 'Đang di chuyển trong tháp.' : nextStop?.directions}
+            {lighthouseLevel === 'spiral'
+              ? `Cầu thang ${Math.round(spiralProgress * 100)}% · Giữ W/↑ hoặc đẩy cần để đi, S/↓ để quay lại. Thả ra để dừng.`
+              : stairEntry ? 'Đã tới cửa cầu thang. Nhấn E hoặc nút Vào cầu thang, rồi tự điều khiển để leo.'
+              : nextStop?.directions || 'WASD/cần điều khiển để đi · Kéo chuột để nhìn quanh.'}
           </p>
         )}
       </header>

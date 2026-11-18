@@ -136,7 +136,7 @@ export function LighthouseScene() {
    const landscape = materials.every(mat => /coastal foliage|tree bark|hill grass/i.test(mat.name));
    mesh.castShadow = quality !== 'low' && (quality === 'high' || !landscape);
    for (const material of materials) {
-    const fade = level === 'spiral' && /plaster|trim|plinth/i.test(material.name);
+    const fade = level === 'spiral' && material.name.startsWith('Tower cutaway ');
     if (material.transparent === fade) continue;
     material.transparent = fade;
     material.opacity = fade ? 0.22 : 1;

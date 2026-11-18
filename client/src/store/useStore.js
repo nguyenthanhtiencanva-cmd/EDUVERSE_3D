@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { LIGHTHOUSE_WORLD, TOWER, getSpiralPose } from '../world/lighthouse/layout';
+import { LIGHTHOUSE_WORLD, stairEntryAt } from '../world/lighthouse/layout';
 import { nearbyLighthouseStop, readTourProgress, saveTourProgress } from '../world/lighthouse/tour';
 import { VAN_GIA_SPAWN, nearbyVanGiaStop, readVanGiaProgress, saveVanGiaProgress } from '../world/vangia/layout';
 
@@ -49,7 +49,7 @@ export const useStore = create((set) => ({
   campusTour: false,
   lighthouseLevel: 'ground', // 'ground' | 'spiral' | 'balcony'
   spiralProgress: 0, // 0.0 (chân tháp) -> 1.0 (ban công đỉnh tháp 15m)
-  autoClimb: null, // null | 'up' | 'down'
+  spiralDirection: 1,
   visitedHotspots: readTourProgress(),
   vanGiaVisited: readVanGiaProgress(),
   playerTeleport: null,
@@ -60,7 +60,7 @@ export const useStore = create((set) => ({
       campusTour: false,
       lighthouseLevel: 'ground',
       spiralProgress: 0,
-      autoClimb: null,
+      spiralDirection: 1,
       cameraMode: scope === 'island' ? 'orbit' : 'fps',
       activeView:
         scope === 'island'
@@ -98,57 +98,30 @@ export const useStore = create((set) => ({
 
   setSpiralState: (patch) => set((state) => ({ ...state, ...patch })),
 
-  climbLighthouse: (targetLevel) =>
+  enterLighthouseStairs: () =>
     set((state) => {
-      const goingUp = targetLevel
-        ? targetLevel === 'balcony'
-        : state.lighthouseLevel === 'ground' ||
-          (state.lighthouseLevel === 'spiral' && state.autoClimb === 'down');
-      const startT =
-        state.lighthouseLevel === 'spiral' ? state.spiralProgress : goingUp ? 0.0 : 1.0;
-      const pose = getSpiralPose(startT);
+      if (state.worldScope !== 'lighthouse' || state.cameraMode !== 'fps') return {};
+      const [x, y, z] = state.playerPosition;
+      const entry = stairEntryAt({ x, y: y - 1.4, z }, state.lighthouseLevel);
+      if (!entry) return {};
+      const { pose, progress, yaw } = entry;
       return {
         lighthouseLevel: 'spiral',
-        spiralProgress: startT,
-        autoClimb: goingUp ? 'up' : 'down',
-        cameraMode: 'fps',
+        spiralProgress: progress,
+        spiralDirection: progress === 1 ? -1 : 1,
         playerTeleport: {
           position: [pose.x, pose.y, pose.z],
-          yaw: goingUp ? pose.yawUp : pose.yawUp + Math.PI,
+          yaw,
           level: 'spiral',
           nonce: Date.now(),
         },
       };
     }),
 
-  finishSpiralClimb: (finalLevel) =>
-    set(() => {
-      if (finalLevel === 'balcony') {
-        const topPose = getSpiralPose(1.0);
-        return {
-          lighthouseLevel: 'balcony',
-          spiralProgress: 1.0,
-          autoClimb: null,
-          playerTeleport: {
-            position: [TOWER.x, TOWER.balconyY, TOWER.z + 1.55],
-            yaw: topPose.yawUp,
-            level: 'balcony',
-            nonce: Date.now(),
-          },
-        };
-      }
-      return {
-        lighthouseLevel: 'ground',
-        spiralProgress: 0.0,
-        autoClimb: null,
-        playerTeleport: {
-          position: [TOWER.x + 1.8, TOWER.rotundaFloor, TOWER.z + 2.8],
-          yaw: 0,
-          level: 'ground',
-          nonce: Date.now(),
-        },
-      };
-    }),
+  finishSpiralClimb: (finalLevel) => set({
+    lighthouseLevel: finalLevel,
+    spiralProgress: finalLevel === 'balcony' ? 1 : 0,
+  }),
 
   // The existing "fps" mode is controlled by the third-person character.
   cameraMode: 'orbit',

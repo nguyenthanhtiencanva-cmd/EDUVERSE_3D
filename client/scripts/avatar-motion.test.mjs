@@ -6,7 +6,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { createAvatarMotion } from '../src/player/avatarMotion.js';
-import { groundAt, footGroundAt, getSpiralPose, STAIRS, TOWER } from '../src/world/lighthouse/layout.js';
+import { groundAt, footGroundAt, getSpiralPose, STAIRS, TOWER, ROTUNDA_ENTRY } from '../src/world/lighthouse/layout.js';
 
 // Decode the actual shipped geometry and animation. Texture rendering is a browser check.
 globalThis.ProgressEvent ??= class { constructor(type, options) { Object.assign(this, { type }, options); } };
@@ -185,6 +185,26 @@ test('spiral foot samples stay on the correct turn and match each rendered tread
     for (const leg of f.motion.legs) worst = Math.min(worst, soleHeight(leg, sample));
   }
   assert.ok(worst > -0.035, `Spiral sole penetrated ${worst.toFixed(3)} m`);
+});
+
+test('feet clear the seven new radial steps between the courtyard and rotunda', () => {
+  for (const direction of [-1, 1]) {
+    const f = fixture();
+    const a = ROTUNDA_ENTRY.angle;
+    const start = direction < 0 ? 6.7 : 3.5;
+    f.root.position.set(TOWER.x + Math.cos(a) * start, groundAt(TOWER.x + Math.cos(a) * start, Math.sin(a) * start), Math.sin(a) * start);
+    f.root.rotation.y = Math.atan2(Math.cos(a) * direction, Math.sin(a) * direction);
+    let worst = 0;
+    for (let i = 0; i < 300; i++) {
+      const r = start + direction * i * 0.64 / 60;
+      f.root.position.x = TOWER.x + Math.cos(a) * r;
+      f.root.position.z = Math.sin(a) * r;
+      f.root.position.y += (groundAt(f.root.position.x, f.root.position.z) - f.root.position.y) * (1 - Math.exp(-23 / 60));
+      frame(f, { groundAt: footGroundAt, stairStride: 0.32, moving: true });
+      for (const leg of f.motion.legs) worst = Math.min(worst, soleHeight(leg, footGroundAt));
+    }
+    assert.ok(worst > -0.035, `Rotunda direction ${direction}: sole ${worst.toFixed(3)} m`);
+  }
 });
 
 test('teleport resets planted feet instead of dragging them from the old location', () => {

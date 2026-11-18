@@ -4,10 +4,11 @@ import { useAnimations, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { useStore } from '../store/useStore';
-import { LIGHTHOUSE_WORLD, STAIRS, advanceLighthousePlayer, footGroundAt, getSpiralPose } from './lighthouse/layout';
+import { LIGHTHOUSE_WORLD, STAIRS, advanceLighthousePlayer, footGroundAt, getSpiralPose, onRotundaSteps } from './lighthouse/layout';
 import { MODEL_URLS } from './models';
 import { campusCameraDistance, campusCanWalk, campusGroundAt } from './campusCollision';
 import { createAvatarMotion } from '../player/avatarMotion';
+import { movementHeading, rebaseMovementHeading, followHeading, manualStairStep } from '../player/thirdPersonMovement';
 
 const BASE_CAMERA_FOV = 52;
 const WALK_CAMERA_FOV = 66;
@@ -83,6 +84,7 @@ export function CharacterController({ tourist = true }) {
     player.lift = 0;
     player.jumpHeight = 0;
     player.snap = true;
+    player.movementActive = false;
     motion?.reset();
     if (group.current) {
       group.current.position.copy(player.position);
@@ -122,6 +124,7 @@ export function CharacterController({ tourist = true }) {
     canvas.style.touchAction = 'none';
     const reset = () => {
       player.keys.clear();
+      player.movementActive = false;
       player.jumpPressed = false;
       player.jumpHeld = false;
       const pointer = player.pointer;
@@ -140,7 +143,7 @@ export function CharacterController({ tourist = true }) {
       if (event.code.startsWith('Arrow') || event.code === 'Space') event.preventDefault();
       if (event.code === 'KeyE' && !event.repeat && useStore.getState().worldScope === 'lighthouse') {
         const st = useStore.getState();
-        st.climbLighthouse(st.lighthouseLevel === 'balcony' ? 'ground' : 'balcony');
+        st.enterLighthouseStairs();
         return;
       }
       player.keys.add(event.code);
@@ -212,7 +215,7 @@ export function CharacterController({ tourist = true }) {
       position.z >= STAIRS.z0 - 0.3 && position.z <= STAIRS.z1 + 0.3;
     const entryStairs = isLighthouse && level === 'ground' &&
       position.x > 2.5 && position.x < 6 && position.z > 4.1 && position.z < 5.7;
-    const onStairs = hillStairs || entryStairs || (isLighthouse && level === 'spiral');
+    const onStairs = hillStairs || entryStairs || (isLighthouse && (level === 'spiral' || onRotundaSteps(position.x, position.z)));
     const checkWalk = (x, z) => campusCanWalk(position, x, z);
     const getGroundY = (x, z) =>
       isLighthouse
@@ -227,6 +230,7 @@ export function CharacterController({ tourist = true }) {
       const forward = axis('KeyW', 'ArrowUp', 'KeyS', 'ArrowDown') + joystickInput.moveY;
       const right = axis('KeyD', 'ArrowRight', 'KeyA', 'ArrowLeft') + joystickInput.moveX;
       const magnitude = Math.hypot(forward, right);
+      const inputHeading = movementHeading(player, player.yaw, forward, right, !!player.pointer);
       const running =
         keys.has('ShiftLeft') ||
         keys.has('ShiftRight') ||
@@ -236,37 +240,26 @@ export function CharacterController({ tourist = true }) {
 
       // Cầu thang xoắn trong tháp.
       if (isLighthouse && level === 'spiral') {
-        let dir = 0;
-        if (state.autoClimb === 'up') dir = 1;
-        else if (state.autoClimb === 'down') dir = -1;
-        else if (Math.abs(forward) > 0.12) dir = forward > 0 ? 1 : -1;
-
-        if (dir !== 0) {
-          const climbSpeed = running ? 0.04 : 0.03;
-          const climbDelta = dt;
-          const nextT = state.spiralProgress + dir * climbSpeed * climbDelta;
-          clip = 'Walk';
-
-          if (nextT >= 1.0) {
-            state.finishSpiralClimb('balcony');
-          } else if (nextT <= 0.0) {
-            state.finishSpiralClimb('ground');
+        const stairInput = forward * state.spiralDirection;
+        const { progress: nextT, exitLevel } = manualStairStep(state.spiralProgress, stairInput, dt, running);
+        if (nextT !== state.spiralProgress || exitLevel) {
+          const dir = Math.sign(stairInput);
+          if (nextT !== state.spiralProgress) clip = 'Walk';
+          const pose = getSpiralPose(nextT);
+          position.set(pose.x, pose.y, pose.z);
+          const moveYaw = dir > 0 ? pose.yawUp : pose.yawUp + Math.PI;
+          player.facing = tourist ? moveYaw : moveYaw + Math.PI;
+          if (exitLevel) {
+            state.finishSpiralClimb(exitLevel);
+            rebaseMovementHeading(player, moveYaw, forward, right);
           } else {
             state.setSpiralState({ spiralProgress: nextT });
-            const pose = getSpiralPose(nextT);
-            position.set(pose.x, pose.y, pose.z);
-            const moveYaw = dir > 0 ? pose.yawUp : pose.yawUp + Math.PI;
-            player.facing = tourist ? moveYaw : moveYaw + Math.PI;
-            if (!player.pointer) {
-              const camDiff = moveYaw - player.yaw;
-              player.yaw += Math.atan2(Math.sin(camDiff), Math.cos(camDiff)) * (1 - Math.exp(-8 * dt));
-            }
           }
         }
       } else if (isLighthouse) {
         const walkDelta = onStairs ? dt : Math.min(elapsed, 0.12);
         if (magnitude > 0.12) {
-          const yaw = player.yaw + Math.atan2(-right, forward);
+          const yaw = inputHeading;
           const speed = onStairs ? (hillStairs ? STAIRS.speed : 0.95) : level === 'balcony' ? 1.85 : running ? 4.8 : 2.8;
           const strength = (Math.min(magnitude, 1) - 0.12) / 0.88;
           const distance = speed * strength * walkDelta;
@@ -297,10 +290,7 @@ export function CharacterController({ tourist = true }) {
         position.y = (Math.abs(base - groundY) < 0.002 ? groundY : base) + player.jumpHeight;
       } else {
         if (magnitude > 0.12) {
-          // Nếu người dùng bắt đầu tự điều khiển phím khi đang autoClimb thì hủy autoClimb
-          if (state.autoClimb) state.setSpiralState({ autoClimb: null });
-
-          const yaw = player.yaw + Math.atan2(-right, forward);
+          const yaw = inputHeading;
           const speed = tourist ? (running ? 5.2 : 2.6) : running ? 7.2 : 3.8;
           const distance = speed * Math.min(magnitude, 1) * dt;
           const x = position.x + Math.sin(yaw) * distance;
@@ -315,10 +305,6 @@ export function CharacterController({ tourist = true }) {
           const rotation = targetFacing - player.facing;
           player.facing +=
             Math.atan2(Math.sin(rotation), Math.cos(rotation)) * (1 - Math.exp(-14 * dt));
-
-          if (!player.pointer && Math.abs(right) > 0.1) {
-            player.yaw -= right * 1.45 * dt;
-          }
 
         }
 
@@ -338,6 +324,9 @@ export function CharacterController({ tourist = true }) {
         }
       }
 
+      if (Math.hypot(position.x - startX, position.z - startZ) > 0.0001) {
+        player.yaw = followHeading(player.yaw, player.facing - (tourist ? 0 : Math.PI), dt, !!player.pointer);
+      }
       const { target, eye, direction } = scratch;
       target.copy(position);
       target.y += 1.38;

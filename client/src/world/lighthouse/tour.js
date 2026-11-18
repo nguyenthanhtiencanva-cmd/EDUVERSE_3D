@@ -14,10 +14,10 @@ export const LIGHTHOUSE_STOPS = [
   {
     id: 'rotunda',
     title: 'Sân và vòm chân tháp',
-    position: [-7.2, groundAt(-7.2, 4.15), 4.15],
+    position: [-8.85, groundAt(-8.85, 2.77), 2.77],
     level: 'ground',
     radius: 2.4,
-    directions: 'Leo hết cầu thang, vào sân rồi đi về phía dãy vòm dưới chân tháp.',
+    directions: 'Leo hết cầu thang đồi, theo lối lát sáng qua sân và lên bảy bậc vào vòm chân tháp.',
   },
   {
     id: 'sea-view',
@@ -25,7 +25,7 @@ export const LIGHTHOUSE_STOPS = [
     position: [TOWER.x, TOWER.balconyY, TOWER.z + 1.55],
     level: 'balcony',
     radius: 2.2,
-    directions: 'Dùng nút Leo cầu thang lên đỉnh tháp. Trên ban công, xoay camera để quan sát biển.',
+    directions: 'Đi tới cửa tháp, nhấn E hoặc Vào cầu thang; giữ phím/cần để tự leo lên ban công.',
   },
 ];
 
@@ -35,6 +35,7 @@ export function nearbyLighthouseStop({ worldScope, cameraMode, lighthouseLevel, 
   let closestDistance = Infinity;
   for (const stop of LIGHTHOUSE_STOPS) {
     if (stop.level !== lighthouseLevel) continue;
+    if (Math.abs(playerPosition[1] - 1.4 - stop.position[1]) > 0.9) continue;
     const distance = Math.hypot(playerPosition[0] - stop.position[0], playerPosition[2] - stop.position[2]);
     if (distance <= stop.radius && distance < closestDistance) {
       closest = stop;
