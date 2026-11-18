@@ -14,7 +14,7 @@ Cả đảo chỉ có 7 điểm sau:
 | 4 | Trường TH&THCS Vĩnh Thực | Có | Chưa |
 | 5 | Phân hiệu Vĩnh Trung | Có | Có |
 | 6 | Bãi Đầu Đông | Có | Chưa |
-| 7 | Bãi Bến Hèn | **Chưa có**, cần tọa độ | Chưa |
+| 7 | Bãi Bến Hèn | Có (thêm 18/11, thầy xác nhận vị trí) | Chưa |
 
 Bản đồ hiện có 2 điểm **không thuộc danh sách** và sẽ bỏ: Trường Mầm non Vĩnh Thực, Cảng Vụng Dầm.
 

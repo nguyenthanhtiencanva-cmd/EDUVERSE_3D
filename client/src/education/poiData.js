@@ -109,6 +109,24 @@ export const ISLAND_POI_LIST = [
       { label: 'Đặc trưng sinh thái', value: 'Bãi cát mịn thoải dài, rừng phi lao chắn sóng và chòi nghỉ ven biển' },
     ],
   },
+  {
+    id: 'island-bai-ben-hen',
+    title: 'Bãi Bến Hèn (Bờ Nam Xã Vĩnh Trung)',
+    shortTitle: '🏖️ Bãi Bến Hèn',
+    category: 'Sinh thái & Danh thắng Biển đảo',
+    // position/camera* chỉ dùng cho sa bàn cũ (?map=old); bản đồ thật đọc tọa độ từ island-places.json.
+    position: [-30.0, 1.2, 4.0],
+    badgePosition: [-30.0, 4.4, 4.0],
+    cameraTarget: [-30.0, 1.0, 4.0],
+    cameraPosition: [-30.0, 12.0, 20.0],
+    image: '/images/preview_island_overview.png',
+    description:
+      'Một trong hai bãi tắm chính của đảo Vĩnh Thực, nằm ở bờ Nam xã Vĩnh Trung. Bãi cát vàng mịn, thoải, yên tĩnh hơn Bãi Đầu Đông.',
+    details: [
+      { label: 'Vị trí', value: 'Bờ Nam, phía Tây đảo, thuộc xã Vĩnh Trung' },
+      { label: 'Hoạt động', value: 'Tắm biển, dạo bãi, cùng ngư dân đánh bắt hải sản theo mùa (theo báo chí, cần thầy xác nhận)' },
+    ],
+  },
 ];
 
 // ============================================================================
