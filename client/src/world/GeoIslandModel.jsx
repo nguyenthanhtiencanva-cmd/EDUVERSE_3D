@@ -13,6 +13,7 @@ import { GeoPin } from '../ui/GeoPin';
 import { GeoRoads } from './GeoRoads';
 import { GeoTrees } from './GeoTrees';
 import satelliteUrl from '../assets/terrain/vinh-thuc-satellite.jpg?url';
+import { layoutLabels, pinLabelWidths, textWidth } from './labelLayout';
 
 const SEA_STYLE_URL = '/terrain/vinh-thuc-style.png';
 
@@ -59,6 +60,8 @@ export function GeoIslandModel() {
   const quality = useStore((state) => state.quality);
   const [nearby, setNearby] = useState('');
   const timer = useRef(0);
+  const [layout, setLayout] = useState({});
+  const layoutKey = useRef('');
 
   const terrain = useMemo(() => {
     const mesh = scene.getObjectByProperty('isMesh', true);
@@ -117,16 +120,82 @@ export function GeoIslandModel() {
     });
   }, [scene, terrain]);
 
-  // Địa danh phụ chỉ hiện khi camera đủ gần, để nhãn không chồng nhau ở góc nhìn toàn đảo.
-  useFrame(({ camera }, delta) => {
+  // Nhãn nền (tên đảo, bến, vịnh) ở tọa độ cảnh, cùng kích thước chữ để xếp chỗ.
+  const backgroundLabels = useMemo(
+    () =>
+      BACKGROUND_LABELS.map((label) => {
+        const [x, z] = lonLatToWorld(label.longitude, label.latitude);
+        const size = label.large ? 16 : 12;
+        return {
+          ...label,
+          position: [x, label.sea ? 0.1 : 2, z],
+          width: textWidth(label.name, `italic 600 ${size}px`) * (label.sea ? 1.25 : 1),
+          height: size + 6,
+        };
+      }),
+    [],
+  );
+
+  // Bề rộng nhãn của từng địa danh ở hai cỡ, đo một lần.
+  const labelWidths = useMemo(
+    () =>
+      Object.fromEntries(
+        places.map((place) => [
+          place.poiId,
+          { full: pinLabelWidths(place.name), short: place.shortName ? pinLabelWidths(place.shortName) : undefined },
+        ]),
+      ),
+    [places],
+  );
+
+  // Cứ 0,15 giây: địa danh phụ chỉ hiện khi camera đủ gần, và xếp lại nhãn theo góc nhìn hiện tại
+  // để nhãn không đè lên nhau hay lên ghim khác, xoay bản đồ hướng nào cũng đọc được.
+  useFrame(({ camera, size }, delta) => {
     timer.current += delta;
-    if (timer.current < 0.25) return;
+    if (timer.current < 0.15) return;
     timer.current = 0;
-    const visible = places
-      .filter((place) => place.priority === 1 || camera.position.distanceTo(scratch.set(...place.position)) < SECONDARY_PIN_RANGE)
-      .map((place) => place.poiId)
-      .join(',');
+    const shown = places.filter(
+      (place) => place.priority === 1 || activePOI?.id === place.poiId || camera.position.distanceTo(scratch.set(...place.position)) < SECONDARY_PIN_RANGE,
+    );
+    const visible = shown.map((place) => place.poiId).join(',');
     if (visible !== nearby) setNearby(visible);
+
+    const toScreen = (position) => {
+      scratch.set(...position).project(camera);
+      if (scratch.z > 1) return null; // Sau lưng camera
+      return [((scratch.x + 1) / 2) * size.width, ((1 - scratch.y) / 2) * size.height];
+    };
+    const pins = [];
+    for (const place of shown) {
+      if (place.priority !== 1) continue; // Địa danh phụ chỉ có nhãn, không có ghim giọt nước
+      const point = toScreen(place.position);
+      if (!point) continue;
+      pins.push({
+        id: place.poiId,
+        x: point[0],
+        y: point[1],
+        widths: labelWidths[place.poiId].full,
+        shortWidths: labelWidths[place.poiId].short,
+        preferred: place.labelSide,
+        // Điểm đang chọn xếp trước, rồi tới điểm gần camera.
+        rank: activePOI?.id === place.poiId ? -1 : camera.position.distanceTo(scratch.set(...place.position)),
+      });
+    }
+    const extras = [];
+    for (const label of backgroundLabels) {
+      const point = toScreen(label.position);
+      if (!point) continue;
+      extras.push({
+        id: `bg:${label.name}`,
+        box: { l: point[0] - label.width / 2, t: point[1] - label.height / 2, r: point[0] + label.width / 2, b: point[1] + label.height / 2 },
+      });
+    }
+    const next = layoutLabels(pins, extras, size.width, size.height);
+    const key = JSON.stringify(next);
+    if (key !== layoutKey.current) {
+      layoutKey.current = key;
+      setLayout(next);
+    }
   });
   const visibleIds = nearby.split(',');
 
@@ -158,24 +227,26 @@ export function GeoIslandModel() {
         <Html key={place.poiId} position={place.position} zIndexRange={place.priority === 1 ? [15, 11] : [10, 6]}>
           <GeoPin
             place={place}
+            side={layout[place.poiId]?.side}
+            offset={layout[place.poiId]?.dx || 0}
+            short={layout[place.poiId]?.short}
+            compact={layout[place.poiId]?.size === 'compact'}
+            callout={layout[place.poiId]?.side === 'callout' ? layout[place.poiId] : null}
             active={activePOI?.id === place.poiId}
             onSelect={() => setActivePOI(ISLAND_POI_LIST.find((poi) => poi.id === place.poiId) || null)}
           />
         </Html>
       ))}
-      {BACKGROUND_LABELS.map((label) => {
-        const [x, z] = lonLatToWorld(label.longitude, label.latitude);
-        return (
-          <Html key={label.name} position={[x, label.sea ? 0.1 : 2, z]} center zIndexRange={[5, 0]} style={{ pointerEvents: 'none' }}>
-            <span
-              className={`whitespace-nowrap font-semibold italic ${label.large ? 'text-base' : 'text-xs'} ${label.sea ? 'tracking-[0.2em] text-white/80' : 'text-white'}`}
-              style={{ textShadow: '0 1px 3px rgba(0,0,0,0.75)' }}
-            >
-              {label.name}
-            </span>
-          </Html>
-        );
-      })}
+      {backgroundLabels.map((label) => (
+        <Html key={label.name} position={label.position} center zIndexRange={[5, 0]} style={{ pointerEvents: 'none' }}>
+          <span
+            className={`whitespace-nowrap font-semibold italic transition-opacity duration-300 ${label.large ? 'text-base' : 'text-xs'} ${label.sea ? 'tracking-[0.2em] text-white/80' : 'text-white'}`}
+            style={{ textShadow: '0 1px 3px rgba(0,0,0,0.75)', opacity: layout[`bg:${label.name}`] === 'hidden' ? 0 : 1 }}
+          >
+            {label.name}
+          </span>
+        </Html>
+      ))}
     </group>
   );
 }

@@ -160,8 +160,17 @@ export function CameraController() {
   const targetLook = useRef(new THREE.Vector3(2.0, 2.0, 0.0));
 
   const lastGeoPlace = useRef(null);
+  // Camera chỉ bay khi vừa chọn góc nhìn hoặc địa danh. Tới nơi, hoặc người dùng tự kéo/xoay/phóng to,
+  // thì dừng bay, để người dùng quan sát từ góc nào cũng được mà không bị kéo về góc cũ.
+  const flying = useRef(true);
+
+  // Từ chế độ đi bộ chuyển sang Flycam: bay về góc nhìn đang chọn.
+  useEffect(() => {
+    if (cameraMode === 'orbit') flying.current = true;
+  }, [cameraMode]);
 
   useEffect(() => {
+    flying.current = true;
     const geoPlace =
       GEO_MAP_ENABLED && worldScope === 'island' && activePOI
         ? ISLAND_PLACES.find((place) => place.poiId === activePOI.id)
@@ -176,6 +185,7 @@ export function CameraController() {
     } else if (lastGeoPlace.current === `${worldScope}:${activeView}:${viewNonce}`) {
       // Vừa đóng thẻ địa danh mà chưa đổi góc nhìn: giữ camera tại chỗ.
       lastGeoPlace.current = null;
+      flying.current = false;
     } else if (activePOI) {
       targetPos.current.set(...activePOI.cameraPosition);
       targetLook.current.set(...activePOI.cameraTarget);
@@ -195,12 +205,16 @@ export function CameraController() {
   }, [worldScope, activeView, activePOI, viewNonce]);
 
   useFrame(() => {
-    if (cameraMode === 'orbit') {
+    if (cameraMode === 'orbit' && flying.current) {
       camera.position.lerp(targetPos.current, 0.055);
       if (orbitRef.current) {
         orbitRef.current.target.lerp(targetLook.current, 0.055);
         orbitRef.current.update();
       }
+      const arrived =
+        camera.position.distanceTo(targetPos.current) < 0.05 &&
+        (!orbitRef.current || orbitRef.current.target.distanceTo(targetLook.current) < 0.05);
+      if (arrived) flying.current = false;
     }
     // When cameraMode is 'fps', CharacterController takes over camera follow & player movement
   });
@@ -210,6 +224,9 @@ export function CameraController() {
       {cameraMode === 'orbit' && (
         <OrbitControls
           ref={orbitRef}
+          onStart={() => {
+            flying.current = false; // Người dùng tự điều khiển: thôi bay về góc đã chọn
+          }}
           enableDamping
           dampingFactor={0.06}
           minDistance={worldScope === 'island' ? 12 : 2.5}
