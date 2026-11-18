@@ -7,26 +7,11 @@
 // ============================================================================
 // 1. CẤP ĐỘ TOÀN ĐẢO VĨNH THỰC (ISLAND OVERVIEW POIs - 10 ĐỊA DANH CHUẨN VỆ TINH)
 // ============================================================================
-import { GEO_MAP_ENABLED } from '../world/geo.js';
 
+// Thầy chốt 18/11/2026: cả đảo chỉ có 7 điểm du lịch — Cảng Vạn Gia, Hải đăng, Đền thờ Tướng quân
+// Lê Bá Đức, Trường TH&THCS Vĩnh Thực, Phân hiệu Vĩnh Trung, Bãi Đầu Đông, Bãi Bến Hèn.
+// Không thêm điểm nào khác. Đền và Bãi Bến Hèn sẽ thêm khi có vị trí.
 export const ISLAND_POI_LIST = [
-  ...(GEO_MAP_ENABLED ? [{
-    id: 'island-mam-non-vinh-thuc',
-    title: 'Trường Mầm non Vĩnh Thực',
-    shortTitle: '🏫 Trường Mầm non Vĩnh Thực',
-    category: 'Giáo dục mầm non',
-    isSchoolCampus: true,
-    hasDetailed3D: false,
-    position: [19.76, 1, 15.13],
-    badgePosition: [19.76, 1.6, 15.13],
-    cameraTarget: [19.76, 1, 15.13],
-    cameraPosition: [13.76, 22, 49.13],
-    description: 'Trường Mầm non Vĩnh Thực, Vĩnh Thực, Quảng Ninh. Vị trí do thầy cung cấp.',
-    details: [
-      { label: 'Địa chỉ', value: 'Vĩnh Thực, Quảng Ninh' },
-      { label: 'Plus Code', value: '9WCX+GJ (7PH99WCX+GJ)' },
-    ],
-  }] : []),
   {
     id: 'island-campus-vinh-trung',
     title: 'Phân Hiệu Vĩnh Trung - Trường TH&THCS Vĩnh Thực (Mô Hình 1:1)',
@@ -122,23 +107,6 @@ export const ISLAND_POI_LIST = [
     details: [
       { label: 'Vị trí bản đồ', value: 'Bờ biển cát vàng phía Đông Nam dưới khu vực trung tâm Vĩnh Thực' },
       { label: 'Đặc trưng sinh thái', value: 'Bãi cát mịn thoải dài, rừng phi lao chắn sóng và chòi nghỉ ven biển' },
-    ],
-  },
-  {
-    id: 'island-fishermans-wharf',
-    title: 'Cảng Vụng Dầm',
-    shortTitle: '⚓ Cảng Vụng Dầm',
-    category: 'Ngư nghiệp & Đời sống Dân sinh',
-    position: [-67.08, 1.2, 0.70],
-    badgePosition: [-67.08, 4.4, 0.70],
-    cameraTarget: [-67.08, 1.0, 0.70],
-    cameraPosition: [-67.08, 12.0, 16.5],
-    image: '/images/preview_island_overview.png',
-    description:
-      'Mũi cực Tây của nhánh bán đảo Tây Bắc đảo Vĩnh Thực, nơi cuối trục đường xuyên đảo và là bến neo đậu tàu thuyền đánh bắt gần bờ của ngư dân.',
-    details: [
-      { label: 'Vị trí địa lý', value: 'Cực Tây xã Vĩnh Trung, tiếp giáp luồng lạch biển phía Tây' },
-      { label: 'Hạng mục 3D', value: 'Cầu cập xuồng, điểm cuối đường xuyên đảo & thuyền gỗ của ngư dân' },
     ],
   },
 ];

@@ -33,11 +33,6 @@ export const ISLAND_PRESET_VIEWS = {
     target: new THREE.Vector3(62.60, 4.5, -22.82),
     name: '🗼 Hải đăng Vĩnh Thực (1962)',
   },
-  fishermans_wharf: {
-    pos: new THREE.Vector3(-62.0, 15.0, 18.0),
-    target: new THREE.Vector3(-67.08, 1.2, 0.70),
-    name: '⚓ Cảng Vụng Dầm',
-  },
 };
 
 // Góc nhìn của bản đồ đảo dựng từ dữ liệu thật (bản thử ?map=new).
