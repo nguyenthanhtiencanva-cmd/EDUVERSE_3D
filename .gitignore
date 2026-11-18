@@ -21,6 +21,8 @@ build/
 *.blend2
 *.blend@
 assets/characters/tourist_meshy_*.glb
+# File trung gian của Meshy (mỗi file ~4 MB); bản gộp nằm ở assets/web-models/port_*.glb
+assets/characters/port_people/*.glb
 __pycache__/
 
 # Large Media / Videos (exceeds GitHub 100MB limit)

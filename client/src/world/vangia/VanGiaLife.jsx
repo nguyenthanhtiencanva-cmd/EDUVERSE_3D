@@ -265,12 +265,18 @@ function Gulls() {
   );
 }
 
-// Người trên bến, tọa độ cảnh (đã dời gốc; mặt bến cao 0). Mỗi người đi qua lại giữa các điểm, dừng một lúc ở hai đầu.
+// Người dân Cảng Vạn Gia (mô hình Meshy, scripts/generate-port-people-meshy.mjs), tọa độ cảnh (đã dời gốc;
+// mặt bến cao 0). Mỗi người đi qua lại giữa các điểm, dừng một lúc ở hai đầu; một điểm duy nhất = đứng yên.
+// Mô hình Meshy nhìn về +Z khi chưa xoay, giống nhân vật khách du lịch của người chơi.
 const PEOPLE = [
-  { model: 'student', shirt: '#2F6FB5', pants: '#3B3B3B', route: [[-60, -5.2], [34, -5.2]], speed: 1.25, pause: 3 },
-  { model: 'student', shirt: '#E07A2E', pants: '#2B3A55', route: [[1, -1], [8, -5], [27, -8]], speed: 1.05, pause: 5 },
-  { model: 'student', shirt: '#F2F2F2', pants: '#4A5D3A', route: [[14, -1.2]], facing: 0 }, // đứng ngắm biển cạnh biển chào mừng
-  { model: 'tourist', route: [[-114.5, 3], [-114.5, 26]], speed: 1.1, pause: 6 }, // khách dạo ra cầu cảng
+  // Khách vừa lên bờ: từ đầu bậc tàu khách qua vạch sang đường tới nhà chờ
+  { model: 'portKhachDuLich', route: [[1, -1], [8, -5], [27, -8]], speed: 1.05, pause: 5 },
+  // Nhân viên bến tàu đi lại trên cầu dẫn
+  { model: 'portNhanVienBen', route: [[0, 11], [0, 36]], speed: 1.0, pause: 6 },
+  // Ngư dân dạo ra cầu cảng bê tông
+  { model: 'portNguDan', route: [[-114.5, 3], [-114.5, 26]], speed: 0.9, pause: 8 },
+  // Chị bán hàng đứng sau quầy của quán đầu tiên ven kè, nhìn ra biển
+  { model: 'portBanHang', route: [[-49, -4.1]], facing: 0 },
 ];
 
 function Person({ person, source, animations }) {
@@ -278,27 +284,15 @@ function Person({ person, source, animations }) {
   const { scene, mixer, actions } = useMemo(() => {
     const clone = cloneSkinned(source);
     clone.traverse((child) => {
-      if (!child.isMesh) return;
-      child.castShadow = true;
-      if (person.model !== 'student') return;
-      // Áo, quần riêng cho từng người; khăn quàng đỏ đổi theo màu áo để thành người dân thường
-      const materials = Array.isArray(child.material) ? child.material : [child.material];
-      const recolored = materials.map((material) => {
-        const name = material.name || '';
-        const color = /Shirt|RedScarf|ScarfRing/.test(name) ? person.shirt : /Pants/.test(name) ? person.pants : null;
-        if (!color) return material;
-        const copy = material.clone();
-        copy.color = new THREE.Color(color);
-        return copy;
-      });
-      child.material = Array.isArray(child.material) ? recolored : recolored[0];
+      if (child.isMesh) child.castShadow = true;
     });
     const clipMixer = new THREE.AnimationMixer(clone);
     const byName = Object.fromEntries(animations.map((clip) => [clip.name, clipMixer.clipAction(clip)]));
     return { scene: clone, mixer: clipMixer, actions: byName };
-  }, [source, animations, person]);
+  }, [source, animations]);
 
-  const state = useRef({ leg: 0, forward: true, waitUntil: 0, clip: '' });
+  // Lệch nhịp giữa các người (không đi đồng loạt)
+  const state = useRef({ leg: 0, forward: true, waitUntil: Math.random() * 3, clip: '' });
 
   useEffect(() => () => mixer.stopAllAction(), [mixer]);
 
@@ -334,8 +328,7 @@ function Person({ person, source, animations }) {
       } else {
         position.x += (dx / distance) * step;
         position.z += (dz / distance) * step;
-        // Mô hình khách du lịch nhìn về +Z; mô hình học sinh nhìn ngược lại (giống CharacterController)
-        const yaw = Math.atan2(dx, dz) + (person.model === 'student' ? Math.PI : 0);
+        const yaw = Math.atan2(dx, dz);
         group.current.rotation.y += angleDelta(group.current.rotation.y, yaw) * (1 - Math.exp(-10 * dt));
         play('Walk');
       }
@@ -345,21 +338,20 @@ function Person({ person, source, animations }) {
   });
 
   const [x, z] = person.route[0];
-  const initialYaw = (person.facing ?? 0) + (person.model === 'student' ? Math.PI : 0);
   return (
-    <group ref={group} position={[x, 0, z]} rotation-y={initialYaw}>
+    <group ref={group} position={[x, 0, z]} rotation-y={person.facing ?? 0}>
       <primitive object={scene} />
     </group>
   );
 }
 
+function PersonFromModel({ person }) {
+  const { scene, animations } = useGLTF(MODEL_URLS[person.model]);
+  return <Person person={person} source={scene} animations={animations} />;
+}
+
 function People() {
-  const tourist = useGLTF(MODEL_URLS.tourist);
-  const student = useGLTF(MODEL_URLS.student);
-  const sources = { tourist, student };
-  return PEOPLE.map((person, i) => (
-    <Person key={i} person={person} source={sources[person.model].scene} animations={sources[person.model].animations} />
-  ));
+  return PEOPLE.map((person) => <PersonFromModel key={person.model} person={person} />);
 }
 
 export function VanGiaLife() {

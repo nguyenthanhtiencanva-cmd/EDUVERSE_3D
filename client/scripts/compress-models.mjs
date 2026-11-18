@@ -31,6 +31,11 @@ const MODELS = [
   { source: 'cang_van_gia.glb', output: 'cang_van_gia.glb', merge: true },
   // Thuyền, phao, cờ của cảng: không gộp, vì web cần từng vật thể (theo tên) để cho dập dềnh, bay trong gió.
   { source: 'cang_van_gia_dong.glb', output: 'cang_van_gia_dong.glb' },
+  // Người dân Cảng Vạn Gia dựng bằng Meshy (scripts/generate-port-people-meshy.mjs), có Idle + Walk + Run.
+  { source: 'port_ngu_dan.glb', output: 'port_ngu_dan.glb', texture: 1024 },
+  { source: 'port_ban_hang.glb', output: 'port_ban_hang.glb', texture: 1024 },
+  { source: 'port_nhan_vien_ben.glb', output: 'port_nhan_vien_ben.glb', texture: 1024 },
+  { source: 'port_khach_du_lich.glb', output: 'port_khach_du_lich.glb', texture: 1024 },
 ];
 
 const megabytes = (file) => `${(fs.statSync(file).size / 1048576).toFixed(2)} MB`;

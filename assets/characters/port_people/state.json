@@ -1,0 +1,30 @@
+{
+  "ngu_dan": {
+    "conceptTaskId": "01a1eefa-a58e-71de-84a6-ccb45c54dd0e",
+    "modelTaskId": "01a1eefc-774b-72b5-adff-d29d792b6758",
+    "rigTaskId": "01a1eefd-811b-75fa-8f10-ddb62fa157b7",
+    "idleTaskId": "01a1eefd-b8e8-75f2-82b1-40c5130aa417",
+    "done": true
+  },
+  "ban_hang": {
+    "conceptTaskId": "01a1eefb-32f7-7430-b307-12907a5f35a1",
+    "modelTaskId": "01a1eefd-dba7-7611-b542-fcc44560ff77",
+    "rigTaskId": "01a1eefe-ccda-74b5-a66f-9c803a49fe84",
+    "idleTaskId": "01a1eeff-0650-7132-9909-ae39502729f9",
+    "done": true
+  },
+  "nhan_vien_ben": {
+    "conceptTaskId": "01a1eefb-7def-77e2-ab98-cc967f43d813",
+    "modelTaskId": "01a1eeff-2ca0-7116-9691-696305d6313e",
+    "rigTaskId": "01a1ef00-1f2f-7273-add7-c655f7c1d42a",
+    "idleTaskId": "01a1ef00-5779-703d-be13-ef99cb3dcbb6",
+    "done": true
+  },
+  "khach_du_lich": {
+    "conceptTaskId": "01a1eefb-c898-74d5-8b4f-1d2e14db90a0",
+    "modelTaskId": "01a1ef00-7b30-72ec-8db0-ea5a21c7ab9d",
+    "rigTaskId": "01a1ef01-5ac5-7151-ae2f-7aeb56932f13",
+    "idleTaskId": "01a1ef01-9627-71e8-83a2-bdf26087c16f",
+    "done": true
+  }
+}
