@@ -10,7 +10,7 @@
 
 // Thầy chốt 18/11/2026: cả đảo chỉ có 7 điểm du lịch — Cảng Vạn Gia, Hải đăng, Đền thờ Tướng quân
 // Lê Bá Đức, Trường TH&THCS Vĩnh Thực, Phân hiệu Vĩnh Trung, Bãi Đầu Đông, Bãi Bến Hèn.
-// Không thêm điểm nào khác. Đền và Bãi Bến Hèn sẽ thêm khi có vị trí.
+// Không thêm điểm nào khác.
 export const ISLAND_POI_LIST = [
   {
     id: 'island-campus-vinh-trung',
@@ -123,8 +123,27 @@ export const ISLAND_POI_LIST = [
     description:
       'Một trong hai bãi tắm chính của đảo Vĩnh Thực, nằm ở bờ Nam xã Vĩnh Trung. Bãi cát vàng mịn, thoải, yên tĩnh hơn Bãi Đầu Đông.',
     details: [
-      { label: 'Vị trí', value: 'Bờ Nam, phía đông nam Phân hiệu Vĩnh Trung' },
+      { label: 'Vị trí', value: 'Bờ Nam, phía đông nam Phân hiệu Vĩnh Trung, cạnh Đền thờ Tướng quân Lê Bá Đức' },
       { label: 'Hoạt động', value: 'Tắm biển, dạo bãi, cùng ngư dân đánh bắt hải sản theo mùa (theo báo chí, cần thầy xác nhận)' },
+    ],
+  },
+  {
+    id: 'island-den-le-ba-duc',
+    title: 'Đền thờ Tướng quân Lê Bá Đức',
+    shortTitle: '🏛️ Đền thờ Tướng quân Lê Bá Đức',
+    category: 'Di tích & Tín ngưỡng',
+    // position/camera* chỉ dùng cho sa bàn cũ (?map=old); bản đồ thật đọc tọa độ từ island-places.json.
+    position: [-5.0, 1.2, 2.0],
+    badgePosition: [-5.0, 4.4, 2.0],
+    cameraTarget: [-5.0, 1.0, 2.0],
+    cameraPosition: [-5.0, 12.0, 18.0],
+    image: '/images/preview_island_overview.png',
+    // Chỉ ghi điều đã chắc chắn. Sự tích, năm xây và ngày lễ chờ tư liệu của thầy hoặc ban quản lý đền.
+    description:
+      'Ngôi đền thờ Tướng quân Lê Bá Đức nằm gần bờ Nam đảo Vĩnh Thực, phía đông Bãi Bến Hèn.',
+    details: [
+      { label: 'Vị trí', value: 'Gần bờ Nam, phía đông Bãi Bến Hèn' },
+      { label: 'Tư liệu', value: 'Sự tích, năm xây dựng và ngày lễ đang được bổ sung' },
     ],
   },
 ];

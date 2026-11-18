@@ -10,7 +10,7 @@ Cả đảo chỉ có 7 điểm sau:
 | --- | --- | --- | --- |
 | 1 | Cảng Vạn Gia | Có | Có (đi bộ được) |
 | 2 | Hải đăng Vĩnh Thực | Có | Có (phần của thầy) |
-| 3 | Đền thờ Tướng quân Lê Bá Đức | **Chưa có**, cần tọa độ | Chưa |
+| 3 | Đền thờ Tướng quân Lê Bá Đức | Có (thêm 18/11 theo vị trí thầy khoanh); chưa có tư liệu | Chưa |
 | 4 | Trường TH&THCS Vĩnh Thực | Có | Chưa |
 | 5 | Phân hiệu Vĩnh Trung | Có | Có |
 | 6 | Bãi Đầu Đông | Có | Chưa |
