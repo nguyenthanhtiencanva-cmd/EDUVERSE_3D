@@ -123,7 +123,7 @@ export const ISLAND_POI_LIST = [
     description:
       'Một trong hai bãi tắm chính của đảo Vĩnh Thực, nằm ở bờ Nam xã Vĩnh Trung. Bãi cát vàng mịn, thoải, yên tĩnh hơn Bãi Đầu Đông.',
     details: [
-      { label: 'Vị trí', value: 'Bờ Nam, phía Tây đảo, thuộc xã Vĩnh Trung' },
+      { label: 'Vị trí', value: 'Bờ Nam, phía đông nam Phân hiệu Vĩnh Trung' },
       { label: 'Hoạt động', value: 'Tắm biển, dạo bãi, cùng ngư dân đánh bắt hải sản theo mùa (theo báo chí, cần thầy xác nhận)' },
     ],
   },
