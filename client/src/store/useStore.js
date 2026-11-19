@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { LIGHTHOUSE_WORLD, stairEntryAt } from '../world/lighthouse/layout';
 import { nearbyLighthouseStop, readTourProgress, saveTourProgress } from '../world/lighthouse/tour';
 import { VAN_GIA_SPAWN, nearbyVanGiaStop, readVanGiaProgress, saveVanGiaProgress } from '../world/vangia/layout';
+import { findNearbyInteraction, readCampusProgress, saveCampusProgress } from '../player/interactions';
 
 const QUALITY_LEVELS = ['low', 'medium', 'high'];
 const QUALITY_KEY = 'eduverse-quality';
@@ -52,7 +53,53 @@ export const useStore = create((set) => ({
   spiralDirection: 1,
   visitedHotspots: readTourProgress(),
   vanGiaVisited: readVanGiaProgress(),
+  campusVisited: readCampusProgress(),
+  viewPerspective: 'third', // 'third' | 'first'
+  activeInteraction: null,
   playerTeleport: null,
+
+  setViewPerspective: (viewPerspective) => set({ viewPerspective }),
+  toggleViewPerspective: () =>
+    set((state) => ({ viewPerspective: state.viewPerspective === 'first' ? 'third' : 'first' })),
+
+  openInteraction: (item) =>
+    set((state) => {
+      if (!item) return {};
+      const patch = { activeInteraction: item, joystickInput: NEUTRAL_JOYSTICK };
+      if (item.stopId) {
+        if (item.scope === 'lighthouse' && !state.visitedHotspots.includes(item.stopId)) {
+          const visitedHotspots = [...state.visitedHotspots, item.stopId];
+          saveTourProgress(visitedHotspots);
+          patch.visitedHotspots = visitedHotspots;
+        } else if (item.scope === 'vangia' && !state.vanGiaVisited.includes(item.stopId)) {
+          const vanGiaVisited = [...state.vanGiaVisited, item.stopId];
+          saveVanGiaProgress(vanGiaVisited);
+          patch.vanGiaVisited = vanGiaVisited;
+        } else if (item.scope === 'campus' && !state.campusVisited.includes(item.stopId)) {
+          const campusVisited = [...state.campusVisited, item.stopId];
+          saveCampusProgress(campusVisited);
+          patch.campusVisited = campusVisited;
+        }
+      }
+      return patch;
+    }),
+
+  closeInteraction: () => set({ activeInteraction: null }),
+
+  triggerInteraction: () => {
+    const state = useStore.getState();
+    if (state.activeInteraction) {
+      state.closeInteraction();
+      return;
+    }
+    const nearby = findNearbyInteraction(state);
+    if (!nearby) return;
+    if (nearby.kind === 'stairs') {
+      state.enterLighthouseStairs();
+      return;
+    }
+    state.openInteraction(nearby);
+  },
 
   setWorldScope: (scope) =>
     set({
@@ -62,6 +109,7 @@ export const useStore = create((set) => ({
       spiralProgress: 0,
       spiralDirection: 1,
       cameraMode: scope === 'island' ? 'orbit' : 'fps',
+      viewPerspective: 'third',
       activeView:
         scope === 'island'
           ? 'island_overview'
@@ -71,8 +119,15 @@ export const useStore = create((set) => ({
           ? 'vg_overview'
           : 'aerial',
       activePOI: null,
-      // Đặt sẵn vị trí người chơi ở điểm xuất hiện, để thẻ tham quan không đọc vị trí của cảnh trước trong lúc tải.
-      ...(scope === 'vangia' ? { playerPosition: [VAN_GIA_SPAWN.position[0], VAN_GIA_SPAWN.position[1] + 1.4, VAN_GIA_SPAWN.position[2]] } : {}),
+      activeInteraction: null,
+      // Đặt sẵn vị trí người chơi ở điểm xuất hiện, để thẻ tham quan & tương tác E không đọc vị trí cũ trong lúc tải.
+      ...(scope === 'vangia'
+        ? { playerPosition: [VAN_GIA_SPAWN.position[0], VAN_GIA_SPAWN.position[1] + 1.4, VAN_GIA_SPAWN.position[2]] }
+        : scope === 'lighthouse'
+        ? { playerPosition: [LIGHTHOUSE_WORLD.spawn.position[0], LIGHTHOUSE_WORLD.spawn.position[1] + 1.4, LIGHTHOUSE_WORLD.spawn.position[2]] }
+        : scope === 'campus'
+        ? { playerPosition: [1.5, 1.4, 6] }
+        : {}),
       playerTeleport:
         scope === 'lighthouse'
           ? { ...LIGHTHOUSE_WORLD.spawn, nonce: Date.now() }
@@ -89,8 +144,10 @@ export const useStore = create((set) => ({
       worldScope: 'campus',
       campusTour: true,
       cameraMode: 'fps',
+      viewPerspective: 'third',
       activeView: 'aerial',
       activePOI: null,
+      activeInteraction: null,
       playerPosition: [1.5, 1.4, 6],
       playerTeleport: { position: [1.5, 0, 6], yaw: Math.PI, level: 'ground', nonce: Date.now() },
       joystickInput: NEUTRAL_JOYSTICK,
@@ -123,16 +180,26 @@ export const useStore = create((set) => ({
     spiralProgress: finalLevel === 'balcony' ? 1 : 0,
   }),
 
-  // The existing "fps" mode is controlled by the third-person character.
+  // The existing "fps" mode is controlled by the walking character (3rd-person or 1st-person).
   cameraMode: 'orbit',
-  setCameraMode: (mode) => set({ cameraMode: mode }),
+  setCameraMode: (mode) =>
+    set((state) => ({
+      cameraMode: mode,
+      activeInteraction: mode === 'orbit' ? null : state.activeInteraction,
+    })),
 
   // Preset Views in Orbit Mode
   activeView: 'island_overview',
   // viewNonce tăng mỗi lần chọn góc nhìn, để chọn lại đúng góc đang chọn vẫn đưa camera về.
   viewNonce: 0,
   setActiveView: (view) =>
-    set((state) => ({ activeView: view, cameraMode: 'orbit', activePOI: null, viewNonce: state.viewNonce + 1 })),
+    set((state) => ({
+      activeView: view,
+      cameraMode: 'orbit',
+      activePOI: null,
+      activeInteraction: null,
+      viewNonce: state.viewNonce + 1,
+    })),
 
   // Selected Point of Interest (POI)
   activePOI: null,

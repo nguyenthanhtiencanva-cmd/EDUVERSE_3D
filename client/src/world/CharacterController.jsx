@@ -8,10 +8,11 @@ import { LIGHTHOUSE_WORLD, STAIRS, advanceLighthousePlayer, footGroundAt, getSpi
 import { MODEL_URLS } from './models';
 import { campusCameraDistance, campusCanWalk, campusGroundAt } from './campusCollision';
 import { createAvatarMotion } from '../player/avatarMotion';
-import { movementHeading, rebaseMovementHeading, followHeading, manualStairStep } from '../player/thirdPersonMovement';
+import { movementHeading, firstPersonHeading, rebaseMovementHeading, followHeading, manualStairStep, stepSpeed } from '../player/thirdPersonMovement';
 
 const BASE_CAMERA_FOV = 52;
 const WALK_CAMERA_FOV = 66;
+const FIRST_PERSON_FOV = 72;
 
 const MOVE_KEYS = new Set([
   'KeyW',
@@ -26,6 +27,8 @@ const MOVE_KEYS = new Set([
   'ShiftRight',
   'Space',
   'KeyE',
+  'KeyV',
+  'Escape',
 ]);
 
 export function CharacterController({ tourist = true }) {
@@ -38,6 +41,8 @@ export function CharacterController({ tourist = true }) {
   useFrame(() => motion?.restore(), -1);
   const { actions } = useAnimations(animations, group);
   const walking = useStore((state) => state.cameraMode === 'fps');
+  const viewPerspective = useStore((state) => state.viewPerspective);
+  const activeInteraction = useStore((state) => state.activeInteraction);
   const playerTeleport = useStore((state) => state.playerTeleport);
 
   const initSpawn =
@@ -58,6 +63,7 @@ export function CharacterController({ tourist = true }) {
     lift: 0,
     jumpHeight: 0,
     cameraRadius: 5.5,
+    moveSpeed: 0,
     clip: '',
     snap: true,
     positionTimer: 0,
@@ -117,6 +123,22 @@ export function CharacterController({ tourist = true }) {
   );
 
   useEffect(() => {
+    if (activeInteraction) {
+      player.keys.clear();
+      player.movementActive = false;
+      player.moveSpeed = 0;
+    }
+  }, [activeInteraction, player]);
+
+  useEffect(() => {
+    if (!walking) return;
+    player.snap = true;
+    player.pitch = viewPerspective === 'first'
+      ? THREE.MathUtils.clamp(player.pitch, -0.85, 0.85)
+      : THREE.MathUtils.clamp(player.pitch, -0.25, 1.2);
+  }, [viewPerspective, walking, player]);
+
+  useEffect(() => {
     if (!walking) return;
     const canvas = gl.domElement;
     player.snap = true;
@@ -125,6 +147,7 @@ export function CharacterController({ tourist = true }) {
     const reset = () => {
       player.keys.clear();
       player.movementActive = false;
+      player.moveSpeed = 0;
       player.jumpPressed = false;
       player.jumpHeld = false;
       const pointer = player.pointer;
@@ -137,20 +160,39 @@ export function CharacterController({ tourist = true }) {
         event.target instanceof HTMLElement &&
         (event.target.closest('input, select, textarea, [contenteditable]') ||
           (event.target.closest('button') &&
-            (event.code === 'Space' || useStore.getState().worldScope !== 'lighthouse')))
+            (event.code === 'Space' || (event.code !== 'KeyE' && event.code !== 'Escape'))))
       )
         return;
-      if (event.code.startsWith('Arrow') || event.code === 'Space') event.preventDefault();
-      if (event.code === 'KeyE' && !event.repeat && useStore.getState().worldScope === 'lighthouse') {
-        const st = useStore.getState();
-        st.enterLighthouseStairs();
+      const st = useStore.getState();
+      if (event.code === 'Escape') {
+        if (st.activeInteraction) {
+          event.preventDefault();
+          st.closeInteraction();
+        }
         return;
       }
+      if (event.code === 'KeyE') {
+        if (!event.repeat) {
+          event.preventDefault();
+          st.triggerInteraction();
+        }
+        return;
+      }
+      if (st.activeInteraction) return;
+      if (event.code === 'KeyV') {
+        if (!event.repeat) {
+          event.preventDefault();
+          st.toggleViewPerspective();
+        }
+        return;
+      }
+      if (event.code.startsWith('Arrow') || event.code === 'Space') event.preventDefault();
       player.keys.add(event.code);
       if (event.code === 'Space' && !event.repeat) player.jumpPressed = true;
     };
     const keyUp = (event) => player.keys.delete(event.code);
     const pointerDown = (event) => {
+      if (useStore.getState().activeInteraction) return;
       if (player.pointer || (event.pointerType === 'mouse' && event.button !== 0)) return;
       player.pointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
       canvas.setPointerCapture(event.pointerId);
@@ -158,11 +200,12 @@ export function CharacterController({ tourist = true }) {
     const pointerMove = (event) => {
       const pointer = player.pointer;
       if (pointer?.id !== event.pointerId) return;
+      const isFirst = useStore.getState().viewPerspective === 'first';
       player.yaw -= (event.clientX - pointer.x) * 0.006;
       player.pitch = THREE.MathUtils.clamp(
         player.pitch + (event.clientY - pointer.y) * 0.005,
-        -0.25,
-        1.2,
+        isFirst ? -0.85 : -0.25,
+        isFirst ? 0.85 : 1.2,
       );
       pointer.x = event.clientX;
       pointer.y = event.clientY;
@@ -222,21 +265,28 @@ export function CharacterController({ tourist = true }) {
         ? LIGHTHOUSE_WORLD.groundAt(x, z, level, state.spiralProgress)
         : campusGroundAt(x, position.y, z) ?? position.y;
 
+    const isFirstPerson = walking && state.viewPerspective === 'first';
+    scene.visible = !isFirstPerson;
+
     if (walking) {
       const { joystickInput, setPlayerPosition } = state;
+      const locked = Boolean(state.activeInteraction);
       const axis = (positive, alternate, negative, other) =>
         Number(keys.has(positive) || keys.has(alternate)) -
         Number(keys.has(negative) || keys.has(other));
-      const forward = axis('KeyW', 'ArrowUp', 'KeyS', 'ArrowDown') + joystickInput.moveY;
-      const right = axis('KeyD', 'ArrowRight', 'KeyA', 'ArrowLeft') + joystickInput.moveX;
+      const forward = locked ? 0 : axis('KeyW', 'ArrowUp', 'KeyS', 'ArrowDown') + joystickInput.moveY;
+      const right = locked ? 0 : axis('KeyD', 'ArrowRight', 'KeyA', 'ArrowLeft') + joystickInput.moveX;
       const magnitude = Math.hypot(forward, right);
-      const inputHeading = movementHeading(player, player.yaw, forward, right, !!player.pointer);
-      const running =
+      const inputHeading = isFirstPerson
+        ? firstPersonHeading(player.yaw, forward, right)
+        : movementHeading(player, player.yaw, forward, right, !!player.pointer);
+      const running = !locked && (
         keys.has('ShiftLeft') ||
         keys.has('ShiftRight') ||
         (isLighthouse
           ? joystickInput.isRunning
-          : Math.hypot(joystickInput.moveX, joystickInput.moveY) > 0.92);
+          : Math.hypot(joystickInput.moveX, joystickInput.moveY) > 0.92)
+      );
 
       // Cầu thang xoắn trong tháp.
       if (isLighthouse && level === 'spiral') {
@@ -249,6 +299,7 @@ export function CharacterController({ tourist = true }) {
           position.set(pose.x, pose.y, pose.z);
           const moveYaw = dir > 0 ? pose.yawUp : pose.yawUp + Math.PI;
           player.facing = tourist ? moveYaw : moveYaw + Math.PI;
+          if (isFirstPerson && !player.pointer) player.yaw = moveYaw;
           if (exitLevel) {
             state.finishSpiralClimb(exitLevel);
             rebaseMovementHeading(player, moveYaw, forward, right);
@@ -270,14 +321,20 @@ export function CharacterController({ tourist = true }) {
           const movedZ = position.z - previousZ;
           if (Math.hypot(movedX, movedZ) > 0.001) {
             clip = running && level !== 'balcony' && !onStairs ? 'Run' : 'Walk';
-            const heading = Math.atan2(movedX, movedZ) + (tourist ? 0 : Math.PI) - player.facing;
-            player.facing += Math.atan2(Math.sin(heading), Math.cos(heading)) * (1 - Math.exp(-16 * walkDelta));
+            if (isFirstPerson) {
+              player.facing = tourist ? player.yaw : player.yaw + Math.PI;
+            } else {
+              const heading = Math.atan2(movedX, movedZ) + (tourist ? 0 : Math.PI) - player.facing;
+              player.facing += Math.atan2(Math.sin(heading), Math.cos(heading)) * (1 - Math.exp(-16 * walkDelta));
+            }
           }
+        } else if (isFirstPerson) {
+          player.facing = tourist ? player.yaw : player.yaw + Math.PI;
         }
 
         const groundY = getGroundY(position.x, position.z);
         const previousBase = position.y - player.jumpHeight;
-        if ((player.jumpPressed || (joystickInput.isJumping && !player.jumpHeld)) && player.jumpHeight === 0) {
+        if (!locked && (player.jumpPressed || (joystickInput.isJumping && !player.jumpHeld)) && player.jumpHeight === 0) {
           player.lift = 5.5;
         }
         player.jumpHeld = joystickInput.isJumping;
@@ -289,28 +346,46 @@ export function CharacterController({ tourist = true }) {
         const base = THREE.MathUtils.lerp(previousBase, groundY, 1 - Math.exp(-23 * walkDelta));
         position.y = (Math.abs(base - groundY) < 0.002 ? groundY : base) + player.jumpHeight;
       } else {
-        if (magnitude > 0.12) {
+        const targetSpeed = magnitude > 0.12
+          ? (tourist ? (running ? 5.2 : 2.6) : running ? 7.2 : 3.8) * Math.min(magnitude, 1)
+          : 0;
+        player.moveSpeed = stepSpeed(player.moveSpeed, targetSpeed, dt);
+        if (magnitude > 0.12 && player.moveSpeed > 0.05) {
           const yaw = inputHeading;
-          const speed = tourist ? (running ? 5.2 : 2.6) : running ? 7.2 : 3.8;
-          const distance = speed * Math.min(magnitude, 1) * dt;
+          const distance = player.moveSpeed * dt;
           const x = position.x + Math.sin(yaw) * distance;
           const z = position.z + Math.cos(yaw) * distance;
-          const moved =
-            (checkWalk(x, position.z) && x !== position.x) ||
-            (checkWalk(position.x, z) && z !== position.z);
-          if (checkWalk(x, position.z)) position.x = x;
-          if (checkWalk(position.x, z)) position.z = z;
+          let moved = false;
+          if (checkWalk(x, z)) {
+            position.x = x;
+            position.z = z;
+            moved = true;
+          } else {
+            if (checkWalk(x, position.z)) {
+              position.x = x;
+              moved = true;
+            }
+            if (checkWalk(position.x, z)) {
+              position.z = z;
+              moved = true;
+            }
+          }
           if (moved) clip = running ? 'Run' : 'Walk';
-          const targetFacing = tourist ? yaw : yaw + Math.PI;
-          const rotation = targetFacing - player.facing;
-          player.facing +=
-            Math.atan2(Math.sin(rotation), Math.cos(rotation)) * (1 - Math.exp(-14 * dt));
-
+          if (isFirstPerson) {
+            player.facing = tourist ? player.yaw : player.yaw + Math.PI;
+          } else {
+            const targetFacing = tourist ? yaw : yaw + Math.PI;
+            const rotation = targetFacing - player.facing;
+            player.facing +=
+              Math.atan2(Math.sin(rotation), Math.cos(rotation)) * (1 - Math.exp(-14 * dt));
+          }
+        } else if (isFirstPerson) {
+          player.facing = tourist ? player.yaw : player.yaw + Math.PI;
         }
 
         const groundY = getGroundY(position.x, position.z);
-        const touchJump = joystickInput.isJumping && !player.jumpHeld;
-        if ((player.jumpPressed || touchJump) && Math.abs(position.y - groundY) < 0.08) {
+        const touchJump = !locked && joystickInput.isJumping && !player.jumpHeld;
+        if ((!locked && (player.jumpPressed || touchJump)) && Math.abs(position.y - groundY) < 0.08) {
           player.lift = 5.5;
         }
         player.jumpPressed = false;
@@ -324,40 +399,52 @@ export function CharacterController({ tourist = true }) {
         }
       }
 
-      if (Math.hypot(position.x - startX, position.z - startZ) > 0.0001) {
-        player.yaw = followHeading(player.yaw, player.facing - (tourist ? 0 : Math.PI), dt, !!player.pointer);
-      }
       const { target, eye, direction } = scratch;
-      target.copy(position);
-      target.y += 1.38;
-      direction.set(
-        -Math.sin(player.yaw) * Math.cos(player.pitch),
-        Math.sin(player.pitch),
-        -Math.cos(player.yaw) * Math.cos(player.pitch),
-      );
-
-      const desiredFov = WALK_CAMERA_FOV;
+      const desiredFov = isFirstPerson ? FIRST_PERSON_FOV : WALK_CAMERA_FOV;
       if (Math.abs(camera.fov - desiredFov) > 0.05) {
         camera.fov = THREE.MathUtils.lerp(camera.fov, desiredFov, 1 - Math.exp(-10 * dt));
         camera.updateProjectionMatrix();
       }
 
-      const clearDistance = isLighthouse
-        ? LIGHTHOUSE_WORLD.cameraDistance(target, direction, player.distance, level)
-        : campusCameraDistance(target, direction, player.distance);
-      if (player.snap || clearDistance < player.cameraRadius) player.cameraRadius = clearDistance;
-      else player.cameraRadius = THREE.MathUtils.lerp(player.cameraRadius, clearDistance, 1 - Math.exp(-8 * dt));
-      const distance = player.cameraRadius;
+      if (isFirstPerson) {
+        eye.set(position.x, position.y + 1.56, position.z);
+        target.set(
+          eye.x + Math.sin(player.yaw) * Math.cos(player.pitch),
+          eye.y - Math.sin(player.pitch),
+          eye.z + Math.cos(player.yaw) * Math.cos(player.pitch),
+        );
+        camera.position.copy(eye);
+        player.snap = false;
+        camera.lookAt(target);
+      } else {
+        if (Math.hypot(position.x - startX, position.z - startZ) > 0.0001) {
+          player.yaw = followHeading(player.yaw, player.facing - (tourist ? 0 : Math.PI), dt, !!player.pointer);
+        }
+        target.copy(position);
+        target.y += 1.38;
+        direction.set(
+          -Math.sin(player.yaw) * Math.cos(player.pitch),
+          Math.sin(player.pitch),
+          -Math.cos(player.yaw) * Math.cos(player.pitch),
+        );
 
-      eye.copy(target).addScaledVector(direction, distance);
-      const eyeGroundY = getGroundY(eye.x, eye.z);
-      if (level !== 'spiral' && eye.y < eyeGroundY + 0.6) {
-        eye.y = eyeGroundY + 0.6;
+        const clearDistance = isLighthouse
+          ? LIGHTHOUSE_WORLD.cameraDistance(target, direction, player.distance, level)
+          : campusCameraDistance(target, direction, player.distance);
+        if (player.snap || clearDistance < player.cameraRadius) player.cameraRadius = clearDistance;
+        else player.cameraRadius = THREE.MathUtils.lerp(player.cameraRadius, clearDistance, 1 - Math.exp(-8 * dt));
+        const distance = player.cameraRadius;
+
+        eye.copy(target).addScaledVector(direction, distance);
+        const eyeGroundY = getGroundY(eye.x, eye.z);
+        if (level !== 'spiral' && eye.y < eyeGroundY + 0.6) {
+          eye.y = eyeGroundY + 0.6;
+        }
+        if (player.snap || distance < player.distance - 0.01) camera.position.copy(eye);
+        else camera.position.lerp(eye, 1 - Math.exp(-10 * dt));
+        player.snap = false;
+        camera.lookAt(target);
       }
-      if (player.snap || distance < player.distance - 0.01) camera.position.copy(eye);
-      else camera.position.lerp(eye, 1 - Math.exp(-10 * dt));
-      player.snap = false;
-      camera.lookAt(target);
 
       player.positionTimer += dt;
       if (player.positionTimer >= 0.08) {

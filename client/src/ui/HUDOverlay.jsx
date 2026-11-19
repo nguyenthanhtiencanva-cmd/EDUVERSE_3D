@@ -20,6 +20,7 @@ import {
   Gauge,
   Plane,
   Footprints,
+  Eye,
   HelpCircle,
   Globe,
   School,
@@ -38,6 +39,8 @@ export function HUDOverlay() {
   const setWorldScope = useStore((state) => state.setWorldScope);
   const cameraMode = useStore((state) => state.cameraMode);
   const setCameraMode = useStore((state) => state.setCameraMode);
+  const viewPerspective = useStore((state) => state.viewPerspective);
+  const setViewPerspective = useStore((state) => state.setViewPerspective);
   const activeView = useStore((state) => state.activeView);
   const setActiveView = useStore((state) => state.setActiveView);
   const timeOfDay = useStore((state) => state.timeOfDay);
@@ -176,12 +179,12 @@ export function HUDOverlay() {
             </button>
           )}
 
-          {/* Exploration Mode Switcher (Flycam vs Walk in 1:1 modes) */}
+          {/* Exploration Mode Switcher (Flycam vs Góc nhìn 3 vs Góc nhìn 1 in 1:1 modes) */}
           {!isIsland && (
             <div className="glass-panel p-1 rounded-2xl flex items-center gap-1 shadow-lg">
               <button
                 onClick={() => setCameraMode('orbit')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
                   cameraMode === 'orbit'
                     ? 'bg-amber-500 text-slate-950 shadow-md'
                     : 'text-slate-300 hover:text-white hover:bg-white/10'
@@ -192,16 +195,34 @@ export function HUDOverlay() {
                 <span className="hidden sm:inline">Flycam</span>
               </button>
               <button
-                onClick={() => setCameraMode('fps')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                  cameraMode === 'fps'
+                onClick={() => {
+                  setViewPerspective('third');
+                  setCameraMode('fps');
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                  cameraMode === 'fps' && viewPerspective === 'third'
                     ? 'bg-amber-500 text-slate-950 shadow-md'
                     : 'text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
-                title="Camera bám theo góc nhìn thứ 3 phía sau nhân vật"
+                title="Đi bộ ở góc nhìn thứ 3 (nhấn V để đổi góc nhìn)"
               >
                 <Footprints className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Góc nhìn thứ 3</span>
+                <span className="hidden sm:inline">Góc nhìn 3</span>
+              </button>
+              <button
+                onClick={() => {
+                  setViewPerspective('first');
+                  setCameraMode('fps');
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                  cameraMode === 'fps' && viewPerspective === 'first'
+                    ? 'bg-amber-500 text-slate-950 shadow-md'
+                    : 'text-slate-300 hover:text-white hover:bg-white/10'
+                }`}
+                title="Đi bộ ở góc nhìn thứ 1 (phím tắt V)"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Góc nhìn 1</span>
               </button>
             </div>
           )}
@@ -261,7 +282,7 @@ export function HUDOverlay() {
             {lighthouseLevel === 'spiral'
               ? `Cầu thang ${Math.round(spiralProgress * 100)}% · Giữ W/↑ hoặc đẩy cần để đi, S/↓ để quay lại. Thả ra để dừng.`
               : stairEntry ? 'Đã tới cửa cầu thang. Nhấn E hoặc nút Vào cầu thang, rồi tự điều khiển để leo.'
-              : nextStop?.directions || 'WASD/cần điều khiển để đi · Kéo chuột để nhìn quanh.'}
+              : nextStop?.directions || 'WASD đi · Shift chạy · V đổi góc nhìn · E tương tác bảng/cầu thang.'}
           </p>
         )}
       </header>

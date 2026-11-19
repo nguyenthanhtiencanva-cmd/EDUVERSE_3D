@@ -12,6 +12,20 @@ export function movementHeading(player, cameraYaw, forward, right, lookingAround
   return player.movementYaw + Math.atan2(-right, forward);
 }
 
+// First-person movement always steers directly relative to the camera view direction.
+export function firstPersonHeading(cameraYaw, forward, right) {
+  if (Math.hypot(forward, right) <= DEADZONE) return null;
+  return cameraYaw + Math.atan2(-right, forward);
+}
+
+// Smooth speed ramp for crisp GTA-like acceleration and deceleration without snapping.
+export function stepSpeed(current, target, dt) {
+  const safeDt = Math.min(Math.max(dt, 0), 0.05);
+  const rate = target > current ? 12 : 16;
+  const next = current + (target - current) * (1 - Math.exp(-rate * safeDt));
+  return Math.abs(next - target) < 0.02 ? target : next;
+}
+
 // Preserve the stair travel direction when the same gesture continues onto a floor.
 // In particular, held S must not reverse again after the camera turns to follow it.
 export function rebaseMovementHeading(player, heading, forward, right) {

@@ -10,10 +10,12 @@ import { LighthouseScene } from './world/lighthouse/LighthouseScene';
 import { VanGiaModel } from './world/vangia/VanGiaModel';
 import { VanGiaLife } from './world/vangia/VanGiaLife';
 import { CharacterController } from './world/CharacterController';
+import { InteractionMarkers } from './world/InteractionMarkers';
 import { SceneLighting } from './world/SceneLighting';
 import { CameraController } from './world/CameraController';
 import { HUDOverlay } from './ui/HUDOverlay';
 import { CampusTourHUD } from './ui/CampusTourHUD';
+import { InteractionHUD } from './ui/InteractionHUD';
 import { SceneLoader } from './ui/SceneLoader';
 import { PerfProbe, STATS_ENABLED } from './world/PerfProbe';
 import { useStore } from './store/useStore';
@@ -83,18 +85,21 @@ export default function LegacyWorld() {
           ) : worldScope === 'lighthouse' ? (
             <>
               <LighthouseScene />
+              <InteractionMarkers />
               <CharacterController key="tourist-lighthouse" tourist />
             </>
           ) : worldScope === 'vangia' ? (
             <>
               <VanGiaModel />
               <VanGiaLife />
+              <InteractionMarkers />
               <CharacterController key="tourist-vangia" tourist />
             </>
           ) : (
             <>
               <CampusModel />
               <CampusLife />
+              <InteractionMarkers />
               <CharacterController key="tourist-meshy" tourist />
             </>
           )}
@@ -103,6 +108,7 @@ export default function LegacyWorld() {
         {STATS_ENABLED && <PerfProbe />}
       </Canvas>
       {campusTour ? <CampusTourHUD /> : <HUDOverlay />}
+      <InteractionHUD />
       {loading && <SceneLoader />}
       {GEO_MAP_ENABLED && worldScope === 'island' && (
         <p
