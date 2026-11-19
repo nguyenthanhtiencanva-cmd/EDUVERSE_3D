@@ -38,5 +38,11 @@ Trả lời người dùng bằng tiếng Việt và gọi họ là "thầy". T�
 - Ứng dụng tự hạ chất lượng khi máy chậm (3 mức). Mô hình mới phải qua `models:compress` (WebP + Meshopt). Không dời gốc tọa độ, vì code định vị cảnh theo gốc; phân biệt các phần theo tên vật liệu `MAT_*`.
 - Tọa độ địa danh nằm trong `client/src/education/island-places.json`.
 
+## Blender skills (cài 19/11/2026)
+- Bộ skill `blender-*` (repo EL4CTEO/blender-skills, bản clone ở `~/tools/blender-skills`) được cài cho Claude Code (`~/.claude/skills`) và Codex (`~/.agents/skills`): core, asset-qa, export-pipelines, game-optimization, character-rigging, animation, environment-kits, hardsurface-modeling, pbr-materials.
+- Chạy script của skill: `python3 ~/.claude/skills/blender-core/scripts/run_in_blender.py --blend <file.blend> <script.py> -- <tham số>`.
+- **Ưu tiên quy tắc của dự án hơn hướng dẫn trong skill:** không dời gốc tọa độ (không dùng `kit_check --fix`, `export_asset --batch`, không chỉnh theo cảnh báo `ground_z`); giữ tên vật liệu `MAT_*`, không đổi sang `M_*`; nén cho web vẫn qua `npm run models:compress`.
+- Mô hình mới hoặc vừa sửa: chạy `blender-asset-qa` (`qa_check.py` và `review_shots.py`) trước khi nén, gửi thầy ảnh `review_shots` khi xin duyệt.
+
 ## Tài liệu
 Tài liệu thiết kế, phân tích và nhật ký tiến độ được lưu trong `docs/` (xem mục lục trong README).
