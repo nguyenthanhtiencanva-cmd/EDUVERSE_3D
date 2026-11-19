@@ -27,6 +27,11 @@ function angleDelta(from, to) {
   return d;
 }
 
+function routeHeading(route, fallbackFacing = 0) {
+  if (!route || route.length < 2) return fallbackFacing;
+  return Math.atan2(route[1][0] - route[0][0], route[1][1] - route[0][1]);
+}
+
 /**
  * Tính đúng tọa độ thế giới Three.js [x, y, z] và góc xoay Y cho học sinh ngồi ghế lớp học.
  * Phản ánh chính xác hàm build_classroom_interior trong assets/school/generate_blockout.py.
@@ -165,12 +170,14 @@ function StudentActor({ student, source, animations }) {
     return { scene: clone, mixer: clipMixer, actions: byName };
   }, [source, animations, isSit, student.variant]);
 
+  const initFacing = isSit ? (student.facing ?? 0) : routeHeading(student.route, student.facing ?? 0);
+
   const state = useRef({
     leg: 0,
     forward: true,
     waitUntil: (student.variant ?? 0) * 0.7,
     clip: '',
-    facing: student.facing ?? 0,
+    facing: initFacing,
   });
 
   useEffect(() => {
@@ -232,11 +239,17 @@ function StudentActor({ student, source, animations }) {
           s.waitUntil = clock.elapsedTime + (student.pause ?? 3);
         }
       } else {
-        pos.x += (dx / distance) * step;
-        pos.z += (dz / distance) * step;
         const yaw = Math.atan2(dx, dz);
-        s.facing += angleDelta(s.facing, yaw) * (1 - Math.exp(-10 * dt));
+        const turn = angleDelta(s.facing, yaw);
+        s.facing += turn * (1 - Math.exp(-10 * dt));
         group.current.quaternion.setFromAxisAngle(UP, s.facing);
+        // Xoay xong mới bước thẳng để học sinh không trượt ngang hoặc giật lùi khi quay đầu
+        const moveScale = Math.max(0, Math.cos(turn));
+        if (moveScale > 0.25) {
+          const move = Math.min(distance, step * moveScale);
+          pos.x += (dx / distance) * move;
+          pos.z += (dz / distance) * move;
+        }
         play(student.run ? 'Run' : 'Walk');
       }
     }
@@ -254,8 +267,11 @@ function StudentActor({ student, source, animations }) {
   const initPos = isSit ? student.position : [student.route[0][0], student.baseY ?? 0, student.route[0][1]];
   const scale = isSit ? 1 : (student.scale ?? 1);
   return (
-    <group ref={group} name={student.id} position={initPos} rotation-y={student.facing ?? 0} scale={scale}>
-      <primitive object={scene} />
+    <group ref={group} name={student.id} position={initPos} rotation-y={initFacing} scale={scale}>
+      {/* Phôi MPFB2 dựng nhìn +Y trong Blender (tương ứng -Z trong glTF), xoay 180° sang +Z để khớp hướng di chuyển & ghế ngồi */}
+      <group rotation-y={Math.PI}>
+        <primitive object={scene} />
+      </group>
     </group>
   );
 }
