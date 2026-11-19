@@ -2,6 +2,7 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { PerformanceMonitor } from '@react-three/drei';
 import { CampusModel } from './world/CampusModel';
+import { CampusLife } from './world/campus/CampusLife';
 import { IslandModel } from './world/IslandModel';
 import { GeoIslandModel } from './world/GeoIslandModel';
 import { GEO_MAP_ENABLED } from './world/geo';
@@ -93,6 +94,7 @@ export default function LegacyWorld() {
           ) : (
             <>
               <CampusModel />
+              <CampusLife />
               <CharacterController key="tourist-meshy" tourist />
             </>
           )}

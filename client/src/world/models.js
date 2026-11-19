@@ -13,14 +13,20 @@ import portNguDan from '../assets/models/port_ngu_dan.glb?url';
 import portBanHang from '../assets/models/port_ban_hang.glb?url';
 import portNhanVienBen from '../assets/models/port_nhan_vien_ben.glb?url';
 import portKhachDuLich from '../assets/models/port_khach_du_lich.glb?url';
+// Học sinh Phân hiệu Vĩnh Trung dựng bằng Blender + MPFB2 (assets/characters/generate_students_mpfb.py)
+import studentPrimaryBoy from '../assets/models/student_primary_boy.glb?url';
+import studentPrimaryGirl from '../assets/models/student_primary_girl.glb?url';
+import studentMidBoy from '../assets/models/student_mid_boy.glb?url';
+import studentMidGirl from '../assets/models/student_mid_girl.glb?url';
 
 // Bản nén sinh từ assets/web-models/ bằng `npm run models:compress`.
 export const MODEL_URLS = { campus, island, lighthouse, lighthouseLandscape, tourist, student, terrain, vanGia, vanGiaDong,
-  portNguDan, portBanHang, portNhanVienBen, portKhachDuLich };
+  portNguDan, portBanHang, portNhanVienBen, portKhachDuLich,
+  studentPrimaryBoy, studentPrimaryGirl, studentMidBoy, studentMidGirl };
 
 const SCENE_MODELS = {
   island: [island, lighthouse],
-  campus: [campus, tourist],
+  campus: [campus, tourist, studentPrimaryBoy, studentPrimaryGirl, studentMidBoy, studentMidGirl],
   lighthouse: [lighthouseLandscape, tourist],
   vangia: [vanGia, vanGiaDong, tourist, portNguDan, portBanHang, portNhanVienBen, portKhachDuLich],
 };

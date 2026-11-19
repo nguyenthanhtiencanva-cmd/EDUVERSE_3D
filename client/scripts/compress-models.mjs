@@ -29,6 +29,11 @@ const MODELS = [
   { source: 'hai_dang_vinh_thuc_v2.glb', output: 'hai_dang.glb', texture: 1024 },
   { source: 'tourist_salomon_glasses.glb', output: 'tourist.glb', texture: 1024 },
   { source: 'student_character.glb', output: 'student.glb' },
+  // 4 mẫu học sinh Phân hiệu Vĩnh Trung (Blender + MPFB2). Giữ nguyên node Student_Backpack & skeleton.
+  { source: 'student_primary_boy.glb', output: 'student_primary_boy.glb', texture: 512 },
+  { source: 'student_primary_girl.glb', output: 'student_primary_girl.glb', texture: 512 },
+  { source: 'student_mid_boy.glb', output: 'student_mid_boy.glb', texture: 512 },
+  { source: 'student_mid_girl.glb', output: 'student_mid_girl.glb', texture: 512 },
   // Cảng Vạn Gia 1:1, sinh bởi assets/landmarks/cang_van_gia/build_cang_van_gia.py. Không có texture.
   { source: 'cang_van_gia.glb', output: 'cang_van_gia.glb', merge: true },
   // Thuyền, phao, cờ của cảng: không gộp, vì web cần từng vật thể (theo tên) để cho dập dềnh, bay trong gió.
