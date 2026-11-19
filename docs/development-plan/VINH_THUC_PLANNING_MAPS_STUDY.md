@@ -40,3 +40,11 @@ Ngày 18/11/2026. Nguồn: hai bài của Vietnammoi (theo Dòng Vốn Kinh Doan
 5. **Lớp "Vĩnh Thực 2030" (tùy chọn):** bật tắt để học sinh xem đường, cảng, tuyến phà quy hoạch. Vẽ lại bằng nét của mình, không nhúng ảnh chụp của báo.
 
 Giới hạn: ảnh trên báo là ảnh chụp màn hình độ phân giải thấp, ranh giới chỉ đọc được gần đúng. Muốn chính xác hơn thì đọc hai file gốc trên Google Drive.
+
+## 5. Xác định khu dân cư (19/11/2026)
+
+- **Nắn ảnh quy hoạch về tọa độ thật:** khớp hình đảo trên bản đồ định hướng sử dụng đất với đường bờ từ dữ liệu cao độ, rồi tinh chỉnh bằng các nét đường trên bản đồ. Đường bờ trùng khá tốt ([ảnh kiểm tra](../preview_quy_hoach_khop_bo_bien.png)); sai số ước lượng 100–200 m. Ảnh quy hoạch chỉ dùng để tính, không đưa vào ứng dụng.
+- **Vùng hồng (đất phi nông nghiệp, gồm đất ở nông thôn xen thương mại dịch vụ):** 22 vùng, khoảng 5,5 km², chừng 16% diện tích đảo ([ảnh trên nền vệ tinh](../preview_khu_dan_cu_quy_hoach.png)). Lớn nhất là dải đất thấp giữa đồi và bờ Nam, từ Phân hiệu Vĩnh Trung tới trung tâm Vĩnh Thực (khoảng 1,2 km² quanh 21,366° B, 107,916° Đ; 0,5–0,6 km² quanh Vĩnh Trung, trung tâm Vĩnh Thực và bờ Đông); thêm hai vùng ở mũi Đông Bắc trên đường ra hải đăng, và mảnh nhỏ ở bờ Bắc.
+- **OpenStreetMap:** chỉ 5 vùng `landuse=residential`, đều ở phía Vĩnh Trung; 3 vùng nằm trong vùng hồng. Phía Vĩnh Thực không có.
+- **Lưu ý:** bản đồ là **quy hoạch đến 2030**, không phải hiện trạng. Một phần vùng hồng hiện là ruộng, bãi cát. Trục đường hiện có chạy dọc mép Bắc dải hồng (chỉ khoảng 31% chiều dài đường chính nằm trong hoặc sát vùng hồng), trong khi nét đường quy hoạch chạy giữa dải, nên quy hoạch có thể dự kiến mở đường mới phía Nam.
+- **Ảnh vệ tinh 10 m** không đủ nét để nhận ra từng ngôi nhà; chỉ thấy dải mái nhà dọc đường hiện có.

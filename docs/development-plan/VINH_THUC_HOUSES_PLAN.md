@@ -51,3 +51,19 @@ Năm kiểu nhà quen thuộc ở vùng ven biển miền Bắc, dựng bằng k
 2. **Năm kiểu nhà** trên có hợp với nhà ở Vĩnh Thực không, có kiểu nào thầy muốn thêm hay bỏ?
 3. **Khu quanh đầm Tây Nam** (vùng Bến Hèn) có nhà dịch vụ trên quy hoạch: có đặt nhà ở đó không?
 4. **Phóng to 2,5 lần** có được không, hay muốn nhà nhỏ đúng tỷ lệ thật (khi đó chỉ thấy rõ lúc bay sát)?
+
+## 7. Tiến độ
+
+- **19/11/2026, bản dựng đầu (chờ thầy duyệt):** thầy chọn đặt nhà theo **hiện trạng**: nhà xếp dọc đường đang có, chỉ trong vùng dân cư.
+  - Vùng dân cư: vùng hồng trên bản đồ quy hoạch (nới thêm 130 m để bù sai số nắn ảnh) cộng 5 vùng `landuse=residential` của OpenStreetMap, bỏ các khu đất quốc phòng. Lưu ở `client/scripts/data/settlement-zones.json`.
+  - Quanh Cảng Vạn Gia (bán kính 550 m) cho đặt nhà dọc đường xuống cảng dù quy hoạch không tô hồng, để có xóm bến; chỗ này cho phép sườn dốc hơn một chút.
+  - `npm run houses:build` sinh 491 nhà: cấp 4 mái ngói 178, mái tôn 132, nhà ống 99, mái Thái 51, quán 31 (quán chỉ ở gần cảng và bãi biển). Mỗi nhà rộng 18–26 m, cách nhau ít nhất 26 m, lùi 14–26 m khỏi mép đường.
+  - Mật độ: khoảng 136 nhà trong vòng 1 km quanh Trường TH&THCS Vĩnh Thực, 83 nhà quanh Phân hiệu Vĩnh Trung, 24 nhà trong 600 m quanh Cảng Vạn Gia.
+  - Vẽ bằng 10 lệnh vẽ (tường và mái của 5 kiểu nhà); mức chất lượng Thấp vẽ một nửa số nhà. `trees:build` bỏ cây trong vòng 26 m quanh nhà.
+  - Nhìn toàn đảo từ xa thì nhà quá nhỏ để thấy; nhà hiện rõ khi bay tới một địa điểm.
+- **19/11/2026, chỉnh theo ảnh đường ra Bến Hèn thầy gửi:**
+  - **Đường ra Bãi Bến Hèn:** OpenStreetMap chỉ ghi là đường mòn và dừng cách bãi khoảng 400 m. `scripts/lib/village-lanes.mjs` nâng đường này thành đường phụ (bê tông) và nối thẳng xuống mép bãi; `roads:build` tự áp dụng mỗi lần chạy. Dọc đường có xóm khoảng 35 nhà.
+  - **Kiểu nhà mới "nhà vườn":** nhà cấp 4 mái ngói có chái bếp vuông góc phía sau (hình chữ L nhìn từ trên). Ở xóm chủ yếu là nhà mái ngói một tầng (cấp 4, nhà vườn); nhà ống, nhà mái Thái chỉ ở gần trung tâm. Mái ngói chuyển sang màu cam đỏ, mái tôn xám xanh nhạt, tường vôi trắng, kem.
+  - Nhà lệch hướng ngẫu nhiên tới khoảng 13°, lùi 10–32 m khỏi mép đường.
+  - **Cây vườn:** `trees:build` thêm một đến ba cây nhỏ ở hai bên và sau mỗi nhà (563 cây), cách tim đường ít nhất 16 m.
+  - Tổng 452 nhà: cấp 4 158, nhà vườn 151, mái tôn 59, nhà ống 27, mái Thái 35, quán 22. 12 lệnh vẽ.

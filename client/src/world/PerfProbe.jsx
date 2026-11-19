@@ -13,7 +13,9 @@ export function PerfProbe() {
   const gl = useThree((state) => state.gl);
   const sample = useRef({ frames: 0, time: 0 }).current;
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
+    // Chỉ khi bật ?stats: cho phép xem cảnh và camera từ bảng điều khiển trình duyệt để gỡ lỗi.
+    window.__eduverseThree = state;
     sample.frames += 1;
     sample.time += delta;
     if (sample.time < 0.5) return;

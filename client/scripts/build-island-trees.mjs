@@ -13,7 +13,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { GEO_EXTENT, METERS_PER_UNIT, lonLatToWorld } from '../src/world/geo.js';
-import { groundAt } from './lib/island-ground.mjs';
+import { groundAt, toLonLat, toMeters as toSceneMeters } from './lib/island-ground.mjs';
 
 const SPACING_METERS = 55; // Khoảng cách lưới thử đặt cây
 const MAX_TREES = 9000;
@@ -100,6 +100,25 @@ function nearRoad(longitude, latitude) {
   return false;
 }
 const placeMeters = places.map((place) => toMeters(place.longitude, place.latitude));
+// Không trồng cây trong vòng 18 m quanh nhà (scripts/build-island-houses.mjs; xa hơn thì cây xen vườn nhà), nếu đã có tệp nhà.
+const houseFile = new URL('../src/education/island-houses.json', import.meta.url);
+const houseCells = new Map();
+const houseList = fs.existsSync(houseFile) ? JSON.parse(fs.readFileSync(houseFile, 'utf8')).houses : [];
+for (const [x, z] of houseList) {
+  const k = `${Math.floor((x * 100) / 30)},${Math.floor((z * 100) / 30)}`;
+  houseCells.set(k, [...(houseCells.get(k) || []), [x * 100, z * 100]]);
+}
+function nearHouse(longitude, latitude) {
+  const [lx, lz] = lonLatToWorld(longitude, latitude).map((v) => v * 100);
+  const gx = Math.floor(lx / 30);
+  const gz = Math.floor(lz / 30);
+  for (let a = -1; a <= 1; a++) {
+    for (let b = -1; b <= 1; b++) {
+      for (const [hx, hz] of houseCells.get(`${gx + a},${gz + b}`) || []) if (Math.hypot(hx - lx, hz - lz) < 18) return true;
+    }
+  }
+  return false;
+}
 const nearPlace = (longitude, latitude) => {
   const [mx, my] = toMeters(longitude, latitude);
   return placeMeters.some(([px, py]) => Math.hypot(px - mx, py - my) < PLACE_CLEARANCE_METERS);
@@ -123,11 +142,54 @@ for (let latitude = ISLAND.south; latitude < ISLAND.north; latitude += stepLat) 
     if (ground < 3) continue; // Bờ biển, bãi cát, ruộng thấp
     const green = vegetation(colorAt(lon, lat));
     if (random() > green * 0.9) continue;
-    if (nearRoad(lon, lat) || nearPlace(lon, lat)) continue;
+    if (nearRoad(lon, lat) || nearPlace(lon, lat) || nearHouse(lon, lat)) continue;
     const [x, z] = lonLatToWorld(lon, lat);
     trees.push([Number(x.toFixed(2)), Number(z.toFixed(2)), Number((ground / METERS_PER_UNIT).toFixed(3)), Number((0.75 + random() * 0.6).toFixed(2))]);
   }
 }
+// Cây vườn: mỗi nhà có một đến ba cây nhỏ ở hai bên và phía sau nhà (phía trước là đường),
+// cho xóm xanh như ảnh vệ tinh đường ra Bến Hèn thầy gửi. Tọa độ ở đây là mét tính từ gốc cảnh.
+const GARDEN_RING = [20, 36]; // Khoảng cách từ tâm nhà tới cây vườn (m)
+const GARDEN_ROAD_CLEARANCE = 16; // Cây vườn cách tim đường ít nhất (m)
+const roadSegments = [];
+for (const line of [...roads.roads, ...(roads.minorRoads || []), ...(roads.tracks || [])]) {
+  for (let i = 1; i < line.length; i++) roadSegments.push([...toSceneMeters(line[i - 1][0], line[i - 1][1]), ...toSceneMeters(line[i][0], line[i][1])]);
+}
+function roadDistance(x, z) {
+  let best = Infinity;
+  for (const [ax, az, bx, bz] of roadSegments) {
+    if (Math.min(ax, bx) - x > 60 || x - Math.max(ax, bx) > 60 || Math.min(az, bz) - z > 60 || z - Math.max(az, bz) > 60) continue;
+    const dx = bx - ax;
+    const dz = bz - az;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1)));
+    best = Math.min(best, Math.hypot(x - (ax + dx * t), z - (az + dz * t)));
+  }
+  return best;
+}
+const scenePlaces = places.map((place) => toSceneMeters(place.longitude, place.latitude));
+const garden = [];
+let gardenTrees = 0;
+for (const [x, z, , facing] of houseList) {
+  const [hx, hz] = [x * 100, z * 100];
+  const count = 1 + Math.floor(random() * 3);
+  for (let i = 0; i < count; i++) {
+    // Mặt trước nhà quay về hướng (sin facing, cos facing); cây đặt trong nửa vòng phía sau, lệch sang hai bên.
+    const angle = facing + Math.PI + (random() - 0.5) * Math.PI * 1.2;
+    const distance = GARDEN_RING[0] + random() * (GARDEN_RING[1] - GARDEN_RING[0]);
+    const gx = hx + Math.sin(angle) * distance;
+    const gz = hz + Math.cos(angle) * distance;
+    const [lon, lat] = toLonLat(gx, gz);
+    const ground = terrainHeight(lon, lat);
+    if (ground < 1.5 || nearHouse(lon, lat) || roadDistance(gx, gz) < GARDEN_ROAD_CLEARANCE) continue;
+    if (scenePlaces.some(([px, pz]) => Math.hypot(px - gx, pz - gz) < 90)) continue; // tránh mô hình địa danh
+    if (garden.some(([ox, oz]) => Math.hypot(ox - gx, oz - gz) < 14)) continue;
+    garden.push([gx, gz]);
+    trees.push([Number((gx / 100).toFixed(2)), Number((gz / 100).toFixed(2)), Number((ground / METERS_PER_UNIT).toFixed(3)), Number((0.55 + random() * 0.35).toFixed(2))]);
+    gardenTrees++;
+  }
+}
+console.log(`${gardenTrees} cây vườn quanh nhà`);
+
 // Giữ tối đa MAX_TREES cây, bỏ đều nếu vượt.
 const kept = trees.length > MAX_TREES ? trees.filter((_, index) => index % Math.ceil(trees.length / MAX_TREES) === 0) : trees;
 

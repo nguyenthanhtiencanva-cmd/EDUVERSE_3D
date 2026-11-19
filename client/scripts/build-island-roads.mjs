@@ -9,6 +9,7 @@
  */
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { applyVillageLanes } from './lib/village-lanes.mjs';
 
 const STEP = 2; // Phải khớp STEP trong build-island-terrain.mjs
 const SPACING_METERS = 30; // Chèn điểm để đường uốn theo địa hình
@@ -111,6 +112,10 @@ for (const element of elements) {
     trackKm += length;
   }
 }
+
+// Đường xóm thầy chỉ ra (scripts/lib/village-lanes.mjs): nâng đường mòn thành đường phụ, nối tới nơi.
+const lanes = applyVillageLanes({ minorRoads, tracks }, terrainHeight);
+if (lanes.length) console.log(`Đường xóm đã nâng cấp: ${lanes.join(', ')}`);
 
 const output = fileURLToPath(new URL('../src/education/island-roads.json', import.meta.url));
 fs.writeFileSync(

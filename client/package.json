@@ -11,6 +11,7 @@
     "terrain:build": "node scripts/build-island-terrain.mjs",
     "roads:build": "node scripts/build-island-roads.mjs",
     "roadmesh:build": "node scripts/build-island-roadmesh.mjs",
+    "houses:build": "node scripts/build-island-houses.mjs",
     "trees:build": "node scripts/build-island-trees.mjs",
     "test:geography": "node --test scripts/geography.test.mjs",
     "test:avatar": "node --test scripts/avatar-motion.test.mjs",

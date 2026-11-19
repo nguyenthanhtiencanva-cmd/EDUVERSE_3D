@@ -12,6 +12,7 @@ import PLACES from '../education/island-places.json';
 import { GeoPin } from '../ui/GeoPin';
 import { GeoRoads } from './GeoRoads';
 import { GeoTrees } from './GeoTrees';
+import { GeoHouses } from './GeoHouses';
 import satelliteUrl from '../assets/terrain/vinh-thuc-satellite.jpg?url';
 import { layoutLabels, pinLabelWidths, textWidth } from './labelLayout';
 
@@ -210,6 +211,7 @@ export function GeoIslandModel() {
       ))}
       <GeoRoads />
       <GeoTrees />
+      <GeoHouses />
       {quality !== 'low' && <GeoClouds />}
 
       {/* Mặt biển tô màu theo khoảng cách tới bờ, nằm ngay trên mực nước 0 m */}
