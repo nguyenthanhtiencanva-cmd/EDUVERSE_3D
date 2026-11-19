@@ -13,6 +13,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { GEO_EXTENT, METERS_PER_UNIT, lonLatToWorld } from '../src/world/geo.js';
+import { groundAt } from './lib/island-ground.mjs';
 
 const SPACING_METERS = 55; // Khoảng cách lưới thử đặt cây
 const MAX_TREES = 9000;
@@ -21,25 +22,11 @@ const PLACE_CLEARANCE_METERS = 160;
 const ISLAND = { west: 107.82, east: 108.02, south: 21.33, north: 21.42 };
 
 const read = (relative) => fs.readFileSync(new URL(relative, import.meta.url));
-const grid = JSON.parse(read('../public/terrain/vinh-thuc.json'));
-const raw = read('../public/terrain/vinh-thuc.f32');
-const heights = new Float32Array(raw.buffer, raw.byteOffset, grid.width * grid.height);
 const roads = JSON.parse(read('../src/education/island-roads.json'));
 const places = JSON.parse(read('../src/education/island-places.json'));
 
-// Cao độ (m) nội suy song tuyến trên lưới 30 m.
-function terrainHeight(longitude, latitude) {
-  const u = ((longitude - grid.west) / (grid.east - grid.west)) * (grid.width - 1);
-  const v = ((grid.north - latitude) / (grid.north - grid.south)) * (grid.height - 1);
-  const c = Math.max(0, Math.min(grid.width - 2, Math.floor(u)));
-  const r = Math.max(0, Math.min(grid.height - 2, Math.floor(v)));
-  const fx = u - c;
-  const fy = v - r;
-  const at = (cc, rr) => Math.max(0, heights[rr * grid.width + cc]);
-  const top = at(c, r) * (1 - fx) + at(c + 1, r) * fx;
-  const bottom = at(c, r + 1) * (1 - fx) + at(c + 1, r + 1) * fx;
-  return top * (1 - fy) + bottom * fy;
-}
+// Cao độ mặt đất lấy từ lưới địa hình đã làm êm nền đường, khớp đúng mặt đất hiển thị.
+const terrainHeight = groundAt;
 
 // Đọc ảnh vệ tinh qua `sips` (chuyển sang BMP 24 bit) để không phải cài thư viện giải mã JPEG.
 function readSatellite() {
@@ -100,7 +87,7 @@ const toMeters = (longitude, latitude) => [longitude * KM_PER_DEGREE_LONGITUDE *
 // Lưới thô để tra nhanh khoảng cách tới đường.
 const roadCells = new Set();
 const cellKey = (mx, my) => `${Math.floor(mx / ROAD_CLEARANCE_METERS)},${Math.floor(my / ROAD_CLEARANCE_METERS)}`;
-for (const line of [...roads.roads, ...(roads.minorRoads || [])]) {
+for (const line of [...roads.roads, ...(roads.minorRoads || []), ...(roads.tracks || [])]) {
   for (const [longitude, latitude] of line) roadCells.add(cellKey(...toMeters(longitude, latitude)));
 }
 function nearRoad(longitude, latitude) {

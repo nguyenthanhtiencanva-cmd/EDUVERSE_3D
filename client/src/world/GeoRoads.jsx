@@ -1,49 +1,87 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Line } from '@react-three/drei';
+import { Line, useGLTF } from '@react-three/drei';
+import * as THREE from 'three';
 import ROADS from '../education/island-roads.json';
+import LINES from '../education/island-road-lines.json';
+import roadsUrl from '../assets/models/vinh_thuc_roads.glb?url';
 import { METERS_PER_UNIT, VERTICAL_EXAGGERATION, lonLatToWorld } from './geo';
 
-// Đường nằm cao hơn mặt địa hình một chút để không bị lưới địa hình (đã nén, sai số vài mét) che mất.
-const LIFT = 0.1;
-// Đường phụ chỉ hiện khi camera hạ thấp hơn mức này (đơn vị cảnh, 1 đơn vị = 100 m).
-// Ở góc nhìn toàn đảo (cao 150) chúng ẩn; góc nhìn nghiêng (cao 42) và lúc bay tới địa danh thì hiện.
-const MINOR_ROAD_MAX_CAMERA_HEIGHT = 80;
+// Ngưỡng độ cao camera (đơn vị cảnh, 1 đơn vị = 100 m).
+// Trên LINE_MIN_CAMERA_HEIGHT: mặt đường thật quá nhỏ trên màn hình, nên vẽ thêm nét mảnh theo tim đường
+// (cả đường chính lẫn đường phụ). Dưới TRACK_MAX_CAMERA_HEIGHT: hiện đường mòn.
+const LINE_MIN_CAMERA_HEIGHT = 35;
+const TRACK_MAX_CAMERA_HEIGHT = 130;
+const LINE_LIFT = 0.06;
 
-function toSegments(lines) {
-  const points = [];
-  for (const line of lines) {
-    const path = line.map(([longitude, latitude, height]) => {
-      const [x, z] = lonLatToWorld(longitude, latitude);
-      return [x, (height / METERS_PER_UNIT) * VERTICAL_EXAGGERATION + LIFT, z];
+// Màu theo vật liệu trong tệp mặt đường (scripts/build-island-roadmesh.mjs).
+// polygonOffset đẩy mặt đường lên trước địa hình; lớp sau cao hơn lớp trước để vạch kẻ nằm trên mặt đường.
+const STYLES = {
+  Mat_Road_Dirt: { color: '#D2AE7E', offset: -1 },
+  Mat_Road_Concrete: { color: '#F1EADA', offset: -2 },
+  Mat_Road_Asphalt: { color: '#CBC6BC', offset: -3 },
+  Mat_Road_Marking: { color: '#F2BE3C', offset: -4 },
+  Mat_Road_Embankment: { color: '#857D70', offset: -1 },
+};
+
+function toSegments(lines, lift) {
+  return lines.flatMap((line) => {
+    const path = line.map(([lon, lat, height]) => {
+      const [x, z] = lonLatToWorld(lon, lat);
+      return [x, (height / METERS_PER_UNIT) * VERTICAL_EXAGGERATION + lift, z];
     });
-    for (let index = 1; index < path.length; index++) points.push(path[index - 1], path[index]);
-  }
-  return points;
+    return path.slice(1).flatMap((point, i) => [path[i], point]);
+  });
 }
 
-// Đường và tuyến phà của đảo, lấy từ OpenStreetMap (xem scripts/build-island-roads.mjs).
-// Đường chính, đường phụ và tuyến phà mỗi loại là một lệnh vẽ.
+// Mặt đường 3D (trục chính, đường phụ bê tông, đường mòn đất, kè đá qua đầm) và tuyến phà.
+// Dữ liệu đường: © OpenStreetMap contributors (ODbL).
 export function GeoRoads() {
-  const roads = useMemo(() => toSegments(ROADS.roads), []);
-  const minorRoads = useMemo(() => toSegments(ROADS.minorRoads || []), []);
-  const ferries = useMemo(() => toSegments(ROADS.ferries), []);
-  const minorGroup = useRef(null);
+  const { scene } = useGLTF(roadsUrl);
+  const tracks = useRef(null);
+  const mainLines = useRef(null);
+  const minorLines = useRef(null);
+
+  const roads = useMemo(() => {
+    const root = scene.clone(true);
+    root.scale.set(1, VERTICAL_EXAGGERATION, 1);
+    root.traverse((child) => {
+      if (!child.isMesh) return;
+      const style = STYLES[child.material?.name] || STYLES.Mat_Road_Concrete;
+      child.geometry.computeVertexNormals();
+      child.material = new THREE.MeshStandardMaterial({
+        color: style.color,
+        roughness: 0.95,
+        side: THREE.DoubleSide,
+        polygonOffset: true,
+        polygonOffsetFactor: style.offset,
+        polygonOffsetUnits: style.offset * 2,
+      });
+      child.renderOrder = -style.offset;
+      if (child.name === 'Road_Track') tracks.current = child;
+    });
+    return root;
+  }, [scene]);
+
+  const main = useMemo(() => toSegments(LINES.roads, LINE_LIFT), []);
+  const minor = useMemo(() => toSegments(LINES.minorRoads, LINE_LIFT), []);
+  const ferries = useMemo(() => toSegments(ROADS.ferries.map((line) => line.map(([lon, lat]) => [lon, lat, 0])), 0.12), []);
 
   useFrame(({ camera }) => {
-    if (!minorGroup.current) return;
-    const visible = camera.position.y < MINOR_ROAD_MAX_CAMERA_HEIGHT;
-    if (minorGroup.current.visible !== visible) minorGroup.current.visible = visible;
+    const height = camera.position.y;
+    const show = (ref, visible) => {
+      if (ref.current && ref.current.visible !== visible) ref.current.visible = visible;
+    };
+    show(tracks, height < TRACK_MAX_CAMERA_HEIGHT);
+    show(mainLines, height > LINE_MIN_CAMERA_HEIGHT);
+    show(minorLines, height > LINE_MIN_CAMERA_HEIGHT);
   });
 
   return (
     <group name="GeoRoads">
-      <group ref={minorGroup} visible={false}>
-        {minorRoads.length > 0 && (
-          <Line points={minorRoads} segments color="#F3E7B8" lineWidth={1.1} transparent opacity={0.8} />
-        )}
-      </group>
-      <Line points={roads} segments color="#FFF4C2" lineWidth={2.2} transparent opacity={0.95} />
+      <primitive object={roads} />
+      <Line ref={mainLines} points={main} segments color="#FFF4C2" lineWidth={3} transparent opacity={0.95} />
+      <Line ref={minorLines} points={minor} segments color="#FFF6DD" lineWidth={2.2} transparent opacity={0.95} />
       <Line points={ferries} segments color="#FFFFFF" lineWidth={2} dashed dashSize={2.4} gapSize={1.8} transparent opacity={0.9} />
     </group>
   );

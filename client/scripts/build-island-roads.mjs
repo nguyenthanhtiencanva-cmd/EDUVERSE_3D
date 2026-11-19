@@ -13,8 +13,9 @@ import { fileURLToPath } from 'node:url';
 const STEP = 2; // Phải khớp STEP trong build-island-terrain.mjs
 const SPACING_METERS = 30; // Chèn điểm để đường uốn theo địa hình
 const MAIN_ROADS = new Set(['primary', 'secondary', 'tertiary', 'unclassified']);
-// Đường phụ: trong khu dân cư, đường nội bộ và đường mòn. Chỉ vẽ khi camera tới gần.
-const MINOR_ROADS = new Set(['residential', 'service', 'living_street', 'track', 'path']);
+// Đường phụ: trong khu dân cư và đường nội bộ (bê tông). Đường mòn tách riêng (đất).
+const MINOR_ROADS = new Set(['residential', 'service', 'living_street']);
+const TRACKS = new Set(['track', 'path']);
 const QUERY = `[out:json][timeout:40];
 (way["highway"](21.33,107.82,21.42,108.02);way["route"="ferry"](21.33,107.82,21.50,108.02););
 out geom tags;`;
@@ -87,6 +88,8 @@ if (!elements) throw new Error('Không lấy được dữ liệu từ OpenStree
 
 const roads = [];
 const minorRoads = [];
+const tracks = [];
+let trackKm = 0;
 const ferries = [];
 let roadKm = 0;
 let minorKm = 0;
@@ -103,6 +106,9 @@ for (const element of elements) {
   } else if (MINOR_ROADS.has(tags.highway)) {
     minorRoads.push(toLine(element.geometry, false));
     minorKm += length;
+  } else if (TRACKS.has(tags.highway)) {
+    tracks.push(toLine(element.geometry, false));
+    trackKm += length;
   }
 }
 
@@ -115,8 +121,9 @@ fs.writeFileSync(
     note: 'Mỗi điểm là [kinh độ, vĩ độ, cao độ mét]. Sinh bởi npm run roads:build, không sửa tay.',
     roads,
     minorRoads,
+    tracks,
     ferries,
   })}\n`,
 );
-console.log(`${roads.length} đoạn đường chính (${roadKm.toFixed(1)} km), ${minorRoads.length} đoạn đường phụ (${minorKm.toFixed(1)} km), ${ferries.length} tuyến phà (${ferryKm.toFixed(1)} km) -> ${output}`);
+console.log(`${roads.length} đoạn đường chính (${roadKm.toFixed(1)} km), ${minorRoads.length} đoạn đường phụ (${minorKm.toFixed(1)} km), ${tracks.length} đoạn đường mòn (${trackKm.toFixed(1)} km), ${ferries.length} tuyến phà (${ferryKm.toFixed(1)} km) -> ${output}`);
 console.log('Đầu tuyến phà:', ferries.map((line) => `${line[0].slice(0, 2)} -> ${line[line.length - 1].slice(0, 2)}`).join(' | '));

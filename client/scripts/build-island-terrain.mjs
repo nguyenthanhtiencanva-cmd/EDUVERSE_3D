@@ -5,24 +5,17 @@
  *   npm run models:compress -- terrain
  *
  * Chỉ dựng các ô có đất; mặt biển là một mặt phẳng riêng trong cảnh.
+ * Nền đường được làm êm theo scripts/lib/island-ground.mjs; chạy lại sau mỗi lần `roads:build`.
  * Cao độ ghi theo tỷ lệ thật, độ phóng đại chiều đứng được áp lúc hiển thị.
  */
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { GEO_EXTENT, METERS_PER_UNIT, lonLatToWorld } from '../src/world/geo.js';
+import { METERS_PER_UNIT, lonLatToWorld } from '../src/world/geo.js';
+import { STEP, columns, grid, groundHeights, rows } from './lib/island-ground.mjs';
 
-const STEP = 2; // Lấy 1 trong 2 điểm của lưới 30 m, tức khoảng 60 m mỗi ô
-const grid = JSON.parse(fs.readFileSync(new URL('../public/terrain/vinh-thuc.json', import.meta.url), 'utf8'));
-const raw = fs.readFileSync(new URL('../public/terrain/vinh-thuc.f32', import.meta.url));
-const heights = new Float32Array(raw.buffer, raw.byteOffset, grid.width * grid.height);
-
-for (const key of ['west', 'south', 'east', 'north']) {
-  if (Math.abs(grid[key] - GEO_EXTENT[key]) > 1e-9) throw new Error(`Phạm vi lưới cao độ khác GEO_EXTENT ở ${key}`);
-}
-
-const columns = Math.floor((grid.width - 1) / STEP) + 1;
-const rows = Math.floor((grid.height - 1) / STEP) + 1;
-const heightAt = (column, row) => Math.max(0, heights[row * STEP * grid.width + column * STEP]);
+// Cao độ (m) của lưới thô 60 m, đã làm êm nền đường.
+const ground = groundHeights();
+const heightAt = (column, row) => ground[row * columns + column];
 
 const vertexIndex = new Int32Array(columns * rows).fill(-1);
 const positions = [];

@@ -24,6 +24,8 @@ const MODELS = [
   { source: 'vinh_thuc_island_v3.glb', output: 'vinh_thuc_island.glb' },
   // Địa hình thật, sinh bởi `npm run terrain:build`.
   { source: 'vinh_thuc_terrain.glb', output: 'vinh_thuc_terrain.glb' },
+  // Mặt đường, sinh bởi `npm run roadmesh:build`. Không lượng tử hóa (meshopt) để mặt đường không lệch khỏi địa hình.
+  { source: 'vinh_thuc_roads.glb', output: 'vinh_thuc_roads.glb', meshopt: false },
   { source: 'hai_dang_vinh_thuc_v2.glb', output: 'hai_dang.glb', texture: 1024 },
   { source: 'tourist_salomon_glasses.glb', output: 'tourist.glb', texture: 1024 },
   { source: 'student_character.glb', output: 'student.glb' },
@@ -64,7 +66,7 @@ for (const model of MODELS) {
       run('resize', '--width', String(model.texture), '--height', String(model.texture));
       run('webp', '--quality', '82');
     }
-    run('meshopt', '--level', 'medium');
+    if (model.meshopt !== false) run('meshopt', '--level', 'medium');
     const target = path.join(OUTPUT, model.output);
     fs.copyFileSync(current, target);
     console.log(`${model.source} (${megabytes(path.join(SOURCE, model.source))}) -> ${model.output} (${megabytes(target)})`);
